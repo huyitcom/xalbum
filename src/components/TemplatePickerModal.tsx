@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Check, LayoutGrid, CopyCheck } from 'lucide-react';
 import { TemplateId, TemplateDefinition } from '../types';
-import { BASIC_TEMPLATES, WITH_TEXT_TEMPLATES, TEMPLATES } from '../data/constants';
+import { BASIC_TEMPLATES, WITH_TEXT_TEMPLATES, VIP_TEMPLATES, TEMPLATES } from '../data/constants';
 import { TemplateThumbnail } from './EditorSidebar';
 
 interface TemplatePickerModalProps {
@@ -19,7 +19,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
   onSelectTemplate,
   onApplyTemplateToAll,
 }) => {
-  const [category, setCategory] = useState<'basic' | 'with-text'>('basic');
+  const [category, setCategory] = useState<'basic' | 'with-text' | 'vip'>('basic');
 
   if (!isOpen) return null;
 
@@ -27,7 +27,12 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
     onSelectTemplate(tmpl.id);
   };
 
-  const displayedTemplates = category === 'basic' ? BASIC_TEMPLATES : WITH_TEXT_TEMPLATES;
+  const displayedTemplates =
+    category === 'basic'
+      ? BASIC_TEMPLATES
+      : category === 'with-text'
+      ? WITH_TEXT_TEMPLATES
+      : VIP_TEMPLATES;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-stone-900/60 backdrop-blur-xs animate-in fade-in duration-200">
@@ -63,42 +68,38 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
           </button>
         </div>
 
-        {/* Sub-tabs: Cơ bản / Có chữ */}
+        {/* Sub-tabs: Tiêu chuẩn / Chuyên nghiệp / Họa tiết */}
         <div className="px-4 pt-3 sm:px-6 sm:pt-4 bg-stone-50/50 flex items-center">
           <div className="flex bg-stone-200/70 p-1 rounded-xl">
             <button
               onClick={() => setCategory('basic')}
-              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition text-center cursor-pointer ${
                 category === 'basic'
                   ? 'bg-white text-stone-900 shadow-xs'
                   : 'text-stone-600 hover:text-stone-900'
               }`}
             >
-              <span>Cơ bản</span>
-              <span
-                className={`text-[10px] px-1.5 py-0.2 rounded-full font-medium ${
-                  category === 'basic' ? 'bg-sky-100 text-sky-700' : 'bg-stone-300/80 text-stone-600'
-                }`}
-              >
-                {BASIC_TEMPLATES.length}
-              </span>
+              Tiêu chuẩn
             </button>
             <button
               onClick={() => setCategory('with-text')}
-              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition text-center cursor-pointer ${
                 category === 'with-text'
                   ? 'bg-white text-stone-900 shadow-xs'
                   : 'text-stone-600 hover:text-stone-900'
               }`}
             >
-              <span>Có chữ</span>
-              <span
-                className={`text-[10px] px-1.5 py-0.2 rounded-full font-medium ${
-                  category === 'with-text' ? 'bg-sky-100 text-sky-700' : 'bg-stone-300/80 text-stone-600'
-                }`}
-              >
-                {WITH_TEXT_TEMPLATES.length}
-              </span>
+              Chuyên nghiệp
+            </button>
+            <button
+              onClick={() => setCategory('vip')}
+              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition text-center cursor-pointer ${
+                category === 'vip'
+                  ? 'bg-white text-stone-900 shadow-xs'
+                  : 'text-stone-600 hover:text-stone-900'
+              }`}
+            >
+              Họa tiết
             </button>
           </div>
         </div>
@@ -127,8 +128,12 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
                   )}
 
                   {/* Thumbnail Container */}
-                  <div className="w-full flex items-center justify-center bg-stone-100/80 rounded-xl overflow-hidden p-2.5 transition-colors group-hover:bg-stone-100 aspect-[50/35]">
-                    <div className="w-full h-full aspect-[50/35] shadow-sm border border-stone-200/90 rounded-md overflow-hidden transition-transform duration-200 group-hover:scale-[1.02]">
+                  <div className={`w-full flex items-center justify-center bg-stone-100/80 rounded-xl overflow-hidden p-2.5 transition-colors group-hover:bg-stone-100 ${
+                    tmpl.aspectRatio === '50:20' ? 'aspect-[50/20]' : 'aspect-[50/35]'
+                  }`}>
+                    <div className={`w-full h-full shadow-sm border border-stone-200/90 rounded-md overflow-hidden transition-transform duration-200 group-hover:scale-[1.02] ${
+                      tmpl.aspectRatio === '50:20' ? 'aspect-[50/20]' : 'aspect-[50/35]'
+                    }`}>
                       <TemplateThumbnail id={tmpl.id} />
                     </div>
                   </div>
@@ -139,7 +144,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
                       {tmpl.name}
                     </h3>
                     <p className="text-[11px] text-stone-400 text-center mt-0.5">
-                      {tmpl.slotCount} vị trí ảnh
+                      {tmpl.slotCount} vị trí ảnh • {tmpl.aspectRatio === '50:20' ? '50x20cm (25x20)' : (tmpl.aspectRatio ? `${tmpl.aspectRatio.replace(':', 'x')}cm` : '50x35cm')}
                     </p>
                   </div>
                 </div>
@@ -151,7 +156,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
         {/* Footer */}
         <div className="px-4 py-3 sm:px-6 sm:py-3.5 border-t border-stone-100 bg-white flex items-center justify-between gap-3">
           <span className="text-xs text-stone-500">
-            Đang xem: <strong className="text-stone-800">{displayedTemplates.length} mẫu</strong> ({category === 'basic' ? 'Cơ bản' : 'Có chữ'})
+            Đang xem: <strong className="text-stone-800">{displayedTemplates.length} mẫu</strong> ({category === 'basic' ? 'Tiêu chuẩn' : category === 'with-text' ? 'Chuyên nghiệp' : 'Họa tiết'})
           </span>
           <div className="flex items-center gap-2">
             {category === 'basic' && onApplyTemplateToAll && (

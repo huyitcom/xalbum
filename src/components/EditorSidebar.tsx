@@ -11,6 +11,7 @@ import {
   WITH_TEXT_TEMPLATES,
   VIP_TEMPLATES,
   BG_PRESETS,
+  OVERLAY_SVG,
 } from '../data/constants';
 import {
   LayoutGrid,
@@ -44,6 +45,7 @@ interface EditorSidebarProps {
   usedImageIds?: string[];
   missingImagesCount?: number;
   onSmartRelink?: () => void;
+  onClearAllImages?: (clearFromPages?: boolean) => void;
 }
 
 
@@ -285,14 +287,14 @@ export const TemplateThumbnail: React.FC<{ id: string; slots?: import('../types'
   if (id === 'basic-four-asymmetric') {
     return (
       <div className={`w-full h-full bg-white p-1 flex gap-1 select-none overflow-hidden ${className}`}>
-        <div className="w-[55%] h-full flex flex-col gap-0.5">
+        <div className="w-1/2 h-full flex flex-col gap-0.5">
           <div className="w-full h-1/2 flex gap-0.5">
             <div className="w-1/2 h-full bg-stone-300 rounded-[2px] relative overflow-hidden"><ThumbnailSlot slot={slots?.[0]} /></div>
             <div className="w-1/2 h-full bg-stone-300 rounded-[2px] relative overflow-hidden"><ThumbnailSlot slot={slots?.[1]} /></div>
           </div>
           <div className="w-full h-1/2 bg-stone-300 rounded-[2px] relative overflow-hidden"><ThumbnailSlot slot={slots?.[2]} /></div>
         </div>
-        <div className="w-[45%] h-full bg-stone-300 rounded-[2px] relative overflow-hidden"><ThumbnailSlot slot={slots?.[3]} /></div>
+        <div className="w-1/2 h-full bg-stone-300 rounded-[2px] relative overflow-hidden"><ThumbnailSlot slot={slots?.[3]} /></div>
       </div>
     );
   }
@@ -354,17 +356,23 @@ export const TemplateThumbnail: React.FC<{ id: string; slots?: import('../types'
   if (id === 'album-50x35-memories') {
     return (
       <div className={`w-full h-full bg-white p-1.5 flex gap-1 items-center select-none overflow-hidden ${className}`}>
-        <div className="w-[49%] h-full bg-stone-200 rounded-[2px] flex items-center justify-center text-[7px] text-stone-400 font-bold relative overflow-hidden"><ThumbnailSlot slot={slots?.[0]} placeholder="1" /></div>
-        <div className="w-[25%] h-full flex flex-col gap-1">
-          <div className="w-full h-[50%] bg-stone-200 rounded-[2px] flex items-center justify-center text-[6px] text-stone-400 relative overflow-hidden"><ThumbnailSlot slot={slots?.[1]} placeholder="2" /></div>
-          <div className="w-full h-[50%] bg-stone-200 rounded-[2px] flex items-center justify-center text-[6px] text-stone-400 relative overflow-hidden"><ThumbnailSlot slot={slots?.[2]} placeholder="3" /></div>
+        {/* Left Page (50%) */}
+        <div className="w-1/2 h-full bg-stone-200 rounded-[2px] flex items-center justify-center text-[7px] text-stone-400 font-bold relative overflow-hidden flex-1">
+          <ThumbnailSlot slot={slots?.[0]} placeholder="1" />
         </div>
-        <div className="w-[26%] h-full flex flex-col items-end justify-center pr-0.5">
-          <span className="text-[6px] font-serif text-amber-800 font-bold italic scale-90">Memories</span>
-          <div className="w-full space-y-0.5 mt-0.5">
-            <div className="w-full h-[1.5px] bg-stone-300 rounded-full" />
-            <div className="w-4/5 h-[1.5px] bg-stone-300 rounded-full ml-auto" />
-            <div className="w-3/4 h-[1.5px] bg-stone-300 rounded-full ml-auto" />
+        {/* Right Page (50%) */}
+        <div className="w-1/2 h-full flex gap-1 items-center flex-1">
+          <div className="w-1/2 h-full flex flex-col gap-1">
+            <div className="w-full h-[50%] bg-stone-200 rounded-[2px] flex items-center justify-center text-[6px] text-stone-400 relative overflow-hidden"><ThumbnailSlot slot={slots?.[1]} placeholder="2" /></div>
+            <div className="w-full h-[50%] bg-stone-200 rounded-[2px] flex items-center justify-center text-[6px] text-stone-400 relative overflow-hidden"><ThumbnailSlot slot={slots?.[2]} placeholder="3" /></div>
+          </div>
+          <div className="w-1/2 h-full flex flex-col items-center justify-center px-0.5 text-center">
+            <span className="text-[6px] font-serif text-amber-800 font-bold italic scale-90">Memories</span>
+            <div className="w-full space-y-0.5 mt-0.5">
+              <div className="w-4/5 mx-auto h-[1.5px] bg-stone-300 rounded-full" />
+              <div className="w-3/5 mx-auto h-[1.5px] bg-stone-300 rounded-full" />
+              <div className="w-2/3 mx-auto h-[1.5px] bg-stone-300 rounded-full" />
+            </div>
           </div>
         </div>
       </div>
@@ -375,12 +383,12 @@ export const TemplateThumbnail: React.FC<{ id: string; slots?: import('../types'
     return (
       <div className={`w-full h-full bg-white p-1.5 relative flex items-center select-none overflow-hidden ${className}`}>
         <div className="absolute inset-1 border border-[#8c7362]/60 rounded-[1px] pointer-events-none" />
-        <div className="w-[48%] h-full flex flex-col items-center justify-between py-1 px-1 z-10">
+        <div className="w-1/2 h-full flex flex-col items-center justify-between py-1 px-1 z-10 flex-1">
           <span className="text-[5px] font-serif text-stone-700 uppercase tracking-widest font-bold">LOVE IS</span>
           <div className="w-[90%] h-[55%] bg-stone-200 rounded-[2px] flex items-center justify-center text-[6px] text-stone-400 relative overflow-hidden"><ThumbnailSlot slot={slots?.[0]} placeholder="1" /></div>
           <div className="w-4/5 h-[1.5px] bg-stone-300 rounded-full" />
         </div>
-        <div className="w-[52%] h-full flex items-center justify-center p-1 z-10">
+        <div className="w-1/2 h-full flex items-center justify-center p-1 z-10 flex-1">
           <div className="w-[80%] h-[88%] bg-stone-200 rounded-[2px] flex items-center justify-center text-[7px] text-stone-400 font-bold relative overflow-hidden"><ThumbnailSlot slot={slots?.[1]} placeholder="2" /></div>
         </div>
       </div>
@@ -390,11 +398,15 @@ export const TemplateThumbnail: React.FC<{ id: string; slots?: import('../types'
   if (id === 'album-50x35-celebrate') {
     return (
       <div className={`w-full h-full bg-white p-1.5 flex gap-1 items-center select-none overflow-hidden ${className}`}>
-        <div className="w-[48%] h-full bg-stone-200 rounded-[2px] flex items-center justify-center text-[7px] text-stone-400 font-bold relative overflow-hidden"><ThumbnailSlot slot={slots?.[0]} placeholder="1" /></div>
-        <div className="w-[52%] h-full flex flex-col justify-between">
+        {/* Left Page (50%) */}
+        <div className="w-1/2 h-full bg-stone-200 rounded-[2px] flex items-center justify-center text-[7px] text-stone-400 font-bold relative overflow-hidden flex-1">
+          <ThumbnailSlot slot={slots?.[0]} placeholder="1" />
+        </div>
+        {/* Right Page (50%) */}
+        <div className="w-1/2 h-full flex flex-col justify-between flex-1">
           <div className="w-full h-[70%] flex gap-1">
-            <div className="w-[56%] h-full bg-stone-200 rounded-[2px] flex items-center justify-center text-[6px] text-stone-400 relative overflow-hidden"><ThumbnailSlot slot={slots?.[1]} placeholder="2" /></div>
-            <div className="w-[44%] h-full flex flex-col gap-1">
+            <div className="w-[54%] h-full bg-stone-200 rounded-[2px] flex items-center justify-center text-[6px] text-stone-400 relative overflow-hidden"><ThumbnailSlot slot={slots?.[1]} placeholder="2" /></div>
+            <div className="w-[46%] h-full flex flex-col gap-1">
               <div className="w-full h-[50%] bg-stone-200 rounded-[2px] flex items-center justify-center text-[5px] text-stone-400 relative overflow-hidden"><ThumbnailSlot slot={slots?.[2]} placeholder="3" /></div>
               <div className="w-full h-[50%] bg-stone-200 rounded-[2px] flex items-center justify-center text-[5px] text-stone-400 relative overflow-hidden"><ThumbnailSlot slot={slots?.[3]} placeholder="4" /></div>
             </div>
@@ -449,7 +461,8 @@ export const TemplateThumbnail: React.FC<{ id: string; slots?: import('../types'
   if (id === 'album-50x35-symphony') {
     return (
       <div className={`w-full h-full bg-white p-1.5 flex gap-1 items-center select-none overflow-hidden ${className}`}>
-        <div className="w-[49%] h-full flex flex-col justify-between">
+        {/* Left Page (50%) */}
+        <div className="w-1/2 h-full flex flex-col justify-between flex-1">
           <div className="flex justify-between items-center">
             <span className="text-[6px] font-serif text-stone-900 italic font-bold">Symphony</span>
             <div className="w-1/3 h-[1px] bg-stone-300 rounded-full relative overflow-hidden" />
@@ -459,7 +472,18 @@ export const TemplateThumbnail: React.FC<{ id: string; slots?: import('../types'
             <div className="w-[42%] h-[75%] bg-stone-200 rounded-[2px] flex items-center justify-center text-[5.5px] text-stone-400 relative overflow-hidden"><ThumbnailSlot slot={slots?.[1]} placeholder="2" /></div>
           </div>
         </div>
-        <div className="w-[51%] h-full bg-stone-200 rounded-[2px] flex items-center justify-center text-[7px] text-stone-400 font-bold relative overflow-hidden"><ThumbnailSlot slot={slots?.[2]} placeholder="3" /></div>
+        {/* Right Page (50%): Large photo with left vertical label indicator close to edge */}
+        <div className="w-1/2 h-full relative flex items-center justify-end pr-1 pl-2 py-0.5 flex-1">
+          <div className="w-full h-[96%] relative flex items-center justify-end">
+            <div className="absolute -left-1.5 top-1.5 bottom-1.5 flex flex-col justify-between items-center pointer-events-none">
+              <div className="w-[1px] h-2.5 bg-stone-400 rounded-full" />
+              <div className="w-[1px] h-2.5 bg-stone-500 rounded-full" />
+            </div>
+            <div className="w-full h-full bg-stone-200 rounded-[2px] flex items-center justify-center text-[7px] text-stone-400 font-bold relative overflow-hidden">
+              <ThumbnailSlot slot={slots?.[2]} placeholder="3" />
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -636,6 +660,58 @@ export const TemplateThumbnail: React.FC<{ id: string; slots?: import('../types'
     );
   }
 
+  // --- OVERLAY / VIP TEMPLATES ---
+  if (id.startsWith('overlay-')) {
+    const vipTmpl = VIP_TEMPLATES.find((t) => t.id === id);
+    const slotsCoords = vipTmpl?.slotsCoordinates || [
+      { x: 25, y: 25, width: 50, height: 50, rotation: 0 },
+    ];
+    let overlayImg = vipTmpl?.overlayUri || OVERLAY_SVG;
+    const match = overlayImg.match(/(\d\d-\d\d\.png)/);
+    if (match) {
+      overlayImg = '/images/layout/lay01/' + match[1];
+    }
+
+    return (
+      <div className={`w-full h-full relative overflow-hidden bg-stone-50 flex items-center justify-center select-none ${className}`}>
+        {/* Slot cutouts behind */}
+        {slotsCoords.map((coord, idx) => (
+          <div
+            key={idx}
+            className="absolute bg-stone-300 rounded-[1px] overflow-hidden shadow-2xs z-0"
+            style={{
+              left: `${coord.x}%`,
+              top: `${coord.y}%`,
+              width: `${coord.width}%`,
+              height: `${coord.height}%`,
+              transform: `rotate(${coord.rotation || 0}deg)`,
+            }}
+          >
+            <ThumbnailSlot slot={slots?.[idx]} placeholder="" />
+          </div>
+        ))}
+
+        {/* Overlay PNG */}
+        <img
+          src={overlayImg}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none z-10"
+          onError={(e) => {
+            const target = e.currentTarget;
+            const match = target.src.match(/(\d\d-\d\d\.png)/);
+            if (match) {
+              if (!target.src.includes('photobookvietnam.net') && vipTmpl?.overlayUri) {
+                target.src = vipTmpl.overlayUri;
+              } else if (!target.src.endsWith('/images/layout/lay01/' + match[1])) {
+                target.src = '/images/layout/lay01/' + match[1];
+              }
+            }
+          }}
+        />
+      </div>
+    );
+  }
+
   return <div className="w-full h-full bg-stone-100"></div>;
 };
 
@@ -650,17 +726,36 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
   usedImageIds = [],
   missingImagesCount = 0,
   onSmartRelink,
+  onClearAllImages,
 }) => {
   const [activeTab, setActiveTab] = useState<'images' | 'layouts' | 'style'>('images');
-  const [layoutCategory, setLayoutCategory] = useState<'basic' | 'with-text' | 'vip'>('vip');
+  const [layoutCategory, setLayoutCategory] = useState<'basic' | 'with-text' | 'vip'>('basic');
   const [isDraggingOverLibrary, setIsDraggingOverLibrary] = useState(false);
   const [libraryImages, setLibraryImages] = useState<OptimizedImage[]>(() => imageOptimizer.getImages());
   const [imageColumns, setImageColumns] = useState<number>(2);
   const [imageFilter, setImageFilter] = useState<'all' | 'used' | 'unused'>('all');
   const [showAutoFillModal, setShowAutoFillModal] = useState(false);
+  const [showConfirmClearModal, setShowConfirmClearModal] = useState(false);
+  const [clearFromPagesToo, setClearFromPagesToo] = useState(true);
+  const [isClearing, setIsClearing] = useState(false);
   const [lastUploadedCount, setLastUploadedCount] = useState(0);
   const [pendingUploads, setPendingUploads] = useState(0);
   const [appliedAllNotice, setAppliedAllNotice] = useState(false);
+
+  const handleConfirmClearAll = async () => {
+    setIsClearing(true);
+    try {
+      await imageOptimizer.clearAllImages();
+      if (clearFromPagesToo && onClearAllImages) {
+        onClearAllImages(true);
+      }
+      setShowConfirmClearModal(false);
+    } catch (err) {
+      console.error('Lỗi khi xóa ảnh trong thư viện:', err);
+    } finally {
+      setIsClearing(false);
+    }
+  };
 
   const handleApplyToAllPages = () => {
     if (onApplyTemplateToAll) {
@@ -747,7 +842,7 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
           }`}
         >
           <Palette className="w-4 h-4 mb-1" />
-          Cài đặt
+          Size & Màu
         </button>
       </div>
 
@@ -756,90 +851,78 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
         {/* TAB: LAYOUT TEMPLATES */}
         {activeTab === 'layouts' && (
           <div className="flex-1 flex flex-col p-4 overflow-hidden animate-fade-in min-h-0">
-            {/* Sub-tabs: Cơ bản vs Có chữ */}
+            {/* Sub-tabs: Tiêu chuẩn, Chuyên nghiệp, Họa tiết */}
             <div className="flex bg-stone-100 p-1 rounded-xl mb-3 shrink-0">
-              <button
-                type="button"
-                onClick={() => setLayoutCategory('vip')}
-                className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer ${
-                  layoutCategory === 'vip'
-                    ? 'bg-amber-100 text-amber-700 shadow-xs ring-1 ring-amber-300'
-                    : 'text-stone-500 hover:text-stone-800'
-                }`}
-              >
-                <span>VIP ✨</span>
-                <span
-                  className={`text-[10px] px-1.5 py-0.2 rounded-full font-medium ${
-                    layoutCategory === 'vip'
-                      ? 'bg-amber-200/50 text-amber-800'
-                      : 'bg-stone-200/70 text-stone-500'
-                  }`}
-                >
-                  {VIP_TEMPLATES.length}
-                </span>
-              </button>
+              {/* Tab 1: Tiêu chuẩn */}
               <button
                 type="button"
                 onClick={() => setLayoutCategory('basic')}
-                className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold transition text-center whitespace-nowrap cursor-pointer ${
                   layoutCategory === 'basic'
                     ? 'bg-white text-stone-900 shadow-xs'
                     : 'text-stone-500 hover:text-stone-800'
                 }`}
               >
-                <span>Cơ bản</span>
-                <span
-                  className={`text-[10px] px-1.5 py-0.2 rounded-full font-medium ${
-                    layoutCategory === 'basic'
-                      ? 'bg-sky-100 text-sky-700'
-                      : 'bg-stone-200/70 text-stone-500'
-                  }`}
-                >
-                  {BASIC_TEMPLATES.length}
-                </span>
+                Tiêu chuẩn
               </button>
+
+              {/* Tab 2: Chuyên nghiệp */}
               <button
                 type="button"
                 onClick={() => setLayoutCategory('with-text')}
-                className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold transition text-center whitespace-nowrap cursor-pointer ${
                   layoutCategory === 'with-text'
                     ? 'bg-white text-stone-900 shadow-xs'
                     : 'text-stone-500 hover:text-stone-800'
                 }`}
               >
-                <span>Có chữ</span>
-                <span
-                  className={`text-[10px] px-1.5 py-0.2 rounded-full font-medium ${
-                    layoutCategory === 'with-text'
-                      ? 'bg-sky-100 text-sky-700'
-                      : 'bg-stone-200/70 text-stone-500'
-                  }`}
-                >
-                  {WITH_TEXT_TEMPLATES.length}
-                </span>
+                Chuyên nghiệp
+              </button>
+
+              {/* Tab 3: Họa tiết */}
+              <button
+                type="button"
+                onClick={() => setLayoutCategory('vip')}
+                className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold transition text-center whitespace-nowrap cursor-pointer ${
+                  layoutCategory === 'vip'
+                    ? 'bg-white text-stone-900 shadow-xs'
+                    : 'text-stone-500 hover:text-stone-800'
+                }`}
+              >
+                Họa tiết
               </button>
             </div>
 
             <div className="flex-1 overflow-y-auto pr-1 -mr-1 pb-2">
               <div className="grid grid-cols-2 gap-2.5">
                 {(layoutCategory === 'vip' ? VIP_TEMPLATES : layoutCategory === 'basic' ? BASIC_TEMPLATES : WITH_TEXT_TEMPLATES).map((tmpl) => (
-                  <button
-                    key={tmpl.id}
-                    onClick={() => onChangeTemplate(tmpl.id)}
-                    title={`${tmpl.name} (${tmpl.slotCount} ảnh)`}
-                    className={`w-full aspect-[50/35] rounded-xl border-2 transition overflow-hidden relative group cursor-pointer flex items-center justify-center ${
-                      templateId === tmpl.id
-                        ? 'border-sky-500 ring-2 ring-sky-500/20 shadow-xs'
-                        : 'border-stone-200 hover:border-stone-300 bg-white'
-                    }`}
-                  >
-                    <TemplateThumbnail id={tmpl.id} />
-                    {templateId === tmpl.id && (
-                      <div className="absolute top-1 right-1 w-5 h-5 bg-sky-500 rounded-full flex items-center justify-center shadow-sm z-10">
-                        <Check className="w-3 h-3 text-white" />
-                      </div>
-                    )}
-                  </button>
+                  <div key={tmpl.id} className="flex flex-col gap-1">
+                    <button
+                      type="button"
+                      onClick={() => onChangeTemplate(tmpl.id)}
+                      title={`${tmpl.name} (${tmpl.slotCount} ảnh)`}
+                      className={`w-full ${tmpl.aspectRatio === '50:20' ? 'aspect-[50/20]' : 'aspect-[50/35]'} rounded-xl border-2 transition overflow-hidden relative group cursor-pointer flex items-center justify-center ${
+                        templateId === tmpl.id
+                          ? 'border-sky-500 ring-2 ring-sky-500/20 shadow-xs'
+                          : 'border-stone-200 hover:border-stone-300 bg-white'
+                      }`}
+                    >
+                      <TemplateThumbnail id={tmpl.id} />
+                      {templateId === tmpl.id && (
+                        <div className="absolute top-1 right-1 w-5 h-5 bg-sky-500 rounded-full flex items-center justify-center shadow-sm z-10">
+                          <Check className="w-3 h-3 text-white" />
+                        </div>
+                      )}
+                    </button>
+                    <div className="flex items-center justify-between px-0.5 text-[11px] leading-tight">
+                      <span className="font-medium text-stone-700 truncate" title={tmpl.name}>
+                        {tmpl.name.replace('Layout Đôi ', 'Trang ')}
+                      </span>
+                      <span className="text-stone-400 text-[10px] shrink-0 font-normal">
+                        {tmpl.slotCount} ảnh
+                      </span>
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
@@ -900,7 +983,7 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
             
             
             {/* Upload Button and Drop Area */}
-            <div className="flex-none w-full mb-4">
+            <div className="flex-none w-full mb-3">
               <input
                 type="file"
                 multiple
@@ -909,13 +992,28 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
                 className="hidden"
                 ref={fileInputRef}
               />
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="w-full py-3 border-2 border-dashed border-sky-300 hover:border-sky-500 bg-sky-50 hover:bg-sky-100 text-sky-700 rounded-xl flex items-center justify-center gap-2 transition cursor-pointer group shadow-xs"
-              >
-                <UploadCloud className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-bold uppercase tracking-wider">Tải ảnh lên</span>
-              </button>
+              <div className="flex items-stretch gap-2">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex-1 py-2.5 px-3 border-2 border-dashed border-sky-300 hover:border-sky-500 bg-sky-50 hover:bg-sky-100 text-sky-700 rounded-xl flex items-center justify-center gap-2 transition cursor-pointer group shadow-2xs"
+                >
+                  <UploadCloud className="w-4 h-4 group-hover:scale-110 transition-transform text-sky-600" />
+                  <span className="text-xs font-bold uppercase tracking-wider">Tải ảnh lên</span>
+                </button>
+
+                {libraryImages.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmClearModal(true)}
+                    className="py-2.5 px-3 border border-rose-200 hover:border-rose-300 bg-rose-50/80 hover:bg-rose-100 text-rose-700 active:bg-rose-200 rounded-xl flex items-center justify-center gap-1.5 transition cursor-pointer shadow-2xs group shrink-0"
+                    title="Xóa toàn bộ ảnh trong thư viện để nạp ảnh mới"
+                  >
+                    <Trash2 className="w-4 h-4 text-rose-500 group-hover:scale-110 transition-transform" />
+                    <span className="text-xs font-bold whitespace-nowrap">Xóa hết ({libraryImages.length})</span>
+                  </button>
+                )}
+              </div>
 
               {missingImagesCount > 0 && onSmartRelink && (
                 <button
@@ -930,42 +1028,74 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
             </div>
 
             
-            {/* Column Selector */}
+            {/* Column Selector & Usage Filter Pills */}
+            {libraryImages.length > 0 && (() => {
+              const usedCount = libraryImages.filter(img => usedImageIds.includes(img.id)).length;
+              const unusedCount = libraryImages.length - usedCount;
 
-            {libraryImages.length > 0 && (
-              <div className="flex flex-col gap-2 mb-3 flex-none">
-                <div className="flex items-center justify-between">
-                  <div className="flex gap-1">
-                    <select 
-                      value={imageFilter}
-                      onChange={(e) => setImageFilter(e.target.value as any)}
-                      className="text-[11px] font-semibold text-stone-600 bg-stone-100 border-none rounded-md px-2 py-1 outline-none focus:ring-1 focus:ring-sky-500 cursor-pointer"
+              return (
+                <div className="flex flex-col gap-2 mb-3 flex-none">
+                  {/* Segmented Filter Pills */}
+                  <div className="grid grid-cols-3 gap-1 bg-stone-100/90 p-1 rounded-xl">
+                    <button
+                      type="button"
+                      onClick={() => setImageFilter('all')}
+                      className={`py-1 px-1.5 rounded-lg text-[11px] font-bold transition-all text-center cursor-pointer ${
+                        imageFilter === 'all'
+                          ? 'bg-white text-stone-900 shadow-xs'
+                          : 'text-stone-500 hover:text-stone-700'
+                      }`}
                     >
-                      <option value="all">Tất cả ảnh</option>
-                      <option value="unused">Chưa dùng</option>
-                      <option value="used">Đã dùng</option>
-                    </select>
+                      Tất cả ({libraryImages.length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setImageFilter('unused')}
+                      className={`py-1 px-1.5 rounded-lg text-[11px] font-bold transition-all text-center cursor-pointer ${
+                        imageFilter === 'unused'
+                          ? 'bg-white text-amber-800 shadow-xs'
+                          : 'text-stone-500 hover:text-stone-700'
+                      }`}
+                    >
+                      Chưa dùng ({unusedCount})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setImageFilter('used')}
+                      className={`py-1 px-1.5 rounded-lg text-[11px] font-bold transition-all text-center cursor-pointer ${
+                        imageFilter === 'used'
+                          ? 'bg-white text-emerald-800 shadow-xs'
+                          : 'text-stone-500 hover:text-stone-700'
+                      }`}
+                    >
+                      Đã dùng ({usedCount})
+                    </button>
                   </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] text-stone-500 font-bold uppercase tracking-wider hidden sm:inline-block">Cột:</span>
-                    <div className="flex bg-stone-100 rounded-lg p-0.5">
-                      {[2, 3, 4].map((col) => (
-                        <button
-                          key={col}
-                          onClick={() => setImageColumns(col)}
-                          className={`px-2 py-0.5 text-xs font-semibold rounded-md transition-colors ${
-                            imageColumns === col ? 'bg-white shadow-sm text-sky-600' : 'text-stone-500 hover:text-stone-700'
-                          }`}
-                        >
-                          {col}
-                        </button>
-                      ))}
+
+                  <div className="flex items-center justify-between px-0.5">
+                    <span className="text-[10px] text-stone-400 font-semibold">
+                      {imageFilter === 'unused' ? 'Hình chưa đưa vào layout' : imageFilter === 'used' ? 'Hình đã đưa vào layout' : 'Toàn bộ thư viện ảnh'}
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] text-stone-400 font-semibold">Cột:</span>
+                      <div className="flex bg-stone-100 rounded-lg p-0.5">
+                        {[2, 3, 4].map((col) => (
+                          <button
+                            key={col}
+                            onClick={() => setImageColumns(col)}
+                            className={`px-2 py-0.5 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
+                              imageColumns === col ? 'bg-white shadow-xs text-sky-600 font-bold' : 'text-stone-500 hover:text-stone-700'
+                            }`}
+                          >
+                            {col}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* Images Grid */}
             <div className="flex-1 overflow-y-auto pr-1 -mr-1 min-h-0 pb-10">
@@ -1042,115 +1172,8 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
         {/* TAB 4: FRAME & BACKGROUND STYLE */}
         {activeTab === 'style' && (
           <div className="flex-1 overflow-y-auto p-5 space-y-5 animate-fade-in">
-            {/* Custom Overlay Upload */}
+            {/* Custom Overlay Section */}
             {(() => {
-              const currentTemplate = [...VIP_TEMPLATES, ...BASIC_TEMPLATES, ...WITH_TEXT_TEMPLATES].find((t) => t.id === templateId);
-              if (currentTemplate?.isOverlay) {
-                return (
-                  <div className="bg-stone-50 p-3.5 rounded-2xl border border-stone-200/80 space-y-4">
-                    <span className="text-xs font-bold text-sky-800 uppercase tracking-wider block">
-                      Khung Overlay Tùy Chỉnh
-                    </span>
-                    
-                    <div>
-                      <label className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block mb-1">Tải ảnh Overlay (PNG Trong Suốt)</label>
-                      <input 
-                        type="file" 
-                        accept="image/png, image/svg+xml" 
-                        className="text-xs w-full"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            const reader = new FileReader();
-                            reader.onload = (ev) => {
-                              onChangePosterSettings({ ...posterSettings, customOverlayUri: ev.target?.result as string });
-                            };
-                            reader.readAsDataURL(file);
-                          }
-                        }}
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block mb-1">Tải ảnh Nền (Background)</label>
-                      <input 
-                        type="file" 
-                        accept="image/*" 
-                        className="text-xs w-full"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            const reader = new FileReader();
-                            reader.onload = (ev) => {
-                              onChangePosterSettings({ ...posterSettings, customBackgroundUri: ev.target?.result as string });
-                            };
-                            reader.readAsDataURL(file);
-                          }
-                        }}
-                      />
-                    </div>
-
-                    <div className="space-y-3 pt-2 border-t border-stone-200">
-                      <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block mb-1">Tọa độ lỗ hổng (Slot)</span>
-                      
-                      {/* X Slider */}
-                      <div>
-                        <div className="flex justify-between text-[10px] font-semibold text-stone-600 mb-1">
-                          <span>Left (X)</span><span>{posterSettings.customSlotX ?? currentTemplate.slotsCoordinates?.[0]?.x ?? 0}%</span>
-                        </div>
-                        <input type="range" min="0" max="100" step="0.5"
-                          value={posterSettings.customSlotX ?? currentTemplate.slotsCoordinates?.[0]?.x ?? 0}
-                          onChange={(e) => onChangePosterSettings({ ...posterSettings, customSlotX: parseFloat(e.target.value) })}
-                          className="w-full accent-sky-600" />
-                      </div>
-                      
-                      {/* Y Slider */}
-                      <div>
-                        <div className="flex justify-between text-[10px] font-semibold text-stone-600 mb-1">
-                          <span>Top (Y)</span><span>{posterSettings.customSlotY ?? currentTemplate.slotsCoordinates?.[0]?.y ?? 0}%</span>
-                        </div>
-                        <input type="range" min="0" max="100" step="0.5"
-                          value={posterSettings.customSlotY ?? currentTemplate.slotsCoordinates?.[0]?.y ?? 0}
-                          onChange={(e) => onChangePosterSettings({ ...posterSettings, customSlotY: parseFloat(e.target.value) })}
-                          className="w-full accent-sky-600" />
-                      </div>
-
-                      {/* Width Slider */}
-                      <div>
-                        <div className="flex justify-between text-[10px] font-semibold text-stone-600 mb-1">
-                          <span>Chiều rộng</span><span>{posterSettings.customSlotW ?? currentTemplate.slotsCoordinates?.[0]?.width ?? 100}%</span>
-                        </div>
-                        <input type="range" min="10" max="150" step="0.5"
-                          value={posterSettings.customSlotW ?? currentTemplate.slotsCoordinates?.[0]?.width ?? 100}
-                          onChange={(e) => onChangePosterSettings({ ...posterSettings, customSlotW: parseFloat(e.target.value) })}
-                          className="w-full accent-sky-600" />
-                      </div>
-
-                      {/* Height Slider */}
-                      <div>
-                        <div className="flex justify-between text-[10px] font-semibold text-stone-600 mb-1">
-                          <span>Chiều cao</span><span>{posterSettings.customSlotH ?? currentTemplate.slotsCoordinates?.[0]?.height ?? 100}%</span>
-                        </div>
-                        <input type="range" min="10" max="150" step="0.5"
-                          value={posterSettings.customSlotH ?? currentTemplate.slotsCoordinates?.[0]?.height ?? 100}
-                          onChange={(e) => onChangePosterSettings({ ...posterSettings, customSlotH: parseFloat(e.target.value) })}
-                          className="w-full accent-sky-600" />
-                      </div>
-
-                      {/* Rotation Slider */}
-                      <div>
-                        <div className="flex justify-between text-[10px] font-semibold text-stone-600 mb-1">
-                          <span>Góc nghiêng</span><span>{posterSettings.customSlotRotation ?? currentTemplate.slotsCoordinates?.[0]?.rotation ?? 0}°</span>
-                        </div>
-                        <input type="range" min="-180" max="180" step="1"
-                          value={posterSettings.customSlotRotation ?? currentTemplate.slotsCoordinates?.[0]?.rotation ?? 0}
-                          onChange={(e) => onChangePosterSettings({ ...posterSettings, customSlotRotation: parseFloat(e.target.value) })}
-                          className="w-full accent-sky-600" />
-                      </div>
-                    </div>
-                  </div>
-                );
-              }
               return null;
             })()}
 
@@ -1211,6 +1234,7 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
                 <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block">Layout ngang</span>
                 <div className="grid grid-cols-2 gap-2">
                   {[
+                    { id: '50:20', label: '25x20' },
                     { id: '42:15', label: '21x15' },
                     { id: '60:20', label: '30x20' },
                     { id: '70:25', label: '35x25' },
@@ -1364,6 +1388,68 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
                 className="w-full py-3 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl font-bold transition-all relative overflow-hidden"
               >
                 Không, tôi tự xếp
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Modal to Clear All Library Images */}
+      {showConfirmClearModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
+          <div
+            className="w-full max-w-sm bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-2xl border border-stone-200 space-y-4 animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-stone-900">Xóa hết ảnh trong thư viện?</h3>
+                <p className="text-xs text-stone-500">Dọn dẹp thư viện để tải bộ ảnh mới</p>
+              </div>
+            </div>
+
+            <div className="text-xs text-stone-600 leading-relaxed bg-stone-50 p-3 rounded-xl border border-stone-200/70 space-y-1">
+              <p>
+                Bạn có chắc chắn muốn xóa toàn bộ <strong className="text-rose-600 font-bold">{libraryImages.length} ảnh</strong> trong thư viện không?
+              </p>
+              <p className="text-[11px] text-stone-500">
+                Sau khi xóa, bạn có thể bấm nút <strong>Tải ảnh lên</strong> để chọn bộ ảnh mới.
+              </p>
+            </div>
+
+            <label className="flex items-start gap-2.5 p-3 rounded-xl border border-stone-200 hover:bg-stone-50/80 cursor-pointer transition select-none">
+              <input
+                type="checkbox"
+                checked={clearFromPagesToo}
+                onChange={(e) => setClearFromPagesToo(e.target.checked)}
+                className="mt-0.5 w-4 h-4 rounded text-rose-600 focus:ring-rose-500 border-stone-300 cursor-pointer"
+              />
+              <div className="text-xs">
+                <span className="font-semibold text-stone-800 block">Làm trống các khung ảnh trong album</span>
+                <span className="text-stone-500 text-[11px] block mt-0.5">Xóa ảnh đã dàn trang để sẵn sàng điền bộ ảnh mới</span>
+              </div>
+            </label>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-stone-100">
+              <button
+                type="button"
+                onClick={() => setShowConfirmClearModal(false)}
+                disabled={isClearing}
+                className="px-4 py-2.5 text-xs font-semibold text-stone-600 hover:text-stone-800 hover:bg-stone-100 rounded-xl transition cursor-pointer"
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmClearAll}
+                disabled={isClearing}
+                className="px-4 py-2.5 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 active:bg-rose-800 rounded-xl transition shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>{isClearing ? 'Đang xóa...' : `Xác nhận xóa hết (${libraryImages.length})`}</span>
               </button>
             </div>
           </div>

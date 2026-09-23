@@ -82,42 +82,56 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
   // --- Responsive Scaling Logic ---
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
-  const ratioParts = posterSettings.aspectRatio.split(':').map(Number);
+  const templateDef = TEMPLATES.find((t) => t.id === templateId);
+  const isVipOverlay = Boolean(templateDef?.isOverlay || templateDef?.category === 'vip' || templateId.startsWith('overlay-'));
+  
+  // VIP templates strictly require 50x20cm (single page 25x20cm)
+  const effectiveAspectRatio = isVipOverlay ? '50:20' : (posterSettings.aspectRatio || '50:20');
+  const ratioParts = effectiveAspectRatio.split(':').map(Number);
   const wRatio = ratioParts[0] || 50;
-  const hRatio = ratioParts[1] || 35;
+  const hRatio = ratioParts[1] || 20;
   const isLandscape = wRatio > hRatio;
   const isExtremeLandscape = wRatio / hRatio >= 2;
   const baseWidth = isExtremeLandscape ? 960 : isLandscape ? 820 : 560;
-  
-  const templateDef = TEMPLATES.find((t) => t.id === templateId);
-
-  const getBaseHeight = (ratioStr: string, w: number) => {
-    const parts = ratioStr.split(':');
-    const wRatio = parseInt(parts[0]);
-    const hRatio = parseInt(parts[1]);
-    return (w * hRatio) / wRatio;
-  };
-  const baseHeight = getBaseHeight(posterSettings.aspectRatio, baseWidth);
+  const baseHeight = (baseWidth * hRatio) / wRatio;
 
   useEffect(() => {
     if (!wrapperRef.current) return;
     
-    // Create a ResizeObserver to monitor the wrapper's available width
-    const observer = new ResizeObserver((entries) => {
-      const entry = entries[0];
-      if (entry) {
-        // We use Math.floor on the width to avoid fractional pixel jitter
-        // We add a small buffer (16px) for padding so it doesn't touch the very edges
-        const availableWidth = Math.floor(entry.contentRect.width) - 16;
-        // Scale down if available width is less than baseWidth. Don't scale up past 1.
-        const newScale = Math.min(3, availableWidth / baseWidth);
-        setScale(newScale);
-      }
-    });
+    const updateScale = () => {
+      if (!wrapperRef.current) return;
+      const wrapper = wrapperRef.current;
+      // Available width inside the wrapper
+      const availableWidth = Math.max(280, Math.floor(wrapper.clientWidth) - 16);
+      
+      // Calculate available height from the scrollable viewport (main)
+      const parentMain = wrapper.closest('main') || wrapper.parentElement;
+      const parentHeight = parentMain ? parentMain.clientHeight : (window.innerHeight - 200);
+      // Account for viewport padding (roughly 20px)
+      const availableHeight = Math.max(220, parentHeight - 20);
 
+      const scaleX = availableWidth / baseWidth;
+      const scaleY = availableHeight / baseHeight;
+
+      // Smart fit: fit both width and height, capped at 1.25 so it never becomes unnaturally oversized
+      const newScale = Math.max(0.25, Math.min(scaleX, scaleY, 1.25));
+      setScale(newScale);
+    };
+
+    const observer = new ResizeObserver(updateScale);
     observer.observe(wrapperRef.current);
-    return () => observer.disconnect();
-  }, [baseWidth]);
+    const parentMain = wrapperRef.current.closest('main') || wrapperRef.current.parentElement;
+    if (parentMain) {
+      observer.observe(parentMain);
+    }
+    window.addEventListener('resize', updateScale);
+    updateScale();
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', updateScale);
+    };
+  }, [baseWidth, baseHeight]);
   // --------------------------------
 
   const panRef = useRef<{
@@ -533,17 +547,18 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
           className="relative bg-white shadow-2xl transition-all duration-300 overflow-hidden flex flex-col w-full h-full"
           style={{
             backgroundColor: posterSettings.bgColor,
-            padding: `${posterSettings.outerMargin}px`,
-            border:
-              posterSettings.borderStyle === 'thin-line'
-                ? `1px solid ${posterSettings.borderColor}`
-                : posterSettings.borderStyle === 'gold-border'
-                ? `3px double #d97706`
-                : 'none',
+            padding: isVipOverlay ? 0 : `${posterSettings.outerMargin}px`,
+            border: isVipOverlay
+              ? 'none'
+              : posterSettings.borderStyle === 'thin-line'
+              ? `1px solid ${posterSettings.borderColor}`
+              : posterSettings.borderStyle === 'gold-border'
+              ? `3px double #d97706`
+              : 'none',
           }}
         >
         {/* Decorative inner line frame if gold border style */}
-        {posterSettings.borderStyle === 'double-frame' && (
+        {!isVipOverlay && posterSettings.borderStyle === 'double-frame' && (
           <div
             className="absolute inset-3 border border-amber-500/40 pointer-events-none rounded-xs"
             style={{ margin: `${posterSettings.outerMargin - 8}px` }}
@@ -772,7 +787,7 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
 
         {templateId === 'basic-four-asymmetric' && (
           <div className="w-full h-full flex overflow-hidden" style={{ gap: `${posterSettings.gap}px` }}>
-            <div className="w-[55%] h-full flex flex-col min-h-0" style={{ gap: `${posterSettings.gap}px` }}>
+            <div className="w-1/2 h-full flex flex-col min-h-0" style={{ gap: `${posterSettings.gap}px` }}>
               <div className="w-full h-1/2 flex min-h-0" style={{ gap: `${posterSettings.gap}px` }}>
                 <div className="w-1/2 h-full min-h-0">{renderSlot(0, 'w-full h-full')}</div>
                 <div className="w-1/2 h-full min-h-0">{renderSlot(1, 'w-full h-full')}</div>
@@ -781,7 +796,7 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
                 {renderSlot(2, 'w-full h-full')}
               </div>
             </div>
-            <div className="w-[45%] h-full min-h-0">
+            <div className="w-1/2 h-full min-h-0">
               {renderSlot(3, 'w-full h-full')}
             </div>
           </div>
@@ -862,6 +877,7 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
               const width = isFirst && posterSettings.customSlotW !== undefined ? posterSettings.customSlotW : defaultCoord.width;
               const height = isFirst && posterSettings.customSlotH !== undefined ? posterSettings.customSlotH : defaultCoord.height;
               const rotation = isFirst && posterSettings.customSlotRotation !== undefined ? posterSettings.customSlotRotation : defaultCoord.rotation;
+              const clipPath = defaultCoord.clipPath;
 
               return (
                 <div 
@@ -872,7 +888,8 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
                     top: `${y}%`, 
                     width: `${width}%`, 
                     height: `${height}%`,
-                    transform: `rotate(${rotation}deg)` 
+                    transform: `rotate(${rotation}deg)`,
+                    clipPath: clipPath
                   }}
                 >
                   {renderSlot(i, 'w-full h-full')}
@@ -886,7 +903,18 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
                 src={posterSettings.customOverlayUri || templateDef?.overlayUri || ''}
                 alt="Overlay"
                 crossOrigin={(posterSettings.customOverlayUri || templateDef?.overlayUri)?.startsWith('http') ? "anonymous" : undefined}
-                className="absolute inset-0 w-full h-full object-contain z-20 pointer-events-none"
+                className="absolute inset-0 w-full h-full object-cover z-20 pointer-events-none select-none"
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  const match = target.src.match(/(\d\d-\d\d\.png)/);
+                  if (match) {
+                    if (!target.src.endsWith('/images/layout/lay01/' + match[1])) {
+                      target.src = '/images/layout/lay01/' + match[1];
+                    } else if (!target.src.includes('photobookvietnam.net')) {
+                      target.src = 'https://www.photobookvietnam.net/images/layout/lay01/' + match[1];
+                    }
+                  }
+                }}
               />
             )}
           </div>
@@ -895,70 +923,73 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
         {/* Layout Template 15: Album Spread 50x35cm - Memories (3 slots: 1 large left, 2 stacked middle, poem right) */}
         {templateId === 'album-50x35-memories' && (
           <div className="w-full h-full flex overflow-hidden" style={{ gap: `${posterSettings.gap}px` }}>
-            {/* Left Section (~49% width): Big full-height portrait */}
-            <div className="w-[49%] h-full min-h-0">
+            {/* Left Page (50% width): Big full-height portrait - Canh chuẩn 50% trang trái */}
+            <div className="w-1/2 h-full min-h-0 flex-1">
               {renderSlot(0, 'w-full h-full')}
             </div>
 
-            {/* Middle Section (~25% width): 2 stacked photos */}
-            <div className="w-[25%] h-full flex flex-col justify-between min-h-0" style={{ gap: `${posterSettings.gap}px` }}>
-              <div className="w-full h-[50%] min-h-0">
-                {renderSlot(1, 'w-full h-full')}
+            {/* Right Page (50% width): Split into 2 stacked photos (left) and Memories poem (right) - Canh chuẩn 50% trang phải */}
+            <div className="w-1/2 h-full flex min-h-0 flex-1" style={{ gap: `${posterSettings.gap}px` }}>
+              {/* Left Column of Right Page (50% của trang phải): 2 stacked photos */}
+              <div className="w-1/2 h-full flex flex-col justify-between min-h-0 flex-1" style={{ gap: `${posterSettings.gap}px` }}>
+                <div className="w-full h-[50%] min-h-0 flex-1">
+                  {renderSlot(1, 'w-full h-full')}
+                </div>
+                <div className="w-full h-[50%] min-h-0 flex-1">
+                  {renderSlot(2, 'w-full h-full')}
+                </div>
               </div>
-              <div className="w-full h-[50%] min-h-0">
-                {renderSlot(2, 'w-full h-full')}
-              </div>
-            </div>
 
-            {/* Right Section (~26% width): White background with Memories calligraphy & poem */}
-            <div className="w-[26%] h-full flex flex-col items-end justify-center pr-3 pl-2 py-4 select-none overflow-hidden">
-              <div className="flex flex-col items-end text-right w-full">
-                <span
-                  style={{
-                    fontFamily: 'Alex Brush, Great Vibes, Pinyon Script, cursive',
-                    color: textConfig.namesColor || '#9c6d48',
-                    fontSize: '48px',
-                    lineHeight: 1,
-                  }}
-                  className="font-normal tracking-wide transform -rotate-1 mb-3"
-                >
-                  Memories
-                </span>
+              {/* Right Column of Right Page (50% của trang phải): White background with Memories calligraphy & poem - Canh giữa chuẩn trang in */}
+              <div className="w-1/2 h-full flex flex-col items-center justify-center px-4 py-4 select-none overflow-hidden text-center flex-1">
+                <div className="flex flex-col items-center text-center w-full max-w-[92%]">
+                  <span
+                    style={{
+                      fontFamily: 'Alex Brush, Great Vibes, Pinyon Script, cursive',
+                      color: textConfig.namesColor || '#9c6d48',
+                      fontSize: '46px',
+                      lineHeight: 1.1,
+                    }}
+                    className="font-normal tracking-wide mb-3"
+                  >
+                    Memories
+                  </span>
 
-                <div
-                  style={{
-                    fontFamily: textConfig.subtextFont || 'Cormorant Garamond, Georgia, serif',
-                    color: textConfig.subtextColor || '#44403c',
-                    fontSize: '9px',
-                    lineHeight: '1.45',
-                    letterSpacing: '0.2px',
-                  }}
-                  className="text-stone-700 text-right space-y-2.5 font-normal select-none"
-                >
-                  <p>
-                    There are places I'll remember<br />
-                    All my life though some have changed<br />
-                    Some forever, not for better<br />
-                    Some have gone and some remain<br />
-                    All these places have their moments<br />
-                    With lovers and friends I still can recall<br />
-                    Some are dead and some are living<br />
-                    In my life I've loved them all
-                  </p>
+                  <div
+                    style={{
+                      fontFamily: textConfig.subtextFont || 'Cormorant Garamond, Georgia, serif',
+                      color: textConfig.subtextColor || '#44403c',
+                      fontSize: '9px',
+                      lineHeight: '1.5',
+                      letterSpacing: '0.2px',
+                    }}
+                    className="text-stone-700 text-center space-y-2.5 font-normal select-none"
+                  >
+                    <p>
+                      There are places I'll remember<br />
+                      All my life though some have changed<br />
+                      Some forever, not for better<br />
+                      Some have gone and some remain<br />
+                      All these places have their moments<br />
+                      With lovers and friends I still can recall<br />
+                      Some are dead and some are living<br />
+                      In my life I've loved them all
+                    </p>
 
-                  <p>
-                    But of all these friends and lovers<br />
-                    There is no one compares with you<br />
-                    And these memories lose their meaning<br />
-                    When I think of love as something new
-                  </p>
+                    <p>
+                      But of all these friends and lovers<br />
+                      There is no one compares with you<br />
+                      And these memories lose their meaning<br />
+                      When I think of love as something new
+                    </p>
 
-                  <p>
-                    Though I know I'll never lose affection<br />
-                    For people and things that went before<br />
-                    I know I'll often stop and think about them<br />
-                    In my life I love you more
-                  </p>
+                    <p>
+                      Though I know I'll never lose affection<br />
+                      For people and things that went before<br />
+                      I know I'll often stop and think about them<br />
+                      In my life I love you more
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -971,8 +1002,8 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
             {/* Outer Inset Thin Frame Line */}
             <div className="absolute inset-2 sm:inset-3 border border-[#8c7362]/75 pointer-events-none z-10" />
 
-            {/* Left Half (~48% width): Top Script Badge, Middle Landscape Photo, Bottom Quote */}
-            <div className="w-[48%] h-full flex flex-col items-center justify-between py-3 px-3 z-20">
+            {/* Left Page (50% width): Top Script Badge, Middle Landscape Photo, Bottom Quote - Canh chuẩn 50% */}
+            <div className="w-1/2 h-full flex flex-col items-center justify-between py-3 px-3 z-20 flex-1">
               {/* Top Text Group */}
               <div className="flex flex-col items-center justify-center text-center mt-1 select-none">
                 <span
@@ -1016,8 +1047,8 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
               </div>
             </div>
 
-            {/* Right Half (~52% width): Tall Centered Vertical Portrait Photo */}
-            <div className="w-[52%] h-full flex items-center justify-center p-3 z-20">
+            {/* Right Page (50% width): Tall Centered Vertical Portrait Photo - Canh chuẩn 50% */}
+            <div className="w-1/2 h-full flex items-center justify-center p-3 z-20 flex-1">
               <div className="w-[82%] h-[90%] min-h-0 shadow-2xs">
                 {renderSlot(1, 'w-full h-full')}
               </div>
@@ -1028,33 +1059,33 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
         {/* Layout Template 17: Album Spread 50x35cm - Celebrate (4 slots: 1 large left, 1 medium right-left, 2 stacked right-right, bottom vows) */}
         {templateId === 'album-50x35-celebrate' && (
           <div className="w-full h-full flex overflow-hidden" style={{ gap: `${posterSettings.gap}px` }}>
-            {/* Left Half (~48% width): Big full-height portrait */}
-            <div className="w-[48%] h-full min-h-0">
+            {/* Left Page (50% width): Big full-height portrait - Canh chuẩn 50% trang trái */}
+            <div className="w-1/2 h-full min-h-0 flex-1">
               {renderSlot(0, 'w-full h-full')}
             </div>
 
-            {/* Right Half (~52% width): Top Photo Collage (3 slots) + Bottom Vows Typography */}
-            <div className="w-[52%] h-full flex flex-col justify-between min-h-0" style={{ gap: `${posterSettings.gap}px` }}>
-              {/* Top Photo Collage (~73% height) */}
-              <div className="w-full h-[73%] flex min-h-0" style={{ gap: `${posterSettings.gap}px` }}>
-                {/* Column 1: Middle Vertical Photo (~56% width) */}
-                <div className="w-[56%] h-full min-h-0">
+            {/* Right Page (50% width): Top Photo Collage (3 slots) + Bottom Vows Typography - Canh chuẩn 50% trang phải */}
+            <div className="w-1/2 h-full flex flex-col justify-between min-h-0 flex-1" style={{ gap: `${posterSettings.gap}px` }}>
+              {/* Top Photo Collage (~72% height) */}
+              <div className="w-full h-[72%] flex min-h-0" style={{ gap: `${posterSettings.gap}px` }}>
+                {/* Column 1: Middle Vertical Photo (~54% width) */}
+                <div className="w-[54%] h-full min-h-0">
                   {renderSlot(1, 'w-full h-full')}
                 </div>
 
-                {/* Column 2: 2 Stacked Photos (~44% width) */}
-                <div className="w-[44%] h-full flex flex-col justify-between min-h-0" style={{ gap: `${posterSettings.gap}px` }}>
-                  <div className="w-full h-[50%] min-h-0">
+                {/* Column 2: 2 Stacked Photos (~46% width) */}
+                <div className="w-[46%] h-full flex flex-col justify-between min-h-0" style={{ gap: `${posterSettings.gap}px` }}>
+                  <div className="w-full h-[50%] min-h-0 flex-1">
                     {renderSlot(2, 'w-full h-full')}
                   </div>
-                  <div className="w-full h-[50%] min-h-0">
+                  <div className="w-full h-[50%] min-h-0 flex-1">
                     {renderSlot(3, 'w-full h-full')}
                   </div>
                 </div>
               </div>
 
-              {/* Bottom Vows Typography (~27% height) */}
-              <div className="w-full h-[27%] flex flex-col items-center justify-center px-4 py-1 text-center select-none overflow-hidden">
+              {/* Bottom Vows Typography (~28% height) - Canh giữa chuẩn trang in */}
+              <div className="w-full h-[28%] flex flex-col items-center justify-center px-6 py-2 text-center select-none overflow-hidden">
                 <p
                   style={{
                     fontFamily: 'Cormorant Garamond, Bodoni Moda, serif',
@@ -1063,7 +1094,7 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
                     color: '#44403c',
                     letterSpacing: '0.3px',
                   }}
-                  className="max-w-[96%] italic font-light"
+                  className="max-w-[94%] italic font-light text-center"
                 >
                   <span>Love is </span>
                   <span style={{ fontFamily: 'Pinyon Script, Great Vibes, cursive', fontSize: '15px' }} className="font-normal not-italic">the</span>
@@ -1692,38 +1723,11 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
           </div>
         )}
 
-        {/* Layout Template 6: Album Spread 50x35cm - Symphony (3 slots: 1 large full bleed right, 2 staggered photos left, Symphony script & spine labels) */}
+        {/* Layout Template 4 (Symphony): Album Spread 50x35cm - Symphony (3 slots: 1 centered portrait right with left vertical labels, 2 staggered photos left with Symphony script) */}
         {templateId === 'album-50x35-symphony' && (
           <div className="w-full h-full flex overflow-hidden" style={{ gap: `${posterSettings.gap}px` }}>
-            {/* Left Page (~49.5% width): Typography Top + 2 Asymmetrical Photos + Vertical Spine Labels */}
-            <div className="relative w-[49.5%] h-full flex flex-col justify-between p-3 select-none overflow-hidden min-h-0">
-              {/* Vertical Labels along Spine Right Edge */}
-              <div className="absolute right-1 top-4 flex flex-col items-center pointer-events-none z-20">
-                <span
-                  style={{
-                    writingMode: 'vertical-rl',
-                    fontFamily: 'Montserrat, sans-serif',
-                    letterSpacing: '3px',
-                  }}
-                  className="text-[6.5px] uppercase font-semibold text-stone-800 rotate-180"
-                >
-                  WEDDING PHOTOGRAPHY
-                </span>
-              </div>
-
-              <div className="absolute right-1 bottom-4 flex flex-col items-center pointer-events-none z-20">
-                <span
-                  style={{
-                    writingMode: 'vertical-rl',
-                    fontFamily: 'Montserrat, sans-serif',
-                    letterSpacing: '3px',
-                  }}
-                  className="text-[7px] uppercase font-bold text-stone-900 rotate-180"
-                >
-                  FASHION MOODBOARD
-                </span>
-              </div>
-
+            {/* Left Page (50% width): Typography Top + 2 Asymmetrical Photos */}
+            <div className="relative w-1/2 h-full flex flex-col justify-between p-3 select-none overflow-hidden min-h-0 flex-1">
               {/* Top Typography: Sweeping "Symphony" Script + Paragraph */}
               <div className="relative w-full pt-1 px-4 z-10">
                 <div className="relative flex items-center justify-between">
@@ -1757,7 +1761,7 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
               </div>
 
               {/* Bottom Photos: 2 Photos (1 large on left, 1 smaller aligned at bottom on right) */}
-              <div className="w-full flex items-end gap-3 px-4 pb-2 min-h-0 h-[66%] pr-6">
+              <div className="w-full flex items-end gap-3 px-4 pb-2 min-h-0 h-[66%]">
                 <div className="w-[58%] h-full min-h-0 shadow-2xs">
                   {renderSlot(0, 'w-full h-full')}
                 </div>
@@ -1767,9 +1771,41 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
               </div>
             </div>
 
-            {/* Right Page (~50.5% width): Big full-height portrait */}
-            <div className="w-[50.5%] h-full min-h-0">
-              {renderSlot(2, 'w-full h-full')}
+            {/* Right Page (50% width): Large Portrait Photo with Left Vertical Labels close to the photo edge */}
+            <div className="relative w-1/2 h-full flex items-center justify-end pr-3 pl-7 py-1.5 select-none min-h-0 flex-1">
+              <div className="relative w-full h-full flex items-center justify-end">
+                {/* Large Portrait Photo */}
+                <div className="relative w-full h-[97%] min-h-0 shadow-2xs">
+                  {/* Vertical Labels along Left Edge of Photo */}
+                  <div className="absolute -left-3.5 top-5 flex flex-col items-center pointer-events-none z-20">
+                    <span
+                      style={{
+                        writingMode: 'vertical-rl',
+                        fontFamily: 'Montserrat, sans-serif',
+                        letterSpacing: '3px',
+                      }}
+                      className="text-[6.5px] uppercase font-semibold text-stone-800 rotate-180 select-none whitespace-nowrap"
+                    >
+                      WEDDING PHOTOGRAPHY
+                    </span>
+                  </div>
+
+                  <div className="absolute -left-3.5 bottom-5 flex flex-col items-center pointer-events-none z-20">
+                    <span
+                      style={{
+                        writingMode: 'vertical-rl',
+                        fontFamily: 'Montserrat, sans-serif',
+                        letterSpacing: '3px',
+                      }}
+                      className="text-[7px] uppercase font-bold text-stone-900 rotate-180 select-none whitespace-nowrap"
+                    >
+                      FASHION MOODBOARD
+                    </span>
+                  </div>
+
+                  {renderSlot(2, 'w-full h-full')}
+                </div>
+              </div>
             </div>
           </div>
         )}

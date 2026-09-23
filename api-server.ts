@@ -61,7 +61,7 @@ const SMTP_CONFIG = {
 
 // Target Notification Emails
 const TARGET_EMAILS = [
-  process.env.ADMIN_EMAIL || 'huyitcom@gmail.com',
+  process.env.ADMIN_EMAIL || 'photobookgiare@gmail.com',
   'photobookvietnam.net@gmail.com',
 ];
 

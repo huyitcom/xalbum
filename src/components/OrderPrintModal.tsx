@@ -9,7 +9,6 @@ import {
   Calendar,
   ExternalLink,
   MessageCircle,
-  Heart,
   Send,
   Mail
 } from 'lucide-react';
@@ -283,19 +282,9 @@ export const OrderPrintModal: React.FC<OrderPrintModalProps> = ({
             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-white shadow-xs shrink-0">
               <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-base sm:text-lg font-bold leading-tight">
-                  Đặt hàng
-                </h2>
-                <span className="text-[11px] bg-white/25 text-white font-sans font-semibold px-2 py-0.5 rounded-full hidden sm:inline-block">
-                  Photobook Vietnam
-                </span>
-              </div>
-              <p className="hidden sm:block text-xs text-sky-100 font-normal mt-0.5">
-                Chọn chất liệu ép gỗ chuẩn studio & nhận thành phẩm hoàn thiện tận nơi
-              </p>
-            </div>
+            <h2 className="text-base sm:text-lg font-bold leading-tight">
+              Đặt hàng
+            </h2>
           </div>
           <button
             onClick={onClose}
@@ -311,26 +300,9 @@ export const OrderPrintModal: React.FC<OrderPrintModalProps> = ({
           {!isSubmitted ? (
             <>
               {/* Current Design Quick Summary */}
-              <div className="bg-sky-50/70 border border-sky-200/80 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-sky-500 text-white flex items-center justify-center shrink-0">
-                    <Heart className="w-5 h-5 fill-white" />
-                  </div>
-                  <div>
-                    <div className="text-xs text-sky-700 font-semibold uppercase tracking-wider">
-                      Mẫu Thiết Kế Hiện Tại
-                    </div>
-                    <div className="text-sm font-bold text-stone-800">
-                      {textConfig.groomName || 'CHÚ RỂ'} {textConfig.connector || '&'} {textConfig.brideName || 'CÔ DÂU'}
-                      <span className="text-xs font-normal text-stone-500 ml-2">({textConfig.dateText.replace('\n', ' - ')})</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-sky-200 self-start sm:self-auto shadow-2xs">
-                  <span className="text-xs text-stone-500">Quy cách:</span>
-                  <span className="text-xs font-bold text-sky-700">{currentSize} ({totalPageCount} trang)</span>
-                </div>
+              <div className="bg-sky-50/70 border border-sky-200/80 rounded-2xl px-4 py-3 flex items-center gap-2 text-sm sm:text-base">
+                <span className="text-stone-600 font-medium">Kích thước album:</span>
+                <span className="font-bold text-sky-700">{currentSize} cm ({totalPageCount} trang)</span>
               </div>
 
               {/* Step 1: Choose Gate Photo Material */}
@@ -420,7 +392,7 @@ export const OrderPrintModal: React.FC<OrderPrintModalProps> = ({
               <div className="border-t border-stone-200 pt-5">
                 <h3 className="text-sm sm:text-base font-bold text-stone-900 flex items-center gap-2 mb-3">
                   <span className="w-6 h-6 rounded-full bg-sky-600 text-white text-xs flex items-center justify-center font-semibold">2</span>
-                  Thông Tin Nhận Báo Giá & Tư Vấn Thành Phẩm
+                  Thông tin nhận hàng
                 </h3>
 
                 <form onSubmit={handleSendOrder} className="space-y-3">
@@ -564,7 +536,7 @@ export const OrderPrintModal: React.FC<OrderPrintModalProps> = ({
                         className="text-xs text-stone-500 cursor-pointer hover:text-stone-700 transition"
                         onClick={() => setIsAdminMode(true)}
                       >
-                        🔒 File thiết kế sẽ được gửi trực tiếp đến hệ thống kỹ thuật Photobook Vietnam để kiểm tra chuẩn in & tiến hành gia công.
+                        Chúng tôi sẽ kiểm tra file và liên lạc lại với bạn trong vòng 24h
                       </div>
                     )}
 
@@ -591,7 +563,7 @@ export const OrderPrintModal: React.FC<OrderPrintModalProps> = ({
                         ) : (
                           <>
                             <Send className="w-4 h-4" />
-                            <span>Gửi Đơn Đặt Hàng ({totalPageCount} Trang)</span>
+                            <span>Đặt hàng ngay</span>
                           </>
                         )}
                       </button>

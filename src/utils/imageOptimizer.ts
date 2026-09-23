@@ -107,6 +107,27 @@ class ImageOptimizerService {
     }
   }
 
+  async clearAllImages(): Promise<void> {
+    this.registry.forEach((img) => {
+      if (img.originalUrl?.startsWith('blob:')) URL.revokeObjectURL(img.originalUrl);
+      if (img.previewUrl?.startsWith('blob:') && img.previewUrl !== img.originalUrl) URL.revokeObjectURL(img.previewUrl);
+      if (img.thumbnailUrl?.startsWith('blob:') && img.thumbnailUrl !== img.originalUrl) URL.revokeObjectURL(img.thumbnailUrl);
+    });
+    this.registry.clear();
+    this.queue = [];
+    this.isProcessing = false;
+    this.isAdding = false;
+    try {
+      const db = await openDB();
+      const tx = db.transaction(STORE_IMAGES, 'readwrite');
+      const store = tx.objectStore(STORE_IMAGES);
+      store.clear();
+    } catch (err) {
+      console.warn('Could not clear IndexedDB image store:', err);
+    }
+    this.notify();
+  }
+
   /**
    * Restore images (e.g. when importing an .xalbum project file)
    */

@@ -186,22 +186,54 @@ export default function App() {
         newSlots = currentSlots.slice(0, targetCount);
       }
 
+      const isSwitchingOverlay = Boolean(selectedTemplate?.isOverlay || selectedTemplate?.category === 'vip' || newTemplateId.startsWith('overlay-'));
+      const overlaySettings = isSwitchingOverlay
+        ? {
+            aspectRatio: '50:20',
+            outerMargin: 0,
+            gap: 0,
+            borderStyle: 'none' as const,
+            customOverlayUri: selectedTemplate?.overlayUri,
+            customSlotX: undefined,
+            customSlotY: undefined,
+            customSlotW: undefined,
+            customSlotH: undefined,
+            customSlotRotation: undefined,
+          }
+        : {};
+
       return {
         ...page,
         templateId: newTemplateId,
         slots: newSlots,
         posterSettings: {
           ...page.posterSettings,
-          aspectRatio: page.posterSettings.aspectRatio || selectedTemplate?.aspectRatio || '50:35',
+          ...overlaySettings,
+          aspectRatio: isSwitchingOverlay ? '50:20' : (selectedTemplate?.aspectRatio || page.posterSettings.aspectRatio || '50:20'),
         },
       };
     });
+
+    // If switching to a VIP layout, ensure all pages synchronize to standard 50:20 aspect ratio
+    const isOverlayTmpl = Boolean(selectedTemplate?.isOverlay || selectedTemplate?.category === 'vip' || newTemplateId.startsWith('overlay-'));
+    if (isOverlayTmpl) {
+      setPages((prevPages) =>
+        prevPages.map((p) => ({
+          ...p,
+          posterSettings: {
+            ...p.posterSettings,
+            aspectRatio: '50:20',
+          },
+        }))
+      );
+    }
   };
 
   // Apply Template to ALL pages in album
   const handleApplyTemplateToAll = (newTemplateId: TemplateId) => {
     const selectedTemplate = TEMPLATES.find((t) => t.id === newTemplateId);
     const targetCount = selectedTemplate ? selectedTemplate.slotCount : 3;
+    const isSwitchingOverlay = Boolean(selectedTemplate?.isOverlay || selectedTemplate?.category === 'vip' || newTemplateId.startsWith('overlay-'));
 
     setPages((prevPages) => {
       return prevPages.map((page) => {
@@ -225,13 +257,29 @@ export default function App() {
           newSlots = currentSlots.slice(0, targetCount);
         }
 
+        const overlaySettings = isSwitchingOverlay
+          ? {
+              aspectRatio: '50:20',
+              outerMargin: 0,
+              gap: 0,
+              borderStyle: 'none' as const,
+              customOverlayUri: selectedTemplate?.overlayUri,
+              customSlotX: undefined,
+              customSlotY: undefined,
+              customSlotW: undefined,
+              customSlotH: undefined,
+              customSlotRotation: undefined,
+            }
+          : {};
+
         return {
           ...page,
           templateId: newTemplateId,
           slots: newSlots,
           posterSettings: {
             ...page.posterSettings,
-            aspectRatio: page.posterSettings.aspectRatio || selectedTemplate?.aspectRatio || '50:35',
+            ...overlaySettings,
+            aspectRatio: isSwitchingOverlay ? '50:20' : (selectedTemplate?.aspectRatio || page.posterSettings.aspectRatio || '50:20'),
           },
         };
       });
@@ -242,7 +290,7 @@ export default function App() {
   const handleAddPage = (templateId?: TemplateId) => {
     const newPageNumber = pages.length + 1;
     const defaultTemplateId = templateId || WITH_TEXT_TEMPLATES[(newPageNumber - 1) % WITH_TEXT_TEMPLATES.length].id;
-    const currentAspectRatio = currentPage?.posterSettings?.aspectRatio || '50:35';
+    const currentAspectRatio = currentPage?.posterSettings?.aspectRatio || '50:20';
     const newPage = createDefaultPage(newPageNumber, defaultTemplateId, (pages.length * 3) % SAMPLE_WEDDING_PHOTOS.length);
     newPage.posterSettings.aspectRatio = currentAspectRatio;
     setPages((prev) => [...prev, newPage]);
@@ -406,6 +454,26 @@ export default function App() {
         return { ...page, slots: updatedSlots };
       });
     });
+  };
+
+  // Clear all photos from pages slots (reset slots to empty state)
+  const handleClearAllPhotos = (clearFromPages: boolean = true) => {
+    if (clearFromPages) {
+      setPages((prevPages) =>
+        prevPages.map((page) => ({
+          ...page,
+          slots: page.slots.map((s) => ({
+            ...s,
+            imageUri: null,
+            zoom: 1,
+            offsetX: 0,
+            offsetY: 0,
+            filter: 'none',
+          })),
+        }))
+      );
+    }
+    showAlert('Đã xóa toàn bộ ảnh trong thư viện thành công!', 'success');
   };
 
   // Update Text Configuration for active page
@@ -728,7 +796,7 @@ export default function App() {
     setConfirmDialog({
       message: 'Tạo một dự án album mới? Hãy chắc chắn bạn đã lưu album hiện tại trước khi tạo mới.',
       onConfirm: () => {
-        const defaultPages = generateAlbumPages(10, '50:35');
+        const defaultPages = generateAlbumPages(10, '50:20');
         setPages(defaultPages);
         setActivePageIndex(0);
         setCurrentProjectId(null);
@@ -747,7 +815,7 @@ export default function App() {
     setConfirmDialog({
       message: 'Khôi phục lại toàn bộ album về các trang mẫu mặc định ban đầu?',
       onConfirm: () => {
-        const currentAspectRatio = currentPage?.posterSettings?.aspectRatio || '50:35';
+        const currentAspectRatio = currentPage?.posterSettings?.aspectRatio || '50:20';
         setPages(generateAlbumPages(10, currentAspectRatio));
         setActivePageIndex(0);
         setConfirmDialog(null);
@@ -781,20 +849,20 @@ export default function App() {
 
       {/* Main App Layout: Left Workspace (Canvas + Filmstrip) + Right Control Panel */}
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-        {/* Workspace Center Display */}
-        <main 
-          onPointerDown={(e) => {
-            const target = e.target as HTMLElement;
-            if (!target.closest('[id^="custom-text-"]') && !target.closest('button') && !target.closest('input') && !target.closest('textarea') && !target.closest('label')) {
-              setSelectedTextId(null);
-              setActiveSlotIndex(null);
-            }
-          }}
-          className="flex-1 bg-stone-200/60 overflow-y-auto flex flex-col items-center justify-between min-h-[500px]"
-        >
-          {/* Top Info Banner for current page */}
-          <div className="w-full flex-1 p-4 sm:p-6 flex flex-col items-center justify-center">
-            <div className="w-full max-w-7xl 2xl:max-w-[90%] flex flex-col items-center">
+        {/* Workspace Center Display (Canvas Area + Fixed Bottom Filmstrip Navigator) */}
+        <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-stone-200/60 relative">
+          {/* Scrollable Canvas Viewport */}
+          <main 
+            onPointerDown={(e) => {
+              const target = e.target as HTMLElement;
+              if (!target.closest('[id^="custom-text-"]') && !target.closest('button') && !target.closest('input') && !target.closest('textarea') && !target.closest('label')) {
+                setSelectedTextId(null);
+                setActiveSlotIndex(null);
+              }
+            }}
+            className="flex-1 min-h-0 overflow-y-auto overflow-x-auto flex flex-col items-center justify-start p-2 sm:p-4 2xl:p-6"
+          >
+            <div className="w-full max-w-7xl 2xl:max-w-[90%] flex flex-col items-center my-auto">
               {/* Missing Images Auto-Relink Banner */}
               {missingImagesCount > 0 && !isRelinkDismissed && (
                 <div className="w-full max-w-4xl mb-4 p-3.5 bg-amber-50 border border-amber-300 rounded-2xl shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-amber-950 animate-in fade-in">
@@ -857,36 +925,34 @@ export default function App() {
                 onOpenCropModal={(slot, index) => setEditingSlot({ slot, index })}
                 posterRef={posterRef}
               />
-
-              <p className="text-xs text-stone-500 mt-4 text-center">
-                💡 Kéo thả file ảnh vào từng ô. Nhấn <strong>Thêm Chữ</strong> để chèn chữ nghệ thuật, có thể kéo thả di chuyển tự do trên trang.
-              </p>
             </div>
-          </div>
+          </main>
 
-          {/* Bottom Filmstrip for Page Management & Quick Navigation */}
-          <PageFilmstrip
-            pages={pages}
-            activePageIndex={activePageIndex}
-            onSelectPage={(index) => setActivePageIndex(index)}
-            onAddPage={handleAddPage}
-            onDuplicatePage={handleDuplicatePage}
-            onDeletePage={handleDeletePage}
-            onMovePage={handleMovePage}
-            onOpenTemplatePicker={() => setIsTemplatePickerOpen(true)}
-            onOpenAddTextModal={() => setIsAddTextModalOpen(true)}
-            onAutoFill={() => {
-              import('./utils/imageOptimizer').then(({ imageOptimizer }) => {
-                const images = imageOptimizer.getImages().map(i => i.id);
-                if (images.length === 0) {
-                  alert('Vui lòng tải ảnh lên trước khi rải hình!');
-                  return;
-                }
-                handleApplyBatchPhotos(images);
-              });
-            }}
-          />
-        </main>
+          {/* Permanently Fixed Bottom Filmstrip for Page Management & Quick Navigation */}
+          <div className="shrink-0 flex-none w-full border-t border-stone-200 bg-white z-20 shadow-xs">
+            <PageFilmstrip
+              pages={pages}
+              activePageIndex={activePageIndex}
+              onSelectPage={(index) => setActivePageIndex(index)}
+              onAddPage={handleAddPage}
+              onDuplicatePage={handleDuplicatePage}
+              onDeletePage={handleDeletePage}
+              onMovePage={handleMovePage}
+              onOpenTemplatePicker={() => setIsTemplatePickerOpen(true)}
+              onOpenAddTextModal={() => setIsAddTextModalOpen(true)}
+              onAutoFill={() => {
+                import('./utils/imageOptimizer').then(({ imageOptimizer }) => {
+                  const images = imageOptimizer.getImages().map(i => i.id);
+                  if (images.length === 0) {
+                    alert('Vui lòng tải ảnh lên trước khi rải hình!');
+                    return;
+                  }
+                  handleApplyBatchPhotos(images);
+                });
+              }}
+            />
+          </div>
+        </div>
 
         {/* Right Editor Controls Sidebar */}
         <EditorSidebar
@@ -918,6 +984,7 @@ export default function App() {
           usedImageIds={pages.flatMap((p) => p.slots).map((s) => s.imageUri).filter(Boolean) as string[]}
           missingImagesCount={missingImagesCount}
           onSmartRelink={handleSmartRelinkPhotos}
+          onClearAllImages={handleClearAllPhotos}
         />
       </div>
 

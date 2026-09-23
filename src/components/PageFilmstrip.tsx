@@ -29,10 +29,22 @@ export const PageFilmstrip: React.FC<PageFilmstripProps> = ({
   onOpenAddTextModal,
   onAutoFill,
 }) => {
+  const activeThumbRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (activeThumbRef.current) {
+      activeThumbRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'nearest',
+      });
+    }
+  }, [activePageIndex]);
+
   return (
-    <div className="w-full bg-white border-t border-stone-200 shadow-sm py-2.5 px-3 sm:px-6 flex flex-col gap-2">
+    <div className="w-full shrink-0 flex-none bg-white border-t border-stone-200 shadow-sm py-2 sm:py-2.5 px-3 sm:px-6 flex flex-col gap-1.5 sm:gap-2 select-none">
       {/* Top Bar of Filmstrip: Current Page summary & navigation controls */}
-      <div className="flex items-center justify-between text-xs text-stone-600 gap-2">
+      <div className="flex items-center justify-between text-xs text-stone-600 gap-2 overflow-x-auto scrollbar-none py-0.5">
         <div className="flex items-center gap-2 font-medium">
           <span className="flex items-center gap-1.5 bg-stone-100 text-stone-800 font-bold px-2.5 py-1 rounded-lg border border-stone-200">
             <Layers className="w-3.5 h-3.5 text-sky-600" />
@@ -124,6 +136,7 @@ export const PageFilmstrip: React.FC<PageFilmstripProps> = ({
           return (
             <div
               key={page.id}
+              ref={isActive ? activeThumbRef : undefined}
               onClick={() => onSelectPage(index)}
               className={`group relative flex-shrink-0 flex flex-col items-center cursor-pointer transition-all duration-200 rounded-xl p-1.5 border-2 ${
                 isActive
@@ -131,8 +144,13 @@ export const PageFilmstrip: React.FC<PageFilmstripProps> = ({
                   : 'border-stone-200 bg-stone-50/50 hover:border-stone-300 hover:bg-white'
               }`}
             >
-              {/* Mini Spread Canvas Preview (50:35 Ratio) */}
-              <div className="relative w-28 sm:w-32 aspect-[50/35] bg-white rounded-md overflow-hidden shadow-xs border border-stone-200/80 flex items-center justify-center">
+              {/* Mini Spread Canvas Preview (Dynamic Ratio) */}
+              <div 
+                className="relative w-28 sm:w-32 bg-white rounded-md overflow-hidden shadow-xs border border-stone-200/80 flex items-center justify-center"
+                style={{
+                  aspectRatio: (page.posterSettings?.aspectRatio || template?.aspectRatio || '50:20').replace(':', '/')
+                }}
+              >
                 {/* Visual Thumbnail based on template */}
                 <TemplateThumbnail id={page.templateId} slots={page.slots} className="w-full h-full" />
 

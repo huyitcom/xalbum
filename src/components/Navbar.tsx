@@ -1,12 +1,12 @@
 import React from 'react';
-import { RotateCcw, ShoppingBag, Download, Save, FolderOpen } from 'lucide-react';
+import { RotateCcw, ShoppingBag, Save, FolderOpen } from 'lucide-react';
 
 interface NavbarProps {
   totalPages: number;
   activePageIndex?: number;
   currentProjectName?: string;
   onOpenOrderModal: () => void;
-  onOpenExportModal: () => void;
+  onOpenExportModal?: () => void;
   onResetAll: () => void;
   onOpenSaveProject: () => void;
   onOpenProjectManager: () => void;
@@ -14,9 +14,9 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({
   totalPages: _totalPages,
-  currentProjectName,
+  currentProjectName: _currentProjectName,
   onOpenOrderModal,
-  onOpenExportModal,
+  onOpenExportModal: _onOpenExportModal,
   onResetAll,
   onOpenSaveProject,
   onOpenProjectManager,
@@ -38,17 +38,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             referrerPolicy="no-referrer"
           />
         </a>
-
-        {currentProjectName && (
-          <button
-            onClick={onOpenProjectManager}
-            className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 border border-stone-200 text-stone-700 text-xs font-semibold max-w-[200px] truncate transition cursor-pointer"
-            title="Nhấn để mở danh sách dự án"
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-sky-500 shrink-0"></span>
-            <span className="truncate">{currentProjectName}</span>
-          </button>
-        )}
       </div>
 
       {/* Center: xAlbum Logo */}
@@ -57,9 +46,12 @@ export const Navbar: React.FC<NavbarProps> = ({
           href="#"
           className="flex items-center group decoration-none"
         >
-          <span className="text-2xl sm:text-3xl md:text-[28px] font-black tracking-[0.2em] text-slate-900 transition-transform duration-200 group-hover:scale-105 ml-2">
-            xAlbum
-          </span>
+          <img
+            src="https://www.photobookvietnam.net/images/xalbum_logo.png"
+            alt="xAlbum"
+            className="h-7 sm:h-8 md:h-9 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
+            referrerPolicy="no-referrer"
+          />
         </a>
       </div>
 
@@ -82,16 +74,6 @@ export const Navbar: React.FC<NavbarProps> = ({
           title="Lưu album hiện tại"
         >
           <Save className="w-4 h-4 text-sky-700" />
-        </button>
-
-        {/* Tải Album (ZIP / JPG) */}
-        <button
-          onClick={onOpenExportModal}
-          className="flex items-center gap-1.5 bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs sm:text-sm font-semibold px-3 sm:px-3.5 py-2 rounded-xl border border-stone-200 transition cursor-pointer shadow-2xs"
-          title="Tải ảnh hoặc tải trọn bộ album dạng file ZIP"
-        >
-          <Download className="w-3.5 h-3.5 text-stone-700" />
-          <span className="hidden sm:inline">Tải Album</span>
         </button>
 
         {/* Đặt hàng */}

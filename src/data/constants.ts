@@ -26,7 +26,7 @@ export const SAMPLE_WEDDING_PHOTOS = [
 export const BASIC_TEMPLATES: TemplateDefinition[] = [
   {
     id: 'basic-full-bleed',
-    name: 'Một ảnh tràn lề',
+    name: 'Mẫu số 1',
     description: '1 ảnh duy nhất trải rộng toàn bộ trang đôi',
     slotCount: 1,
     aspectRatio: '50:35',
@@ -34,7 +34,7 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-preserve-ratio-2',
-    name: 'Hai ảnh giữ tỷ lệ (Không cắt)',
+    name: 'Mẫu số 2',
     description: '2 ảnh nguyên tỷ lệ gốc (1 ngang trái, 1 dọc phải) có khoảng cách lề thoáng',
     slotCount: 2,
     aspectRatio: '50:35',
@@ -42,7 +42,7 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-spread-2-vertical',
-    name: 'Hai ảnh dọc bằng nhau (Trang đôi)',
+    name: 'Mẫu số 3',
     description: '2 ảnh dọc đối xứng chia đều giữa trang trái và trang phải',
     slotCount: 2,
     aspectRatio: '50:35',
@@ -50,7 +50,7 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-left-feature-2right',
-    name: 'Nổi bật bên trái',
+    name: 'Mẫu số 4',
     description: '1 ảnh lớn trang trọng bên trái, 2 ảnh ngang xếp chồng bên phải',
     slotCount: 3,
     aspectRatio: '50:35',
@@ -58,7 +58,7 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-right-feature-2left',
-    name: 'Nổi bật bên phải',
+    name: 'Mẫu số 5',
     description: '2 ảnh ngang xếp chồng bên trái, 1 ảnh lớn trang trọng bên phải',
     slotCount: 3,
     aspectRatio: '50:35',
@@ -66,7 +66,7 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-four-grid',
-    name: 'Bốn ô vuông',
+    name: 'Mẫu số 6',
     description: 'Lưới 4 ảnh đều nhau cân bằng (2 hàng, 2 cột)',
     slotCount: 4,
     aspectRatio: '50:35',
@@ -74,7 +74,7 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-panorama-top',
-    name: 'Panorama trên',
+    name: 'Mẫu số 7',
     description: '1 ảnh panorama rộng bên trên, 3 ảnh bên dưới (1 ảnh trái, 2 ảnh ngang phải)',
     slotCount: 4,
     aspectRatio: '50:35',
@@ -82,7 +82,7 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-skewed-grid',
-    name: 'Lưới lệch',
+    name: 'Mẫu số 8',
     description: 'Lưới 4 ảnh so le (hàng trên trái rộng phải hẹp, hàng dưới trái hẹp phải rộng)',
     slotCount: 4,
     aspectRatio: '50:35',
@@ -90,7 +90,7 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-stack-right-3',
-    name: 'Chồng dọc bên phải',
+    name: 'Mẫu số 9',
     description: '1 ảnh lớn bên trái, 3 ảnh ngang xếp tầng bên phải',
     slotCount: 4,
     aspectRatio: '50:35',
@@ -98,7 +98,7 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-story-5',
-    name: 'Câu chuyện năm ảnh',
+    name: 'Mẫu số 10',
     description: '1 ảnh ngang panorama phía trên, 4 ảnh đứng xếp hàng ngang phía dưới',
     slotCount: 5,
     aspectRatio: '50:35',
@@ -106,7 +106,7 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-stack-left-3',
-    name: 'Ba ảnh dọc bên trái',
+    name: 'Mẫu số 11',
     description: '3 ảnh ngang xếp tầng bên trái, 1 ảnh lớn bên phải',
     slotCount: 4,
     aspectRatio: '50:35',
@@ -114,7 +114,7 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-left-2split-feature',
-    name: 'Nổi bật chia đôi trái',
+    name: 'Mẫu số 12',
     description: '2 ảnh ngang bên trái, 1 ảnh lớn tràn viền bên phải',
     slotCount: 3,
     aspectRatio: '50:35',
@@ -122,7 +122,7 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-unequal-split-2',
-    name: 'Chia dọc lệch',
+    name: 'Mẫu số 13',
     description: '2 ảnh dọc chia tỷ lệ lệch 40% - 60%',
     slotCount: 2,
     aspectRatio: '50:35',
@@ -130,7 +130,7 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-trio-left',
-    name: 'Bộ ba dọc trái',
+    name: 'Mẫu số 14',
     description: '1 ảnh đứng bên trái, 2 ảnh ngang bên phải (tỷ lệ 50-50)',
     slotCount: 3,
     aspectRatio: '50:35',
@@ -138,7 +138,7 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-main-left-portrait',
-    name: 'Ảnh chính dọc trái',
+    name: 'Mẫu số 15',
     description: '1 ảnh lớn chính bên trái (65%), 1 ảnh phụ đứng bên phải (35%)',
     slotCount: 2,
     aspectRatio: '50:35',
@@ -146,7 +146,7 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-center-landscape-pair',
-    name: 'Cặp ảnh ngang giữa',
+    name: 'Mẫu số 16',
     description: '2 ảnh ngang đối xứng giữa hai trang kèm viền trắng tinh tế',
     slotCount: 2,
     aspectRatio: '50:35',
@@ -154,7 +154,7 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-portrait-two-right',
-    name: 'Dọc với hai bên',
+    name: 'Mẫu số 17',
     description: '1 ảnh lớn bên trái, 2 ảnh đứng song song bên phải',
     slotCount: 3,
     aspectRatio: '50:35',
@@ -162,7 +162,7 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-four-vertical-columns',
-    name: 'Mỗi bên hai ảnh dọc',
+    name: 'Mẫu số 18',
     description: '4 ảnh đứng trải đều qua 2 trang (mỗi bên 2 ảnh đứng)',
     slotCount: 4,
     aspectRatio: '50:35',
@@ -170,15 +170,15 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-four-asymmetric',
-    name: 'Bốn ảnh bất đối xứng',
-    description: '3 ảnh nghệ thuật bên trái (2 nhỏ trên, 1 ngang dưới), 1 ảnh đứng bên phải',
+    name: 'Mẫu số 19',
+    description: '3 ảnh nghệ thuật bên trái (2 nhỏ trên, 1 ngang dưới), 1 ảnh đứng bên phải cân xứng',
     slotCount: 4,
     aspectRatio: '50:35',
     category: 'basic',
   },
   {
     id: 'basic-mosaic-story',
-    name: 'Câu chuyện Mosaic',
+    name: 'Mẫu số 20',
     description: 'Trang trái 2 ảnh (ngang trên, vuông dưới), trang phải 3 ảnh ngang xếp tầng',
     slotCount: 5,
     aspectRatio: '50:35',
@@ -186,7 +186,7 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-left-feature-right-2vert',
-    name: 'Trái nổi bật, hai ảnh dọc phải',
+    name: 'Mẫu số 21',
     description: '1 ảnh lớn bên trái, 2 ảnh ngang lớn bên phải',
     slotCount: 3,
     aspectRatio: '50:35',
@@ -194,7 +194,7 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-left-primary-right-secondary',
-    name: 'Trái chính, phải phụ',
+    name: 'Mẫu số 22',
     description: '1 ảnh lớn chính bên trái (55%), 1 ảnh phụ nhỏ hơn đặt giữa trang phải (45%)',
     slotCount: 2,
     aspectRatio: '50:35',
@@ -202,7 +202,7 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-left-primary-right-mosaic',
-    name: 'Trái chính, phải mosaic',
+    name: 'Mẫu số 23',
     description: '1 ảnh lớn bên trái (50%), 4 ảnh ghép lưới 2x2 bên phải (50%)',
     slotCount: 5,
     aspectRatio: '50:35',
@@ -215,30 +215,218 @@ export const OVERLAY_SVG = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZW
 
 export const VIP_TEMPLATES: TemplateDefinition[] = [
   {
-    id: 'overlay-happy-easter',
-    name: 'Overlay (Happy Easter)',
-    description: 'Mẫu lồng lớp PNG trong suốt - Khung nghiêng có hoa văn',
+    id: 'overlay-lay01-01-02',
+    name: 'Layout Đôi 01 - 02',
+    description: 'Layout đôi photobook trang 1-2 (Trang trái nghệ thuật trang nhã, trang phải 1 ảnh chân dung/vuông)',
     slotCount: 1,
-    aspectRatio: '1:1',
+    aspectRatio: '50:20',
     category: 'vip',
     isOverlay: true,
-    overlayUri: OVERLAY_SVG,
+    overlayUri: 'https://www.photobookvietnam.net/images/layout/lay01/01-02.png',
     slotsCoordinates: [
       {
-        x: 23,  // percentage from left
-        y: 11,  // percentage from top
-        width: 50, // percentage width
-        height: 65, // percentage height
-        rotation: 3 // degrees
-      }
-    ]
-  }
+        x: 64.6,  // Trang phải
+        y: 11.1,
+        width: 20.0,
+        height: 47.8,
+        rotation: 0,
+      },
+    ],
+  },
+  {
+    id: 'overlay-lay01-03-04',
+    name: 'Layout Đôi 03 - 04',
+    description: 'Layout đôi photobook trang 3-4 (3 ảnh: 1 ảnh ngang trái, 1 ảnh đứng giữa-trái, 1 ảnh lớn trang phải)',
+    slotCount: 3,
+    aspectRatio: '50:20',
+    category: 'vip',
+    isOverlay: true,
+    overlayUri: 'https://www.photobookvietnam.net/images/layout/lay01/03-04.png',
+    slotsCoordinates: [
+      {
+        x: 4.8,   // Trang trái: ảnh ngang
+        y: 28.0,
+        width: 24.2,
+        height: 38.5,
+        rotation: 0,
+      },
+      {
+        x: 32.9,  // Trang trái: ảnh đứng cao
+        y: 10.0,
+        width: 14.0,
+        height: 68.0,
+        rotation: 0,
+      },
+      {
+        x: 60.0,  // Trang phải: ảnh lớn
+        y: 7.0,
+        width: 22.0,
+        height: 52.0,
+        rotation: 0,
+      },
+    ],
+  },
+  {
+    id: 'overlay-lay01-05-06',
+    name: 'Layout Đôi 05 - 06',
+    description: 'Layout đôi photobook trang 5-6 (3 ảnh: 2 ảnh đứng song song trang trái, 1 ảnh hoa văn trang phải)',
+    slotCount: 3,
+    aspectRatio: '50:20',
+    category: 'vip',
+    isOverlay: true,
+    overlayUri: 'https://www.photobookvietnam.net/images/layout/lay01/05-06.png',
+    slotsCoordinates: [
+      {
+        x: 13.0,  // Trang trái: ảnh đứng 1
+        y: 18.1,
+        width: 18.5,
+        height: 58.6,
+        rotation: 0,
+      },
+      {
+        x: 32.7,  // Trang trái: ảnh đứng 2
+        y: 18.1,
+        width: 15.5,
+        height: 56.3,
+        rotation: 0,
+      },
+      {
+        x: 73.8,  // Trang phải: ảnh nghệ thuật
+        y: 10.2,
+        width: 20.8,
+        height: 48.5,
+        rotation: 3.5,
+      },
+    ],
+  },
+  {
+    id: 'overlay-lay01-09-10',
+    name: 'Layout Đôi 09 - 10',
+    description: 'Layout đôi photobook trang 9-10 (Trang trái 3 ảnh nghệ thuật, trang phải 1 ảnh vòm lớn và 1 ảnh tròn)',
+    slotCount: 5,
+    aspectRatio: '50:20',
+    category: 'vip',
+    isOverlay: true,
+    overlayUri: 'https://www.photobookvietnam.net/images/layout/lay01/09-10.png',
+    slotsCoordinates: [
+      { x: 4.0, y: 24.7, width: 11.8, height: 48.9, rotation: 0 },
+      { x: 17.6, y: 9.0, width: 15.3, height: 38.1, rotation: 0 },
+      { x: 34.8, y: 24.6, width: 13.7, height: 49.6, rotation: 0 },
+      { 
+        x: 69.2, 
+        y: 3.1, 
+        width: 24.8, 
+        height: 78.9, 
+        rotation: 0, 
+        clipPath: 'polygon(0 0, 100% 0, 100% 100%, 12% 100%, 12% 80%, 10% 70%, 4% 58%, 0 48%)' 
+      },
+      { 
+        x: 54.0, 
+        y: 41.7, 
+        width: 18.2, 
+        height: 47.1, 
+        rotation: 0, 
+        clipPath: 'circle(50% at 50% 50%)' 
+      },
+    ],
+  },
+  {
+    id: 'overlay-lay01-11-12',
+    name: 'Layout Đôi 11 - 12',
+    description: 'Layout đôi photobook trang 11-12 (Trang trái: 1 ảnh ngang & 1 polaroid nghiêng nghệ thuật; Trang phải: 2 ảnh đứng thanh lịch)',
+    slotCount: 4,
+    aspectRatio: '50:20',
+    category: 'vip',
+    isOverlay: true,
+    overlayUri: 'https://www.photobookvietnam.net/images/layout/lay01/11-12.png',
+    slotsCoordinates: [
+      { x: 4.6, y: 31.7, width: 25.6, height: 33.4, rotation: 0 },
+      { x: 32.5, y: 42.8, width: 14.4, height: 49.8, rotation: 7.2 },
+      { x: 52.5, y: 14.6, width: 17.2, height: 51.6, rotation: 1.3 },
+      { x: 74.3, y: 9.8, width: 20.4, height: 61.1, rotation: 0 },
+    ],
+  },
+  {
+    id: 'overlay-lay01-13-14',
+    name: 'Layout Đôi 13 - 14',
+    description: 'Layout đôi photobook trang 13-14 (Trang trái: 1 ảnh đứng nghiêng 3.4° nghệ thuật; Trang phải: 1 ảnh ngang phong cảnh khổ lớn sang trọng)',
+    slotCount: 2,
+    aspectRatio: '50:20',
+    category: 'vip',
+    isOverlay: true,
+    overlayUri: 'https://www.photobookvietnam.net/images/layout/lay01/13-14.png',
+    slotsCoordinates: [
+      { x: 23.5, y: 9.5, width: 21.2, height: 50.1, rotation: 3.4 },
+      { x: 58.4, y: 17.4, width: 33.8, height: 58.3, rotation: 0 },
+    ],
+  },
+  {
+    id: 'overlay-lay01-15-16',
+    name: 'Layout Đôi 15 - 16',
+    description: 'Layout đôi photobook trang 15-16 (Trang trái: 1 ảnh đứng nghiêng 5.6° & 1 ảnh đứng lớn chính diện; Trang phải: 1 ảnh ngang nghiêng -6.2° & 1 ảnh đứng nghiêng 6.6°)',
+    slotCount: 4,
+    aspectRatio: '50:20',
+    category: 'vip',
+    isOverlay: true,
+    overlayUri: 'https://www.photobookvietnam.net/images/layout/lay01/15-16.png',
+    slotsCoordinates: [
+      { x: 5.0, y: 13.4, width: 18.2, height: 52.5, rotation: 5.6 },
+      { x: 20.0, y: 7.2, width: 24.8, height: 78.0, rotation: 0 },
+      { x: 58.4, y: 14.0, width: 21.0, height: 39.8, rotation: -6.2 },
+      { x: 69.5, y: 41.8, width: 19.4, height: 50.0, rotation: 6.6 },
+    ],
+  },
+  {
+    id: 'overlay-lay01-17-18',
+    name: 'Layout Đôi 17 - 18',
+    description: 'Layout đôi photobook trang 17-18 (Trang trái: 1 ảnh ngang lớn, 1 polaroid trên nghiêng -6.1° & 1 polaroid dưới; Trang phải: 1 ảnh đứng nghiêng -13.8° & 1 polaroid đứng)',
+    slotCount: 5,
+    aspectRatio: '50:20',
+    category: 'vip',
+    isOverlay: true,
+    overlayUri: 'https://www.photobookvietnam.net/images/layout/lay01/17-18.png',
+    slotsCoordinates: [
+      { x: 2.8, y: 14.8, width: 28.0, height: 48.2, rotation: 0 },
+      { x: 30.8, y: 6.8, width: 17.4, height: 28.5, rotation: -6.1 },
+      { x: 31.4, y: 40.6, width: 14.6, height: 48.5, rotation: 1.4 },
+      { x: 63.6, y: 31.0, width: 15.6, height: 47.8, rotation: -13.8 },
+      { x: 79.8, y: 38.0, width: 16.3, height: 33.5, rotation: 0 },
+    ],
+  },
+  {
+    id: 'overlay-lay01-21-22',
+    name: 'Layout Đôi 21 - 22',
+    description: 'Layout đôi photobook trang 21-22 (2 ảnh toàn cảnh lớn khổ đôi phong cách sang trọng)',
+    slotCount: 2,
+    aspectRatio: '50:20',
+    category: 'vip',
+    isOverlay: true,
+    overlayUri: 'https://www.photobookvietnam.net/images/layout/lay01/21-22.png',
+    slotsCoordinates: [
+      { x: 8.6, y: 17.6, width: 33.4, height: 57.9, rotation: 0 },
+      { x: 57.6, y: 14.6, width: 35.5, height: 55.5, rotation: 0 },
+    ],
+  },
+  {
+    id: 'overlay-lay01-23-24',
+    name: 'Layout Đôi 23 - 24',
+    description: 'Layout đôi photobook trang 23-24 (Trang trái: 1 ảnh đứng trang nhã; Trang phải: 1 ảnh toàn cảnh khổ lớn sang trọng)',
+    slotCount: 2,
+    aspectRatio: '50:20',
+    category: 'vip',
+    isOverlay: true,
+    overlayUri: 'https://www.photobookvietnam.net/images/layout/lay01/23-24.png',
+    slotsCoordinates: [
+      { x: 15.0, y: 9.0, width: 20.3, height: 69.0, rotation: 0 },
+      { x: 52.5, y: 6.0, width: 45.0, height: 87.8, rotation: 0 },
+    ],
+  },
 ];
 
 export const WITH_TEXT_TEMPLATES: TemplateDefinition[] = [
   {
     id: 'album-50x35-memories',
-    name: 'Mẫu số 1 (Memories)',
+    name: 'Mẫu số 1',
     description: 'Bố cục 50x35 cm: 1 ảnh lớn toàn cảnh bên trái, 2 ảnh xếp dọc ở giữa và bài thơ Memories lãng mạn bên phải',
     slotCount: 3,
     aspectRatio: '50:35',
@@ -246,7 +434,7 @@ export const WITH_TEXT_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'album-50x35-in-the-air',
-    name: 'Mẫu số 2 (Love is in the Air)',
+    name: 'Mẫu số 2',
     description: 'Bố cục 50x35 cm: Khung viền chỉ mảnh tinh tế, 1 ảnh ngang bên trái lồng chữ Love is in the air và 1 ảnh đứng trang trọng bên phải',
     slotCount: 2,
     aspectRatio: '50:35',
@@ -254,39 +442,23 @@ export const WITH_TEXT_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'album-50x35-celebrate',
-    name: 'Mẫu số 3 (Celebrate)',
+    name: 'Mẫu số 3',
     description: 'Bố cục 50x35 cm: 1 ảnh lớn bên trái, 3 ảnh nghệ thuật bên phải cùng lời thề ước tình yêu Celebrate',
     slotCount: 4,
     aspectRatio: '50:35',
     category: 'with-text',
   },
   {
-    id: 'album-50x35-shared-dreams',
-    name: 'Mẫu số 4 (Shared Dreams)',
-    description: 'Bố cục 50x35 cm: 1 ảnh lớn tràn viền bên trái, 2 ảnh đứng nghệ thuật bên phải cùng chữ viết tay Shared Dreams và lời tâm tình lãng mạn',
-    slotCount: 3,
-    aspectRatio: '50:35',
-    category: 'with-text',
-  },
-  {
-    id: 'album-50x35-little-home',
-    name: 'Mẫu số 5 (Little Home)',
-    description: 'Bố cục 50x35 cm: 4 ảnh chân dung đứng xếp hàng ngang trang nhã, điểm nhấn You are my little home và câu trích dẫn ngọt ngào',
-    slotCount: 4,
-    aspectRatio: '50:35',
-    category: 'with-text',
-  },
-  {
     id: 'album-50x35-symphony',
-    name: 'Mẫu số 6 (Symphony)',
-    description: 'Bố cục 50x35 cm: 1 ảnh lớn tràn viền bên phải, 2 ảnh lồng ghép nghệ thuật bên trái kèm chữ bay bổng Symphony và Fashion Moodboard',
+    name: 'Mẫu số 4',
+    description: 'Bố cục 50x35 cm: 1 ảnh lớn canh giữa trang trọng bên phải, 2 ảnh lồng ghép nghệ thuật bên trái kèm chữ bay bổng Symphony và Fashion Moodboard',
     slotCount: 3,
     aspectRatio: '50:35',
     category: 'with-text',
   },
   {
     id: 'album-50x35-fairytale',
-    name: 'Mẫu số 7 (Fairytale)',
+    name: 'Mẫu số 5',
     description: 'Bố cục 50x35 cm: 1 ảnh toàn cảnh bên phải, 1 ảnh lớn bên trái lồng 1 ảnh nhỏ & chữ nghệ thuật fairytale ABOUT TWO OF US kèm trích dẫn kỳ diệu',
     slotCount: 3,
     aspectRatio: '50:35',
@@ -294,7 +466,7 @@ export const WITH_TEXT_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'album-50x35-appreciate',
-    name: 'Mẫu số 8 (Appreciate)',
+    name: 'Mẫu số 6',
     description: 'Bố cục 50x35 cm: 1 ảnh đôi nắm tay bước đi bên phải, 1 ảnh cận cảnh lãng mạn bên trái lồng 2 ảnh đứng song song cùng nét thư pháp viết tay lượn sóng tình yêu',
     slotCount: 4,
     aspectRatio: '50:35',
@@ -302,7 +474,7 @@ export const WITH_TEXT_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'album-50x35-together',
-    name: 'Mẫu số 9 (Pure Romance)',
+    name: 'Mẫu số 7',
     description: 'Bố cục 50x35 cm: 1 ảnh lớn toàn cảnh bên trái, 2 ảnh nghệ thuật đứng kèm trích dẫn Magazine Wedding & câu thề ước ngọt ngào bên phải',
     slotCount: 3,
     aspectRatio: '50:35',
@@ -310,7 +482,7 @@ export const WITH_TEXT_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'album-50x35-eternal',
-    name: 'Eternal Love',
+    name: 'Mẫu số 8',
     description: '2 ảnh (1 ảnh lớn full, 1 ảnh nhỏ dọc kèm chữ)',
     slotCount: 2,
     aspectRatio: '50:35',
@@ -318,7 +490,7 @@ export const WITH_TEXT_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'album-50x35-beloved',
-    name: 'Beloved',
+    name: 'Mẫu số 9',
     description: '3 ảnh (1 ảnh lớn phải, 2 ảnh dọc nhỏ trái)',
     slotCount: 3,
     aspectRatio: '50:35',
@@ -326,7 +498,7 @@ export const WITH_TEXT_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'album-50x35-passionate',
-    name: 'Passionate',
+    name: 'Mẫu số 10',
     description: '2 ảnh (1 ảnh full trái, 1 ảnh dọc phải)',
     slotCount: 2,
     aspectRatio: '50:35',
@@ -334,7 +506,7 @@ export const WITH_TEXT_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'album-50x35-heartstrings',
-    name: 'Heart Strings',
+    name: 'Mẫu số 11',
     description: '2 ảnh (1 ảnh nền mờ, 1 ảnh chèn lên)',
     slotCount: 2,
     aspectRatio: '50:35',
@@ -342,7 +514,7 @@ export const WITH_TEXT_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'album-50x35-beyond-time',
-    name: 'Beyond Time',
+    name: 'Mẫu số 12',
     description: '2 ảnh (1 nền tràn viền, 1 ảnh inset nổi bật phải)',
     slotCount: 2,
     aspectRatio: '50:35',
@@ -350,7 +522,7 @@ export const WITH_TEXT_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'album-50x35-romance',
-    name: 'Romance',
+    name: 'Mẫu số 13',
     description: '3 ảnh (2 ảnh trái có chữ giữa, 1 ảnh dọc phải full)',
     slotCount: 3,
     aspectRatio: '50:35',
@@ -358,7 +530,7 @@ export const WITH_TEXT_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'album-50x35-perfection',
-    name: 'Perfection',
+    name: 'Mẫu số 14',
     description: '2 ảnh (Bố cục xen kẽ 4 phần chữ và ảnh)',
     slotCount: 2,
     aspectRatio: '50:35',
@@ -366,7 +538,7 @@ export const WITH_TEXT_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'album-50x35-loyalty',
-    name: 'Loyalty',
+    name: 'Mẫu số 15',
     description: '2 ảnh (1 ảnh arch vòm trái, 1 ảnh full phải)',
     slotCount: 2,
     aspectRatio: '50:35',
@@ -419,7 +591,7 @@ export const DEFAULT_POSTER_SETTINGS: PosterSettings = {
   borderStyle: 'none',
   borderColor: '#d6d3d1',
   blockBgColor: '#8b988f',
-  aspectRatio: '50:35'
+  aspectRatio: '50:20'
 };
 
 export const FONT_OPTIONS = [
@@ -503,5 +675,5 @@ export const generateAlbumPages = (pageCount: number = 10, defaultAspectRatio?: 
   });
 };
 
-export const INITIAL_ALBUM_PAGES: AlbumPage[] = generateAlbumPages(10, '50:35');
+export const INITIAL_ALBUM_PAGES: AlbumPage[] = generateAlbumPages(10, '50:20');
 

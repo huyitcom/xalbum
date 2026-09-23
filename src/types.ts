@@ -82,6 +82,7 @@ export interface TemplateDefinition {
     width: number;  // percentage
     height: number; // percentage
     rotation: number; // degrees
+    clipPath?: string; // CSS clip-path value
   }[];
 }
 

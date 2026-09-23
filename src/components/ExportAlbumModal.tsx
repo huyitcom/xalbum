@@ -99,9 +99,10 @@ export const ExportAlbumModal: React.FC<ExportAlbumModalProps> = ({
         compressionOptions: { level: 6 },
       });
 
+      const sizeStr = (pages[0]?.posterSettings?.aspectRatio || '50:20').replace(':', 'x') + 'cm';
       const link = document.createElement('a');
       link.href = URL.createObjectURL(zipBlob);
-      link.download = `Album_Cuoi_50x35cm_Tron_Bo_${pages.length}_Trang.zip`;
+      link.download = `Album_Cuoi_${sizeStr}_Tron_Bo_${pages.length}_Trang.zip`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

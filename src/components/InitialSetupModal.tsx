@@ -6,7 +6,7 @@ interface InitialSetupModalProps {
 }
 
 export const InitialSetupModal: React.FC<InitialSetupModalProps> = ({ onComplete }) => {
-  const [aspectRatio, setAspectRatio] = useState<AspectRatioType>('50:35');
+  const [aspectRatio, setAspectRatio] = useState<AspectRatioType>('50:20');
   const [pageCount, setPageCount] = useState<number>(10);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -79,6 +79,7 @@ export const InitialSetupModal: React.FC<InitialSetupModalProps> = ({ onComplete
                 <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block">Layout ngang</span>
                 <div className="grid grid-cols-2 gap-2">
                   {[
+                    { id: '50:20', label: '25x20' },
                     { id: '42:15', label: '21x15' },
                     { id: '60:20', label: '30x20' },
                     { id: '70:25', label: '35x25' },
