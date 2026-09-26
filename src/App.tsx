@@ -29,10 +29,15 @@ import { InitialSetupModal } from './components/InitialSetupModal';
 import { AddTextModal } from './components/AddTextModal';
 import { SaveProjectModal } from './components/SaveProjectModal';
 import { ProjectManagerModal } from './components/ProjectManagerModal';
+import { LoginModal } from './components/LoginModal';
+import { useAuth } from './context/AuthContext';
 import {
   saveProject,
   buildSavedProject,
   exportProjectFile,
+  saveAutoSaveSession,
+  getAutoSaveSession,
+  clearAutoSaveSession,
 } from './utils/projectStorage';
 import { imageOptimizer } from './utils/imageOptimizer';
 import { AlertCircle, Sparkles, X } from 'lucide-react';
@@ -42,6 +47,8 @@ import { toJpeg, getFontEmbedCSS } from 'html-to-image';
 import { setDpiInJpegDataUrl } from './utils/imageUtils';
 
 export default function App() {
+  const { isVip } = useAuth();
+
   // Multi-page Album State
   const [pages, setPages] = useState<AlbumPage[]>(() => INITIAL_ALBUM_PAGES);
   const [isSetupComplete, setIsSetupComplete] = useState<boolean>(false);
@@ -62,10 +69,18 @@ export default function App() {
   const [isExporting, setIsExporting] = useState(false);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const [isProjectManagerOpen, setIsProjectManagerOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [loginPromptMessage, setLoginPromptMessage] = useState<string | undefined>(undefined);
 
   // Current Project Tracking
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
   const [currentProjectName, setCurrentProjectName] = useState<string>('Album Cưới 1');
+
+  // Auto-Save State
+  const [hasRestoredSession, setHasRestoredSession] = useState<boolean>(false);
+  const [autoSaveStatus, setAutoSaveStatus] = useState<'saved' | 'saving' | 'idle'>('idle');
+  const [lastSavedTime, setLastSavedTime] = useState<number | null>(null);
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Custom UI for Dialogs/Toasts (since iframe blocks window.alert/confirm)
   const [toastMsg, setToastMsg] = useState<{ title: string; type: 'success' | 'error' | 'info' } | null>(null);
@@ -107,6 +122,135 @@ export default function App() {
     const unsub = imageOptimizer.subscribe(updateStats);
     return unsub;
   }, [pages]);
+
+  // 1. Auto-restore session from IndexedDB/localStorage on initial mount
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        const session = await getAutoSaveSession();
+        if (
+          isMounted &&
+          session &&
+          session.project &&
+          session.project.isSetupComplete &&
+          Array.isArray(session.project.pages) &&
+          session.project.pages.length > 0
+        ) {
+          setPages(session.project.pages);
+          setIsSetupComplete(true);
+          if (session.project.originalId || (session.project.id && session.project.id !== 'xalbum_autosave_session')) {
+            setCurrentProjectId(session.project.originalId || session.project.id);
+          }
+          if (session.project.name) {
+            setCurrentProjectName(session.project.name);
+          }
+          if (typeof session.activePageIndex === 'number') {
+            setActivePageIndex(Math.min(session.activePageIndex, session.project.pages.length - 1));
+          }
+          setAutoSaveStatus('saved');
+          setLastSavedTime(session.savedAt || Date.now());
+          showAlert(`Đã tự động khôi phục dự án "${session.project.name || 'Album Cưới'}" của bạn!`, 'success');
+        }
+      } catch (err) {
+        console.warn('Could not restore auto-save session:', err);
+      } finally {
+        if (isMounted) {
+          setHasRestoredSession(true);
+        }
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // 2. Debounced auto-save when designing
+  useEffect(() => {
+    if (!hasRestoredSession || !isSetupComplete) return;
+
+    setAutoSaveStatus('saving');
+
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    autoSaveTimeoutRef.current = setTimeout(async () => {
+      try {
+        const proj = buildSavedProject(
+          currentProjectName,
+          pages,
+          isSetupComplete,
+          currentProjectId || undefined
+        );
+        const session = {
+          project: {
+            ...proj,
+            originalId: currentProjectId || undefined,
+          },
+          activePageIndex,
+          savedAt: Date.now(),
+        };
+        await saveAutoSaveSession(session);
+        setAutoSaveStatus('saved');
+        setLastSavedTime(Date.now());
+      } catch (err) {
+        console.warn('Auto-save error:', err);
+      }
+    }, 1000);
+
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [pages, currentProjectName, currentProjectId, activePageIndex, isSetupComplete, hasRestoredSession]);
+
+  // 3. Immediate flush when window unloads or becomes hidden
+  useEffect(() => {
+    if (!hasRestoredSession || !isSetupComplete) return;
+
+    const flushAutoSave = () => {
+      try {
+        const proj = buildSavedProject(
+          currentProjectName,
+          pages,
+          isSetupComplete,
+          currentProjectId || undefined
+        );
+        const session = {
+          project: {
+            ...proj,
+            originalId: currentProjectId || undefined,
+          },
+          activePageIndex,
+          savedAt: Date.now(),
+        };
+        saveAutoSaveSession(session);
+      } catch (err) {
+        console.warn('Error flushing auto-save:', err);
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        flushAutoSave();
+      }
+    };
+
+    const handleBeforeUnload = () => {
+      flushAutoSave();
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [pages, currentProjectName, currentProjectId, activePageIndex, isSetupComplete, hasRestoredSession]);
 
   const handleSmartRelinkPhotos = () => {
     const readyImages = imageOptimizer.getImages().map((img) => img.id);
@@ -548,6 +692,11 @@ export default function App() {
     setPages((prevPages) => {
       const target = prevPages[activePageIndex];
       const aspectChanged = target && target.posterSettings.aspectRatio !== newPosterSettings.aspectRatio;
+      const safeZoneChanged = target && (
+        target.posterSettings.showSafeZone !== newPosterSettings.showSafeZone ||
+        target.posterSettings.showCutZone !== newPosterSettings.showCutZone ||
+        target.posterSettings.showGuides !== newPosterSettings.showGuides
+      );
 
       return prevPages.map((page, index) => {
         if (index === activePageIndex) {
@@ -556,13 +705,25 @@ export default function App() {
             posterSettings: newPosterSettings,
           };
         }
+        let updatedSettings = page.posterSettings;
         if (aspectChanged) {
+          updatedSettings = {
+            ...updatedSettings,
+            aspectRatio: newPosterSettings.aspectRatio,
+          };
+        }
+        if (safeZoneChanged) {
+          updatedSettings = {
+            ...updatedSettings,
+            showSafeZone: newPosterSettings.showSafeZone,
+            showCutZone: newPosterSettings.showCutZone,
+            showGuides: newPosterSettings.showGuides,
+          };
+        }
+        if (updatedSettings !== page.posterSettings) {
           return {
             ...page,
-            posterSettings: {
-              ...page.posterSettings,
-              aspectRatio: newPosterSettings.aspectRatio,
-            },
+            posterSettings: updatedSettings,
           };
         }
         return page;
@@ -598,8 +759,7 @@ export default function App() {
 
           const rawDataUrl = await toJpeg(currentRef, {
             pixelRatio: pixelRatio,
-            
-            quality: 0.92,
+            quality: 0.96,
             backgroundColor: currentPage.posterSettings.bgColor || '#ffffff',
             cacheBust: true,
             fontEmbedCSS: fontEmbedCSS,
@@ -650,8 +810,7 @@ export default function App() {
 
         const rawDataUrl = await toJpeg(currentRef, {
           pixelRatio: pixelRatio,
-          
-          quality: 0.92,
+          quality: 0.96,
           backgroundColor: pageItem.posterSettings.bgColor || '#ffffff',
           cacheBust: true,
           fontEmbedCSS: fontEmbedCSS,
@@ -761,6 +920,19 @@ export default function App() {
       await saveProject(newProj);
       setCurrentProjectId(newProj.id);
       setCurrentProjectName(newProj.name);
+
+      // Update auto-save session with new project identity
+      await saveAutoSaveSession({
+        project: {
+          ...newProj,
+          originalId: newProj.id,
+        },
+        activePageIndex,
+        savedAt: Date.now(),
+      });
+      setAutoSaveStatus('saved');
+      setLastSavedTime(Date.now());
+
       setIsSaveModalOpen(false);
       showAlert(`Đã lưu dự án "${newProj.name}" thành công!`, 'success');
     } catch (error: any) {
@@ -770,6 +942,11 @@ export default function App() {
   };
 
   const handleExportCurrentProjectFile = () => {
+    if (!isVip) {
+      setLoginPromptMessage('Bạn cần đăng nhập tài khoản VIP để tải file sao lưu dự án (.xalbum) về máy tính.');
+      setIsLoginModalOpen(true);
+      return;
+    }
     try {
       const proj = buildSavedProject(currentProjectName, pages, isSetupComplete, currentProjectId || undefined);
       exportProjectFile(proj);
@@ -790,12 +967,25 @@ export default function App() {
     setActiveSlotIndex(null);
     setIsProjectManagerOpen(false);
     setIsRelinkDismissed(false);
+
+    // Save auto-save session for loaded project
+    saveAutoSaveSession({
+      project: {
+        ...project,
+        originalId: project.id,
+      },
+      activePageIndex: 0,
+      savedAt: Date.now(),
+    });
+    setAutoSaveStatus('saved');
+    setLastSavedTime(Date.now());
   };
 
   const handleNewProject = () => {
     setConfirmDialog({
       message: 'Tạo một dự án album mới? Hãy chắc chắn bạn đã lưu album hiện tại trước khi tạo mới.',
-      onConfirm: () => {
+      onConfirm: async () => {
+        await clearAutoSaveSession();
         const defaultPages = generateAlbumPages(10, '50:20');
         setPages(defaultPages);
         setActivePageIndex(0);
@@ -804,6 +994,8 @@ export default function App() {
         setIsSetupComplete(false);
         setSelectedTextId(null);
         setActiveSlotIndex(null);
+        setAutoSaveStatus('idle');
+        setLastSavedTime(null);
         setConfirmDialog(null);
         showAlert('Đã tạo dự án album mới!', 'success');
       }
@@ -814,10 +1006,13 @@ export default function App() {
   const handleResetAll = () => {
     setConfirmDialog({
       message: 'Khôi phục lại toàn bộ album về các trang mẫu mặc định ban đầu?',
-      onConfirm: () => {
+      onConfirm: async () => {
+        await clearAutoSaveSession();
         const currentAspectRatio = currentPage?.posterSettings?.aspectRatio || '50:20';
         setPages(generateAlbumPages(10, currentAspectRatio));
         setActivePageIndex(0);
+        setAutoSaveStatus('idle');
+        setLastSavedTime(null);
         setConfirmDialog(null);
       }
     });
@@ -829,22 +1024,29 @@ export default function App() {
     setPages(newPages);
     setActivePageIndex(0);
     setIsSetupComplete(true);
+    setAutoSaveStatus('saving');
   };
   
   return (
     <div className="h-[100dvh] overflow-hidden flex flex-col bg-stone-100 font-sans text-stone-900 selection:bg-sky-200 selection:text-sky-900">
-      {!isSetupComplete && <InitialSetupModal onComplete={handleSetupComplete} />}
+      {hasRestoredSession && !isSetupComplete && <InitialSetupModal onComplete={handleSetupComplete} />}
 
       {/* Top Navbar */}
       <Navbar
         totalPages={pages.length}
         activePageIndex={activePageIndex}
         currentProjectName={currentProjectName}
+        autoSaveStatus={autoSaveStatus}
+        lastSavedTime={lastSavedTime}
         onOpenOrderModal={() => setIsOrderModalOpen(true)}
         onOpenExportModal={() => setIsExportAlbumOpen(true)}
         onResetAll={handleResetAll}
         onOpenSaveProject={() => setIsSaveModalOpen(true)}
         onOpenProjectManager={() => setIsProjectManagerOpen(true)}
+        onOpenLogin={() => {
+          setLoginPromptMessage(undefined);
+          setIsLoginModalOpen(true);
+        }}
       />
 
       {/* Main App Layout: Left Workspace (Canvas + Filmstrip) + Right Control Panel */}
@@ -924,6 +1126,8 @@ export default function App() {
                 onUpdateSlot={handleUpdateSlot}
                 onOpenCropModal={(slot, index) => setEditingSlot({ slot, index })}
                 posterRef={posterRef}
+                onUpdatePosterSettings={handlePosterSettingsChange}
+                pageNumber={activePageIndex + 1}
               />
             </div>
           </main>
@@ -1011,6 +1215,10 @@ export default function App() {
         pages={pages}
         activePageIndex={activePageIndex}
         currentCanvasRef={posterRef}
+        onOpenLogin={() => {
+          setLoginPromptMessage('Vui lòng đăng nhập tài khoản VIP để tải trọn bộ album in ấn chất lượng cao.');
+          setIsLoginModalOpen(true);
+        }}
       />
 
       <OrderPrintModal
@@ -1092,6 +1300,13 @@ export default function App() {
         onNewProject={handleNewProject}
         onOpenSaveCurrent={() => setIsSaveModalOpen(true)}
         onShowToast={showAlert}
+      />
+
+      {/* Login / VIP Authentication Modal */}
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        promptMessage={loginPromptMessage}
       />
     </div>
   );

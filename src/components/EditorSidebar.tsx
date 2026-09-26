@@ -22,6 +22,8 @@ import {
   Trash2,
   CopyCheck,
   Sparkles,
+  ShieldCheck,
+  Info,
 } from 'lucide-react';
 import { imageOptimizer, OptimizedImage } from '../utils/imageOptimizer';
 import { useEffect } from 'react';
@@ -660,17 +662,399 @@ export const TemplateThumbnail: React.FC<{ id: string; slots?: import('../types'
     );
   }
 
+  if (id === 'album-50x35-velvet-promise') {
+    return (
+      <div className={`w-full h-full bg-white p-1 flex gap-1 items-center select-none overflow-hidden ${className}`}>
+        {/* Left Side: Photo 1 with border */}
+        <div className="w-1/2 h-full p-1 flex items-center justify-center">
+          <div className="w-full h-full bg-stone-200 rounded-[2px] flex items-center justify-center text-[6px] text-stone-400 font-bold relative overflow-hidden">
+            <ThumbnailSlot slot={slots?.[0]} placeholder="1" />
+          </div>
+        </div>
+        {/* Right Side: Title + 2 horizontal photos + quote */}
+        <div className="w-1/2 h-full flex flex-col justify-between py-1 px-1">
+          <div className="text-center">
+            <span className="text-[4px] font-serif text-[#a6724a] font-bold tracking-wider uppercase block">VELVET PROMISE</span>
+          </div>
+          <div className="w-full flex-1 flex flex-col justify-center gap-1 my-0.5">
+            <div className="w-full h-[45%] bg-stone-200 rounded-[1.5px] relative overflow-hidden">
+              <ThumbnailSlot slot={slots?.[1]} placeholder="2" />
+            </div>
+            <div className="w-full h-[45%] bg-stone-200 rounded-[1.5px] relative overflow-hidden">
+              <ThumbnailSlot slot={slots?.[2]} placeholder="3" />
+            </div>
+          </div>
+          <div className="w-4/5 mx-auto space-y-0.5 text-center">
+            <div className="w-full h-[1px] bg-stone-300 rounded-full" />
+            <div className="w-2/3 mx-auto h-[1px] bg-stone-300 rounded-full" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (id === 'album-50x35-love-beyond') {
+    return (
+      <div className={`w-full h-full bg-white flex items-center select-none overflow-hidden ${className}`}>
+        {/* Left Side: 100% Full bleed photo */}
+        <div className="w-1/2 h-full bg-stone-200 flex items-center justify-center text-[7px] text-stone-400 font-bold relative overflow-hidden">
+          <ThumbnailSlot slot={slots?.[0]} placeholder="1" />
+        </div>
+        {/* Right Side: Header + 2 horizontal photos */}
+        <div className="w-1/2 h-full flex flex-col justify-between p-1.5">
+          <div className="flex flex-col leading-none">
+            <span className="text-[4.5px] font-serif text-stone-900 font-bold whitespace-nowrap">LOVE BEYOND</span>
+            <div className="flex items-center gap-1 mt-0.5">
+              <span className="text-[2.5px] font-mono text-stone-500">[NEWSEASON]</span>
+              <span className="text-[4px] font-serif text-[#b86b3a] italic">The Silence</span>
+            </div>
+          </div>
+          <div className="w-full flex-1 flex flex-col justify-center gap-1 my-0.5">
+            <div className="w-full h-[45%] bg-stone-200 rounded-[1.5px] relative overflow-hidden">
+              <ThumbnailSlot slot={slots?.[1]} placeholder="2" />
+            </div>
+            <div className="w-full h-[45%] bg-stone-200 rounded-[1.5px] relative overflow-hidden">
+              <ThumbnailSlot slot={slots?.[2]} placeholder="3" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (id === 'album-50x35-blooming-flowers') {
+    return (
+      <div className={`w-full h-full bg-white flex items-center select-none overflow-hidden ${className}`}>
+        {/* Left Side: 2 vertical photos with center pink text */}
+        <div className="w-1/2 h-full flex flex-col items-center justify-between p-1 shrink-0">
+          <div className="w-[70%] h-[38%] bg-stone-200 rounded-[1.5px] relative overflow-hidden">
+            <ThumbnailSlot slot={slots?.[1]} placeholder="2" />
+          </div>
+          <div className="text-center leading-none py-0.5">
+            <span className="text-[4px] font-serif text-[#e11d67] font-bold block">“BLOOMING”</span>
+            <span className="text-[3.5px] font-serif text-[#ff4d8d] italic block">flowers</span>
+          </div>
+          <div className="w-[70%] h-[38%] bg-stone-200 rounded-[1.5px] relative overflow-hidden">
+            <ThumbnailSlot slot={slots?.[2]} placeholder="3" />
+          </div>
+        </div>
+        {/* Right Side: Full bleed photo */}
+        <div className="w-1/2 h-full bg-stone-200 flex items-center justify-center text-[7px] text-stone-400 font-bold relative overflow-hidden shrink-0">
+          <ThumbnailSlot slot={slots?.[0]} placeholder="1" />
+        </div>
+      </div>
+    );
+  }
+
+  if (id === 'album-50x35-sweet-escape') {
+    return (
+      <div className={`w-full h-full bg-white flex items-center select-none overflow-hidden ${className}`}>
+        {/* Left Side: 2 Arched vertical photos with Sweet Escape script */}
+        <div className="w-1/2 h-full flex flex-col items-center justify-between p-1 shrink-0 bg-white">
+          <div className="w-[72%] h-[40%] bg-stone-200 rounded-tl-[8px] rounded-tr-[1.5px] rounded-br-[1.5px] rounded-bl-[1.5px] relative overflow-hidden">
+            <ThumbnailSlot slot={slots?.[2]} placeholder="3" />
+          </div>
+          <div className="text-center leading-none -my-0.5 z-10">
+            <span className="text-[4px] font-serif italic text-stone-800 font-normal">Sweet Escape</span>
+          </div>
+          <div className="w-[72%] h-[40%] bg-stone-200 rounded-tl-[1.5px] rounded-tr-[1.5px] rounded-br-[8px] rounded-bl-[1.5px] relative overflow-hidden">
+            <ThumbnailSlot slot={slots?.[3]} placeholder="4" />
+          </div>
+        </div>
+        {/* Right Side: 2 horizontal stacked photos */}
+        <div className="w-1/2 h-full flex flex-col gap-[1px] shrink-0">
+          <div className="w-full h-1/2 bg-stone-200 relative overflow-hidden">
+            <ThumbnailSlot slot={slots?.[0]} placeholder="1" />
+          </div>
+          <div className="w-full h-1/2 bg-stone-200 relative overflow-hidden">
+            <ThumbnailSlot slot={slots?.[1]} placeholder="2" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (id === 'album-50x35-great-ending') {
+    return (
+      <div className={`w-full h-full bg-white flex items-center select-none overflow-hidden ${className}`}>
+        {/* Left Side: 1 Portrait with white passepartout border */}
+        <div className="w-1/2 h-full flex items-center justify-center p-1 shrink-0">
+          <div className="w-[82%] h-[90%] bg-stone-200 rounded-[1px] relative overflow-hidden border border-white">
+            <ThumbnailSlot slot={slots?.[0]} placeholder="1" />
+          </div>
+        </div>
+        {/* Right Side: 3x3 Grid (8 slots + typography) */}
+        <div className="w-1/2 h-full p-1 flex items-center justify-center shrink-0">
+          <div className="w-full h-[90%] grid grid-cols-3 grid-rows-3 gap-[1px]">
+            <div className="bg-stone-200 relative overflow-hidden"><ThumbnailSlot slot={slots?.[1]} placeholder="" /></div>
+            <div className="bg-stone-200 relative overflow-hidden"><ThumbnailSlot slot={slots?.[2]} placeholder="" /></div>
+            <div className="bg-stone-200 relative overflow-hidden"><ThumbnailSlot slot={slots?.[3]} placeholder="" /></div>
+            <div className="bg-stone-200 relative overflow-hidden"><ThumbnailSlot slot={slots?.[4]} placeholder="" /></div>
+            <div className="bg-stone-200 relative overflow-hidden"><ThumbnailSlot slot={slots?.[5]} placeholder="" /></div>
+            <div className="bg-stone-200 relative overflow-hidden"><ThumbnailSlot slot={slots?.[6]} placeholder="" /></div>
+            <div className="bg-stone-200 relative overflow-hidden"><ThumbnailSlot slot={slots?.[7]} placeholder="" /></div>
+            <div className="bg-stone-200 relative overflow-hidden"><ThumbnailSlot slot={slots?.[8]} placeholder="" /></div>
+            <div className="flex flex-col justify-end items-end p-0.5 leading-none">
+              <span className="text-[2.5px] font-serif font-bold italic uppercase text-stone-900">GREAT</span>
+              <span className="text-[2.5px] font-serif font-bold uppercase text-stone-900 leading-none">— ENDING</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (id === 'album-50x35-maison-amour') {
+    return (
+      <div className={`w-full h-full bg-white flex items-center select-none overflow-hidden ${className}`}>
+        {/* Left Side: Maison Amour title + 3 staggered vertical photos + pink bottom bar */}
+        <div className="w-1/2 h-full flex flex-col justify-between pt-0.5 px-1 pb-0 shrink-0 bg-white">
+          <div className="text-center leading-none">
+            <span className="text-[4px] font-serif italic text-rose-400 font-bold">Maison Amour</span>
+          </div>
+          <div className="flex-1 flex items-center justify-center gap-0.5 min-h-0">
+            <div className="w-[30%] h-[75%] mt-1 bg-stone-200 relative overflow-hidden rounded-[0.5px]">
+              <ThumbnailSlot slot={slots?.[1]} placeholder="2" />
+            </div>
+            <div className="w-[36%] h-[92%] -mt-1 bg-stone-200 relative overflow-hidden rounded-[0.5px] shadow-2xs z-10">
+              <ThumbnailSlot slot={slots?.[2]} placeholder="3" />
+            </div>
+            <div className="w-[30%] h-[75%] mt-1 bg-stone-200 relative overflow-hidden rounded-[0.5px]">
+              <ThumbnailSlot slot={slots?.[3]} placeholder="4" />
+            </div>
+          </div>
+          <div className="w-full h-[2px] bg-[#f8cdd7] shrink-0 mt-0.5"></div>
+        </div>
+        {/* Right Side: Full bleed photo */}
+        <div className="w-1/2 h-full bg-stone-200 flex items-center justify-center text-[7px] text-stone-400 font-bold relative overflow-hidden shrink-0">
+          <ThumbnailSlot slot={slots?.[0]} placeholder="1" />
+        </div>
+      </div>
+    );
+  }
+
+  if (id === 'album-50x35-seasons-of-love') {
+    return (
+      <div className={`w-full h-full bg-white flex items-center select-none overflow-hidden ${className}`}>
+        {/* Left Side: 1 Portrait with white margin */}
+        <div className="w-1/2 h-full flex items-center justify-center p-1 shrink-0 bg-white">
+          <div className="w-[82%] h-[88%] bg-stone-200 relative overflow-hidden rounded-[0.5px]">
+            <ThumbnailSlot slot={slots?.[0]} placeholder="1" />
+          </div>
+        </div>
+        {/* Right Side: Header typography + 3 vertical photos + footer */}
+        <div className="w-1/2 h-full flex flex-col justify-between p-1 shrink-0 bg-white">
+          <div className="flex justify-between items-start">
+            <span className="text-[3px] font-sans text-stone-400">|SEASONS</span>
+            <span className="text-[4px] font-serif uppercase tracking-wider text-stone-800 font-semibold">THE SEASONS</span>
+          </div>
+          <div className="flex-1 flex items-center justify-between gap-0.5 my-0.5 min-h-0">
+            <div className="w-1/3 h-full bg-stone-200 relative overflow-hidden rounded-[0.5px]">
+              <ThumbnailSlot slot={slots?.[1]} placeholder="2" />
+            </div>
+            <div className="w-1/3 h-full bg-stone-200 relative overflow-hidden rounded-[0.5px]">
+              <ThumbnailSlot slot={slots?.[2]} placeholder="3" />
+            </div>
+            <div className="w-1/3 h-full bg-stone-200 relative overflow-hidden rounded-[0.5px]">
+              <ThumbnailSlot slot={slots?.[3]} placeholder="4" />
+            </div>
+          </div>
+          <div className="text-right">
+            <span className="text-[2.5px] font-sans text-stone-400 uppercase tracking-tighter">OFTEN FORMED • LOVE</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (id === 'album-50x35-quietly-yours') {
+    return (
+      <div className={`w-full h-full bg-white flex items-center select-none overflow-hidden ${className}`}>
+        {/* Left Side: faint vertical text + 2 stacked vertical photos */}
+        <div className="w-1/2 h-full flex items-center justify-center relative p-1 shrink-0 bg-white">
+          <div className="absolute left-0.5 inset-y-0 flex items-center pointer-events-none select-none">
+            <span style={{ writingMode: 'vertical-rl' }} className="text-[5px] font-serif uppercase text-stone-200 font-bold rotate-180">
+              QUIETLY
+            </span>
+          </div>
+          <div className="w-[62%] h-full flex flex-col justify-between gap-0.5 min-h-0">
+            <div className="w-full h-1/2 bg-stone-200 relative overflow-hidden rounded-[0.5px]">
+              <ThumbnailSlot slot={slots?.[1]} placeholder="2" />
+            </div>
+            <div className="w-full h-1/2 bg-stone-200 relative overflow-hidden rounded-[0.5px]">
+              <ThumbnailSlot slot={slots?.[2]} placeholder="3" />
+            </div>
+          </div>
+        </div>
+        {/* Right Side: Full bleed photo */}
+        <div className="w-1/2 h-full bg-stone-200 flex items-center justify-center text-[7px] text-stone-400 font-bold relative overflow-hidden shrink-0">
+          <ThumbnailSlot slot={slots?.[0]} placeholder="1" />
+        </div>
+      </div>
+    );
+  }
+
+  if (id === 'album-50x35-finest-chapter') {
+    return (
+      <div className={`w-full h-full bg-white flex items-center select-none overflow-hidden ${className}`}>
+        {/* Left Side: 2 Vertical Photos */}
+        <div className="w-1/2 h-full flex items-center justify-center p-1 shrink-0 bg-white gap-0.5">
+          <div className="w-1/2 h-[86%] bg-stone-200 relative overflow-hidden rounded-[0.5px]">
+            <ThumbnailSlot slot={slots?.[0]} placeholder="1" />
+          </div>
+          <div className="w-1/2 h-[86%] bg-stone-200 relative overflow-hidden rounded-[0.5px]">
+            <ThumbnailSlot slot={slots?.[1]} placeholder="2" />
+          </div>
+        </div>
+        {/* Right Side: 2 Staggered photos + Chapter text */}
+        <div className="w-1/2 h-full p-1 flex items-center justify-center shrink-0 bg-white">
+          <div className="w-full h-[86%] flex justify-between gap-0.5">
+            <div className="w-[48%] h-full flex flex-col justify-end">
+              <div className="w-full h-[82%] bg-stone-200 relative overflow-hidden rounded-[0.5px]">
+                <ThumbnailSlot slot={slots?.[2]} placeholder="3" />
+              </div>
+            </div>
+            <div className="w-[48%] h-full flex flex-col justify-between">
+              <div className="w-full h-[78%] bg-stone-200 relative overflow-hidden rounded-[0.5px]">
+                <ThumbnailSlot slot={slots?.[3]} placeholder="4" />
+              </div>
+              <div className="text-right leading-none">
+                <span className="text-[3px] font-serif text-stone-700 uppercase font-semibold">FINEST</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (id === 'album-50x35-familiar-soul') {
+    return (
+      <div className={`w-full h-full bg-white flex items-center select-none overflow-hidden ${className}`}>
+        {/* Left Side: 2 stacked photos + middle crimson text */}
+        <div className="w-1/2 h-full flex flex-col justify-between items-center py-1 px-1.5 shrink-0 bg-white">
+          <div className="w-[62%] h-[42%] bg-stone-200 relative overflow-hidden rounded-[0.5px]">
+            <ThumbnailSlot slot={slots?.[1]} placeholder="2" />
+          </div>
+          <div className="w-full flex items-center justify-between px-0.5 leading-none">
+            <span className="text-[2px] font-sans text-stone-500 uppercase">#CONCEPT</span>
+            <span className="text-[3.5px] font-serif text-[#b91c1c] font-bold">Familiar Soul</span>
+            <span className="text-[2px] font-sans text-stone-500 uppercase">#DESIGN</span>
+          </div>
+          <div className="w-[62%] h-[42%] bg-stone-200 relative overflow-hidden rounded-[0.5px]">
+            <ThumbnailSlot slot={slots?.[2]} placeholder="3" />
+          </div>
+        </div>
+        {/* Right Side: Full bleed photo */}
+        <div className="w-1/2 h-full bg-stone-200 flex items-center justify-center text-[7px] text-stone-400 font-bold relative overflow-hidden shrink-0">
+          <ThumbnailSlot slot={slots?.[0]} placeholder="1" />
+        </div>
+      </div>
+    );
+  }
+
+  if (id === 'album-50x35-ordinary-forever') {
+    return (
+      <div className={`w-full h-full bg-white flex items-center select-none overflow-hidden ${className}`}>
+        {/* Left Side: 1 full-page background photo + 6 small overlaid photo boxes */}
+        <div className="relative w-1/2 h-full bg-stone-200 shrink-0 overflow-hidden">
+          {/* Background photo */}
+          <div className="absolute inset-0 w-full h-full">
+            <ThumbnailSlot slot={slots?.[1]} placeholder="2" />
+          </div>
+          {/* 6 small photo boxes overlay */}
+          <div className="relative z-10 w-full h-full grid grid-cols-3 grid-rows-3 gap-[1px] p-[2px] pointer-events-none">
+            {/* Row 1: 2 empty cells for background, 1 small photo */}
+            <div />
+            <div />
+            <div className="bg-stone-100 shadow-[0_0.5px_1px_rgba(0,0,0,0.2)] border-[0.5px] border-white/90 relative overflow-hidden">
+              <ThumbnailSlot slot={slots?.[2]} placeholder="3" />
+            </div>
+
+            {/* Row 2: 3 small photos */}
+            <div className="bg-stone-100 shadow-[0_0.5px_1px_rgba(0,0,0,0.2)] border-[0.5px] border-white/90 relative overflow-hidden">
+              <ThumbnailSlot slot={slots?.[3]} placeholder="4" />
+            </div>
+            <div className="bg-stone-100 shadow-[0_0.5px_1px_rgba(0,0,0,0.2)] border-[0.5px] border-white/90 relative overflow-hidden">
+              <ThumbnailSlot slot={slots?.[4]} placeholder="5" />
+            </div>
+            <div className="bg-stone-100 shadow-[0_0.5px_1px_rgba(0,0,0,0.2)] border-[0.5px] border-white/90 relative overflow-hidden">
+              <ThumbnailSlot slot={slots?.[5]} placeholder="6" />
+            </div>
+
+            {/* Row 3: 2 small photos, 1 empty cell */}
+            <div className="bg-stone-100 shadow-[0_0.5px_1px_rgba(0,0,0,0.2)] border-[0.5px] border-white/90 relative overflow-hidden">
+              <ThumbnailSlot slot={slots?.[6]} placeholder="7" />
+            </div>
+            <div className="bg-stone-100 shadow-[0_0.5px_1px_rgba(0,0,0,0.2)] border-[0.5px] border-white/90 relative overflow-hidden">
+              <ThumbnailSlot slot={slots?.[7]} placeholder="8" />
+            </div>
+            <div />
+          </div>
+        </div>
+        {/* Right Side: Title + Centered Portrait + Quote */}
+        <div className="w-1/2 h-full flex flex-col justify-between p-1 shrink-0 bg-white">
+          <div className="flex justify-between items-start">
+            <span className="text-[3.5px] font-serif uppercase tracking-wider text-stone-800 font-semibold leading-tight">ORDINARY<br/>FOREVER</span>
+            <span className="text-[2.5px] font-sans text-stone-400">|NEW|</span>
+          </div>
+          <div className="w-[66%] h-[58%] mx-auto bg-stone-200 relative overflow-hidden rounded-[0.5px]">
+            <ThumbnailSlot slot={slots?.[0]} placeholder="1" />
+          </div>
+          <div className="text-center">
+            <span className="text-[2px] font-sans text-stone-400 uppercase tracking-tighter">THE STRONGEST BONDS</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (id === 'album-50x35-mutual-muse') {
+    return (
+      <div className={`w-full h-full bg-white flex items-center select-none overflow-hidden ${className}`}>
+        {/* Left Side: 2 side-by-side vertical photos + text */}
+        <div className="relative w-1/2 h-full flex shrink-0 overflow-hidden bg-stone-100">
+          <div className="w-[46%] h-full bg-stone-200 relative overflow-hidden">
+            <ThumbnailSlot slot={slots?.[0]} placeholder="1" />
+          </div>
+          <div className="w-[54%] h-full bg-stone-200 relative overflow-hidden">
+            <ThumbnailSlot slot={slots?.[1]} placeholder="2" />
+          </div>
+          <div className="absolute left-[20%] bottom-1 flex items-baseline leading-none z-10">
+            <span className="text-[3.5px] font-serif text-[#8b181b] font-bold">Mutual</span>
+            <span className="text-[3px] font-serif italic text-[#b95d52]">Muse</span>
+          </div>
+        </div>
+        {/* Right Side: 3x3 grid with center box */}
+        <div className="w-1/2 h-full p-1 flex items-center justify-center shrink-0 bg-white">
+          <div className="w-full h-full grid grid-cols-3 grid-rows-3 gap-[1px]">
+            <div className="bg-stone-200 relative overflow-hidden"><ThumbnailSlot slot={slots?.[2]} placeholder="3" /></div>
+            <div className="bg-stone-200 relative overflow-hidden"><ThumbnailSlot slot={slots?.[3]} placeholder="4" /></div>
+            <div className="bg-stone-200 relative overflow-hidden"><ThumbnailSlot slot={slots?.[4]} placeholder="5" /></div>
+            <div className="bg-stone-200 relative overflow-hidden"><ThumbnailSlot slot={slots?.[5]} placeholder="6" /></div>
+            <div className="bg-white flex flex-col items-center justify-center p-0.5 border border-stone-200">
+              <span className="text-[2.5px] font-serif uppercase text-stone-700 font-bold leading-none text-center">CHERISHED<br/>MOMENTS</span>
+            </div>
+            <div className="bg-stone-200 relative overflow-hidden"><ThumbnailSlot slot={slots?.[6]} placeholder="7" /></div>
+            <div className="bg-stone-200 relative overflow-hidden"><ThumbnailSlot slot={slots?.[7]} placeholder="8" /></div>
+            <div className="bg-stone-200 relative overflow-hidden"><ThumbnailSlot slot={slots?.[8]} placeholder="9" /></div>
+            <div className="bg-stone-200 relative overflow-hidden"><ThumbnailSlot slot={slots?.[9]} placeholder="10" /></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // --- OVERLAY / VIP TEMPLATES ---
   if (id.startsWith('overlay-')) {
     const vipTmpl = VIP_TEMPLATES.find((t) => t.id === id);
     const slotsCoords = vipTmpl?.slotsCoordinates || [
       { x: 25, y: 25, width: 50, height: 50, rotation: 0 },
     ];
-    let overlayImg = vipTmpl?.overlayUri || OVERLAY_SVG;
-    const match = overlayImg.match(/(\d\d-\d\d\.png)/);
-    if (match) {
-      overlayImg = '/images/layout/lay01/' + match[1];
-    }
+    const match = (vipTmpl?.overlayUri || '').match(/(\d\d-\d\d\.png)/);
+    const filename = match ? match[1] : '';
+    // Prioritize direct live URL from photobookvietnam.net which is guaranteed to be available across all environments (including Vercel)
+    const overlayImg = vipTmpl?.overlayUri || (filename ? `https://www.photobookvietnam.net/images/layout/lay01/${filename}` : OVERLAY_SVG);
 
     return (
       <div className={`w-full h-full relative overflow-hidden bg-stone-50 flex items-center justify-center select-none ${className}`}>
@@ -695,16 +1079,27 @@ export const TemplateThumbnail: React.FC<{ id: string; slots?: import('../types'
         <img
           src={overlayImg}
           alt=""
+          loading="lazy"
           className="absolute inset-0 w-full h-full object-cover pointer-events-none z-10"
           onError={(e) => {
             const target = e.currentTarget;
-            const match = target.src.match(/(\d\d-\d\d\.png)/);
-            if (match) {
-              if (!target.src.includes('photobookvietnam.net') && vipTmpl?.overlayUri) {
-                target.src = vipTmpl.overlayUri;
-              } else if (!target.src.endsWith('/images/layout/lay01/' + match[1])) {
-                target.src = '/images/layout/lay01/' + match[1];
-              }
+            const currentSrc = target.src;
+            const fileMatch = currentSrc.match(/(\d\d-\d\d\.png)/) || (filename ? [null, filename] : null);
+            const fName = fileMatch ? fileMatch[1] : '';
+            const step = parseInt(target.dataset.fallbackStep || '0', 10);
+
+            if (step === 0 && fName) {
+              target.dataset.fallbackStep = '1';
+              // If live URL had any issue, try local relative path
+              target.src = `/images/layout/lay01/${fName}`;
+            } else if (step === 1 && fName) {
+              target.dataset.fallbackStep = '2';
+              // If local failed, retry live URL
+              target.src = `https://www.photobookvietnam.net/images/layout/lay01/${fName}`;
+            } else {
+              target.dataset.fallbackStep = '3';
+              // Fallback to inline SVG mask so no broken image icon ever shows
+              target.src = OVERLAY_SVG;
             }
           }}
         />
@@ -1172,6 +1567,162 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
         {/* TAB 4: FRAME & BACKGROUND STYLE */}
         {activeTab === 'style' && (
           <div className="flex-1 overflow-y-auto p-5 space-y-5 animate-fade-in">
+            {/* Safe Zone & Print Guides (Vùng an toàn & Đường guide in ấn) */}
+            {(() => {
+              const isAnyActive = Boolean(posterSettings.showCutZone || posterSettings.showSafeZone || posterSettings.showGuides);
+
+              return (
+                <div className="bg-stone-50 p-3.5 rounded-2xl border border-stone-200/80 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div
+                        className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all ${
+                          isAnyActive
+                            ? 'bg-cyan-500 text-white shadow-sm ring-2 ring-cyan-400/30'
+                            : 'bg-stone-200 text-stone-500'
+                        }`}
+                      >
+                        <ShieldCheck className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-stone-800 uppercase tracking-wider block">
+                          Vùng An Toàn & Guides
+                        </span>
+                        <span className="text-[10px] text-stone-500 block leading-tight">
+                          Bật/tắt riêng biệt hoặc toàn bộ
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Master Toggle Switch */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (isAnyActive) {
+                          onChangePosterSettings({
+                            ...posterSettings,
+                            showCutZone: false,
+                            showSafeZone: false,
+                            showGuides: false,
+                          });
+                        } else {
+                          onChangePosterSettings({
+                            ...posterSettings,
+                            showCutZone: true,
+                            showSafeZone: true,
+                            showGuides: true,
+                          });
+                        }
+                      }}
+                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                        isAnyActive ? 'bg-cyan-600' : 'bg-stone-300'
+                      }`}
+                      role="switch"
+                      aria-checked={isAnyActive}
+                      title={isAnyActive ? 'Tắt toàn bộ đường gióng & vùng an toàn' : 'Bật toàn bộ đường gióng & vùng an toàn'}
+                    >
+                      <span
+                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                          isAnyActive ? 'translate-x-5' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
+                  </div>
+
+                  {/* Independent Sub-layers: Có thể bật/tắt riêng từng mục */}
+                  <div className="pt-2.5 border-t border-stone-200/80 space-y-2 animate-fade-in text-[11px]">
+                    {/* Layer 1: Cut Zone (Độc lập) */}
+                    <div className="flex items-center justify-between p-2 rounded-xl bg-white border border-rose-100 hover:bg-rose-50/30 transition">
+                      <div className="flex items-center gap-2">
+                        <span className={`w-3.5 h-3.5 rounded-[3px] border block shrink-0 ${
+                          posterSettings.showCutZone ? 'bg-rose-200 border-rose-400' : 'bg-stone-100 border-stone-300'
+                        }`} />
+                        <div>
+                          <span className={`font-semibold block text-[11px] ${posterSettings.showCutZone ? 'text-rose-900' : 'text-stone-700'}`}>
+                            Vùng cắt xén (Cut Zone)
+                          </span>
+                          <span className="text-[9.5px] text-stone-400 block">Lề mép ngoài bị xén khi gia công đóng cuốn</span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => updateSettings('showCutZone', !posterSettings.showCutZone)}
+                        className={`px-2.5 py-0.5 rounded-lg text-[10px] font-bold transition cursor-pointer ${
+                          posterSettings.showCutZone
+                            ? 'bg-rose-100 text-rose-700 hover:bg-rose-200'
+                            : 'bg-stone-100 text-stone-400 hover:bg-stone-200'
+                        }`}
+                      >
+                        {posterSettings.showCutZone ? 'Bật' : 'Tắt'}
+                      </button>
+                    </div>
+
+                    {/* Layer 2: Safe Zone (Độc lập) */}
+                    <div className="flex items-center justify-between p-2 rounded-xl bg-white border border-cyan-100 hover:bg-cyan-50/30 transition">
+                      <div className="flex items-center gap-2">
+                        <span className={`w-3.5 h-3.5 rounded-[3px] border block shrink-0 ${
+                          posterSettings.showSafeZone ? 'bg-cyan-100 border-cyan-500' : 'bg-stone-100 border-stone-300'
+                        }`} />
+                        <div>
+                          <span className={`font-semibold block text-[11px] ${posterSettings.showSafeZone ? 'text-cyan-900' : 'text-stone-700'}`}>
+                            Khung an toàn (Safe Zone)
+                          </span>
+                          <span className="text-[9.5px] text-stone-400 block">Đặt trọn vẹn chữ & mặt người vào đây</span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => updateSettings('showSafeZone', !posterSettings.showSafeZone)}
+                        className={`px-2.5 py-0.5 rounded-lg text-[10px] font-bold transition cursor-pointer ${
+                          posterSettings.showSafeZone
+                            ? 'bg-cyan-100 text-cyan-700 hover:bg-cyan-200'
+                            : 'bg-stone-100 text-stone-400 hover:bg-stone-200'
+                        }`}
+                      >
+                        {posterSettings.showSafeZone ? 'Bật' : 'Tắt'}
+                      </button>
+                    </div>
+
+                    {/* Layer 3: Guides (Độc lập) */}
+                    <div className="flex items-center justify-between p-2 rounded-xl bg-white border border-stone-200 hover:bg-stone-50 transition">
+                      <div className="flex items-center gap-2">
+                        <span className="w-3.5 h-3.5 flex items-center justify-center">
+                          <span className={`w-3 h-0.5 rounded-full ${
+                            posterSettings.showGuides ? 'bg-sky-500' : 'bg-stone-300'
+                          }`} />
+                        </span>
+                        <div>
+                          <span className={`font-semibold block text-[11px] ${posterSettings.showGuides ? 'text-sky-900' : 'text-stone-700'}`}>
+                            Đường gióng & Gáy (Guides)
+                          </span>
+                          <span className="text-[9.5px] text-stone-400 block">Đường gáy giữa, rãnh gáy & trục căn đối xứng</span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => updateSettings('showGuides', !posterSettings.showGuides)}
+                        className={`px-2.5 py-0.5 rounded-lg text-[10px] font-bold transition cursor-pointer ${
+                          posterSettings.showGuides
+                            ? 'bg-sky-100 text-sky-700 hover:bg-sky-200'
+                            : 'bg-stone-100 text-stone-400 hover:bg-stone-200'
+                        }`}
+                      >
+                        {posterSettings.showGuides ? 'Bật' : 'Tắt'}
+                      </button>
+                    </div>
+
+                    {/* Note info box */}
+                    <div className="p-2.5 rounded-xl bg-amber-50/90 border border-amber-200/80 text-[10px] text-amber-900 leading-relaxed flex items-start gap-1.5">
+                      <Info className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                      <span>
+                        <b>Lưu ý:</b> Bạn có thể bật riêng bất kỳ mục nào hoặc bật đồng thời. Toàn bộ các đường này <b>tự động ẩn</b> khi xuất file ảnh in hoặc gửi đơn hàng.
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
             {/* Custom Overlay Section */}
             {(() => {
               return null;

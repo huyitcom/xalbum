@@ -1,0 +1,24 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile document with role information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth user ID" },
+        "email": { "type": "string", "format": "email", "description": "User email address" },
+        "displayName": { "type": "string", "description": "User full name or display name" },
+        "photoURL": { "type": "string", "description": "User profile image URL" },
+        "role": { "type": "string", "description": "User role, such as vip or standard user", "enum": ["vip", "user", "admin"] },
+        "createdAt": { "type": "string", "description": "Account creation timestamp" }
+      },
+      "required": ["uid", "email"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Collection of user profiles for authentication and VIP role checks"
+    }
+  }
+}

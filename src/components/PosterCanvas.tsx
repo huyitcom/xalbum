@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { imageOptimizer } from '../utils/imageOptimizer';
 import { FrameSlot, PosterSettings, TemplateId, TextConfig, CustomTextElement } from '../types';
-import { PHOTO_FILTERS, TEMPLATES } from '../data/constants';
+import { PHOTO_FILTERS, TEMPLATES, OVERLAY_SVG } from '../data/constants';
 import { TEXT_STYLE_PRESETS } from '../data/textStyles';
 import { Upload, Sliders, Plus, Trash2, RotateCw, RotateCcw, Type, Check, ImageOff } from 'lucide-react';
 
@@ -24,6 +24,8 @@ interface PosterCanvasProps {
   onOpenCropModal: (slot: FrameSlot, index: number) => void;
   posterRef: React.RefObject<HTMLDivElement | null>;
   isExporting?: boolean;
+  onUpdatePosterSettings?: (settings: PosterSettings) => void;
+  pageNumber?: number;
 }
 
 export const PosterCanvas: React.FC<PosterCanvasProps> = ({
@@ -44,6 +46,8 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
   onOpenCropModal,
   posterRef,
   isExporting = false,
+  onUpdatePosterSettings,
+  pageNumber,
 }) => {
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [panningIndex, setPanningIndex] = useState<number | null>(null);
@@ -79,6 +83,14 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
   const onSelectSlotRef = useRef(onSelectSlot);
   onSelectSlotRef.current = onSelectSlot;
 
+  // Re-render when imageOptimizer loads or updates images from IndexedDB
+  const [, setOptimizerTick] = useState(0);
+  useEffect(() => {
+    return imageOptimizer.subscribe(() => {
+      setOptimizerTick((prev) => prev + 1);
+    });
+  }, []);
+
   // --- Responsive Scaling Logic ---
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
@@ -94,6 +106,9 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
   const isExtremeLandscape = wRatio / hRatio >= 2;
   const baseWidth = isExtremeLandscape ? 960 : isLandscape ? 820 : 560;
   const baseHeight = (baseWidth * hRatio) / wRatio;
+  // Constant chrome height for top label (24px) + bottom legend (32px)
+  const CHROME_HEIGHT = 56;
+  const totalCanvasHeight = baseHeight + CHROME_HEIGHT;
 
   useEffect(() => {
     if (!wrapperRef.current) return;
@@ -111,16 +126,15 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
       const availableHeight = Math.max(220, parentHeight - 20);
 
       const scaleX = availableWidth / baseWidth;
-      const scaleY = availableHeight / baseHeight;
+      const scaleY = availableHeight / totalCanvasHeight;
 
       // Smart fit: fit both width and height, capped at 1.25 so it never becomes unnaturally oversized
       const newScale = Math.max(0.25, Math.min(scaleX, scaleY, 1.25));
       setScale(newScale);
     };
 
-    const observer = new ResizeObserver(updateScale);
-    observer.observe(wrapperRef.current);
     const parentMain = wrapperRef.current.closest('main') || wrapperRef.current.parentElement;
+    const observer = new ResizeObserver(updateScale);
     if (parentMain) {
       observer.observe(parentMain);
     }
@@ -131,7 +145,7 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
       observer.disconnect();
       window.removeEventListener('resize', updateScale);
     };
-  }, [baseWidth, baseHeight]);
+  }, [baseWidth, baseHeight, totalCanvasHeight]);
   // --------------------------------
 
   const panRef = useRef<{
@@ -396,7 +410,7 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
           activeSlotIndex === index ? 'ring-2 ring-sky-500 ring-offset-1 z-10' : ''
         } ${isPanningThis ? 'cursor-grabbing ring-2 ring-sky-400' : isFilled ? 'cursor-grab' : 'cursor-pointer'} ${className}`}
         style={{
-          borderRadius: `${posterSettings.cornerRadius}px`,
+          borderRadius: className.includes('rounded-none') ? 0 : `${posterSettings.cornerRadius}px`,
           backgroundColor: '#f5f5f4',
           touchAction: 'none',
           userSelect: 'none',
@@ -522,18 +536,27 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
         }
       }}
       className="w-full flex justify-center items-start py-1 sm:py-2 px-2 overflow-hidden" 
-      style={{ height: baseHeight * scale + 16 }}
+      style={{ height: totalCanvasHeight * scale + 16 }}
     >
       <div 
         style={{ 
           width: baseWidth, 
-          height: baseHeight, 
+          height: totalCanvasHeight,
           transform: `scale(${scale})`, 
           transformOrigin: 'top center',
           transition: 'transform 0.1s ease-out'
         }}
-        className="flex shrink-0 justify-center"
+        className="flex shrink-0 justify-between flex-col items-center"
       >
+        {/* Top Header Bar: luôn hiển thị số trang (Trang 1-2) cố định */}
+        {!isExporting && (
+          <div className="w-full h-6 flex items-center justify-start text-xs text-stone-600 font-medium px-1 select-none shrink-0">
+            <span className="font-semibold text-stone-700 tracking-tight">
+              Trang {pageNumber ? `${(pageNumber - 1) * 2 + 1}-${pageNumber * 2}` : '1-2'}
+            </span>
+          </div>
+        )}
+
         <div
           id="poster-root"
           ref={posterRef}
@@ -544,10 +567,12 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
               setEditingTextId(null);
             }
           }}
-          className="relative bg-white shadow-2xl transition-all duration-300 overflow-hidden flex flex-col w-full h-full"
+          className="relative bg-white shadow-2xl transition-all duration-300 overflow-hidden flex flex-col shrink-0"
           style={{
+            width: baseWidth,
+            height: baseHeight,
             backgroundColor: posterSettings.bgColor,
-            padding: isVipOverlay ? 0 : `${posterSettings.outerMargin}px`,
+            padding: (isVipOverlay || templateId === 'album-50x35-love-beyond' || templateId === 'album-50x35-blooming-flowers' || templateId === 'album-50x35-sweet-escape' || templateId === 'album-50x35-great-ending' || templateId === 'album-50x35-maison-amour' || templateId === 'album-50x35-seasons-of-love' || templateId === 'album-50x35-quietly-yours' || templateId === 'album-50x35-finest-chapter' || templateId === 'album-50x35-familiar-soul' || templateId === 'album-50x35-ordinary-forever' || templateId === 'album-50x35-mutual-muse') ? 0 : `${posterSettings.outerMargin}px`,
             border: isVipOverlay
               ? 'none'
               : posterSettings.borderStyle === 'thin-line'
@@ -906,13 +931,23 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
                 className="absolute inset-0 w-full h-full object-cover z-20 pointer-events-none select-none"
                 onError={(e) => {
                   const target = e.currentTarget;
-                  const match = target.src.match(/(\d\d-\d\d\.png)/);
-                  if (match) {
-                    if (!target.src.endsWith('/images/layout/lay01/' + match[1])) {
-                      target.src = '/images/layout/lay01/' + match[1];
-                    } else if (!target.src.includes('photobookvietnam.net')) {
-                      target.src = 'https://www.photobookvietnam.net/images/layout/lay01/' + match[1];
-                    }
+                  const currentSrc = target.src;
+                  const fileMatch = currentSrc.match(/(\d\d-\d\d\.png)/) || (templateDef?.overlayUri || '').match(/(\d\d-\d\d\.png)/);
+                  const fName = fileMatch ? fileMatch[1] : '';
+                  const step = parseInt(target.dataset.fallbackStep || '0', 10);
+
+                  if (step === 0 && fName) {
+                    target.dataset.fallbackStep = '1';
+                    // Try full remote CDN URL
+                    target.src = `https://www.photobookvietnam.net/images/layout/lay01/${fName}`;
+                  } else if (step === 1 && fName) {
+                    target.dataset.fallbackStep = '2';
+                    // Try local relative path
+                    target.src = `/images/layout/lay01/${fName}`;
+                  } else {
+                    target.dataset.fallbackStep = '3';
+                    // Inline SVG fallback to ensure canvas never breaks
+                    target.src = OVERLAY_SVG;
                   }
                 }}
               />
@@ -2001,7 +2036,847 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
             </div>
           </div>
         )}
-        {/* Custom Overlay Texts Added by User */}
+        {/* Layout Template: Velvet Promise (3 slots: Left large portrait with elegant border margin, Right 2 horizontal landscape with VELVET PROMISE title & romantic quote) */}
+        {templateId === 'album-50x35-velvet-promise' && (
+          <div className="w-full h-full flex bg-white overflow-hidden">
+            {/* Left Page (Exact 50%): Elegant framed portrait */}
+            <div className="w-1/2 h-full flex items-center justify-center py-6 px-6 sm:px-10 min-h-0 bg-white">
+              <div className="w-full h-full min-h-0 shadow-xs">
+                {renderSlot(0, 'w-full h-full')}
+              </div>
+            </div>
+
+            {/* Right Page (Exact 50%): Editorial Layout with Title + 2 Horizontal Photos + Quote */}
+            <div className="w-1/2 h-full flex flex-col justify-between py-6 px-6 sm:px-10 bg-white select-none overflow-hidden min-h-0">
+              {/* Top Title: VELVET PROMISE */}
+              <div className="w-full text-center pt-1 pb-1 shrink-0">
+                <h2
+                  style={{
+                    fontFamily: "'Cinzel', 'Playfair Display', serif",
+                    color: '#a6724a',
+                    fontSize: '22px',
+                    letterSpacing: '0.14em',
+                    fontWeight: 600,
+                    lineHeight: 1.1,
+                  }}
+                  className="uppercase tracking-[0.14em] select-none text-center whitespace-nowrap inline-block"
+                >
+                  VELVET PROMISE
+                </h2>
+              </div>
+
+              {/* Middle: 2 Horizontal Photos stacked - full flex-1 height */}
+              <div className="w-full flex-1 flex flex-col justify-center gap-3.5 my-1.5 min-h-0">
+                <div className="w-full flex-1 min-h-0 shadow-xs">
+                  {renderSlot(1, 'w-full h-full')}
+                </div>
+                <div className="w-full flex-1 min-h-0 shadow-xs">
+                  {renderSlot(2, 'w-full h-full')}
+                </div>
+              </div>
+
+              {/* Bottom: Romantic Quote */}
+              <div className="w-full text-center pb-1 pt-0.5 shrink-0">
+                <p
+                  style={{
+                    fontFamily: "'Playfair Display', 'Cormorant Garamond', serif",
+                    fontStyle: 'italic',
+                    fontSize: '11px',
+                    lineHeight: 1.5,
+                    color: '#44403c',
+                  }}
+                  className="max-w-[92%] mx-auto text-stone-700"
+                >
+                  Every moment beside you feels like a quiet kind of forever.
+                  <br />
+                  In your smile, I found warmth, peace, and the love I had always been searching for.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Layout Template: Love Beyond (3 slots: Left FULL BLEED portrait page, Right 2 horizontal photos with LOVE BEYOND The Silence calligraphy header) */}
+        {templateId === 'album-50x35-love-beyond' && (
+          <div className="w-full h-full flex bg-white overflow-hidden">
+            {/* Left Page (Exact 50% width): Full bleed portrait filling 100% of left page up to center line */}
+            <div className="w-1/2 h-full min-h-0 overflow-hidden">
+              {renderSlot(0, 'w-full h-full rounded-none')}
+            </div>
+
+            {/* Right Page (Exact 50% width): Artistic Typography Header + 2 Horizontal Photos */}
+            <div className="w-1/2 h-full flex flex-col justify-between py-6 px-6 sm:px-10 bg-white select-none overflow-hidden min-h-0">
+              {/* Header: LOVE BEYOND on 1 line + The Silence below */}
+              <div className="w-full relative pt-1 pb-1 shrink-0">
+                <div className="flex flex-col">
+                  {/* Line 1: LOVE BEYOND */}
+                  <div className="whitespace-nowrap leading-none">
+                    <span
+                      style={{
+                        fontFamily: "'Bodoni Moda', 'Playfair Display', serif",
+                        fontSize: '32px',
+                        fontWeight: 700,
+                        letterSpacing: '0.08em',
+                        color: '#1c1917',
+                        lineHeight: 1,
+                      }}
+                      className="tracking-wider uppercase whitespace-nowrap inline-block"
+                    >
+                      LOVE BEYOND
+                    </span>
+                  </div>
+
+                  {/* Line 2: [NEWSEASON] + The Silence */}
+                  <div className="flex items-center gap-3 mt-1.5">
+                    <span
+                      style={{
+                        fontFamily: "'Montserrat', sans-serif",
+                        fontSize: '9px',
+                        letterSpacing: '0.22em',
+                        color: '#57534e',
+                        fontWeight: 600,
+                      }}
+                      className="tracking-widest uppercase inline-block shrink-0"
+                    >
+                      [NEWSEASON]
+                    </span>
+                    <span
+                      style={{
+                        fontFamily: "'Alex Brush', 'Great Vibes', cursive",
+                        fontSize: '42px',
+                        color: '#b86b3a',
+                        lineHeight: 0.8,
+                        transform: 'rotate(-3deg)',
+                      }}
+                      className="select-none pointer-events-none whitespace-nowrap inline-block"
+                    >
+                      The Silence
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Middle: 2 Horizontal Photos - full flex-1 height */}
+              <div className="w-full flex-1 flex flex-col justify-center gap-3.5 my-1.5 min-h-0">
+                <div className="w-full flex-1 min-h-0 shadow-xs">
+                  {renderSlot(1, 'w-full h-full')}
+                </div>
+                <div className="w-full flex-1 min-h-0 shadow-xs">
+                  {renderSlot(2, 'w-full h-full')}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Layout Template: Blooming Flowers (3 slots: Left 2 vertical photos with “BLOOMING” flowers pink typography, Right full-bleed photo) */}
+        {templateId === 'album-50x35-blooming-flowers' && (
+          <div className="w-full h-full flex bg-white overflow-hidden">
+            {/* Left Page (Exact 50% width): 2 Vertical Photos with centered fashion typography */}
+            <div className="w-1/2 shrink-0 flex-none h-full flex flex-col items-center justify-between py-6 px-10 sm:px-14 bg-white select-none overflow-hidden min-h-0">
+              {/* Top Vertical Photo */}
+              <div className="w-[72%] flex-1 min-h-0 shadow-xs">
+                {renderSlot(1, 'w-full h-full')}
+              </div>
+
+              {/* Center Typography: “BLOOMING” flowers */}
+              <div className="w-full flex flex-col items-center justify-center py-2 relative select-none shrink-0">
+                <h2
+                  style={{
+                    fontFamily: "'Bodoni Moda', 'Playfair Display', serif",
+                    fontSize: '32px',
+                    fontWeight: 700,
+                    letterSpacing: '0.08em',
+                    color: '#e11d67',
+                    lineHeight: 1,
+                  }}
+                  className="uppercase tracking-wider text-center"
+                >
+                  “BLOOMING”
+                </h2>
+                <span
+                  style={{
+                    fontFamily: "'Alex Brush', 'Dancing Script', cursive",
+                    fontSize: '36px',
+                    color: '#ff4d8d',
+                    lineHeight: 0.8,
+                    marginTop: '-8px',
+                  }}
+                  className="select-none pointer-events-none"
+                >
+                  flowers
+                </span>
+              </div>
+
+              {/* Bottom Vertical Photo */}
+              <div className="w-[72%] flex-1 min-h-0 shadow-xs">
+                {renderSlot(2, 'w-full h-full')}
+              </div>
+            </div>
+
+            {/* Right Page (Exact 50% width): Full bleed portrait covering 100% of the right page */}
+            <div className="w-1/2 shrink-0 flex-none h-full min-h-0 overflow-hidden">
+              {renderSlot(0, 'w-full h-full rounded-none')}
+            </div>
+          </div>
+        )}
+
+        {/* Layout Template: Mẫu số 19 (Sweet Escape) */}
+        {templateId === 'album-50x35-sweet-escape' && (
+          <div className="w-full h-full flex bg-white overflow-hidden">
+            {/* Left Page (Exact 50% width): 2 Arched Vertical Photos + Sweet Escape Calligraphy */}
+            <div className="w-1/2 shrink-0 flex-none h-full flex flex-col items-center justify-between py-5 px-8 sm:px-12 bg-white select-none overflow-hidden min-h-0 relative">
+              {/* Top Vertical Photo with Top-Left Arch (Slot 2) */}
+              <div className="w-[74%] h-[44%] relative flex items-center justify-center">
+                <div className="w-full h-full shadow-sm rounded-tl-[80px] sm:rounded-tl-[95px] rounded-tr-md rounded-br-md rounded-bl-md overflow-hidden">
+                  {renderSlot(2, 'w-full h-full')}
+                </div>
+                {/* Right side hashtag metadata */}
+                <div className="absolute -right-8 top-3 flex flex-col gap-0.5 text-[9px] font-sans font-medium text-stone-500 select-none pointer-events-none">
+                  <span>#Mood</span>
+                  <span>#Roselune</span>
+                </div>
+              </div>
+
+              {/* Middle: Sweet Escape Script running across */}
+              <div className="w-full flex items-center justify-center -my-3.5 z-10 select-none pointer-events-none">
+                <span
+                  style={{
+                    fontFamily: "'Alex Brush', 'Dancing Script', cursive",
+                    fontSize: '56px',
+                    color: '#292524',
+                    lineHeight: 0.8,
+                    transform: 'rotate(-2deg)',
+                  }}
+                  className="whitespace-nowrap tracking-wide select-none"
+                >
+                  Sweet Escape
+                </span>
+              </div>
+
+              {/* Bottom Vertical Photo with Bottom-Right Arch (Slot 3) */}
+              <div className="w-[74%] h-[44%] relative flex items-center justify-center">
+                <div className="w-full h-full shadow-sm rounded-tl-md rounded-tr-md rounded-br-[80px] sm:rounded-br-[95px] rounded-bl-md overflow-hidden">
+                  {renderSlot(3, 'w-full h-full')}
+                </div>
+                {/* Right side poetic vertical text */}
+                <div
+                  className="absolute -right-8 bottom-3 select-none pointer-events-none text-[9.5px] font-sans text-stone-600 tracking-wider whitespace-nowrap"
+                  style={{ writingMode: 'vertical-rl' }}
+                >
+                  Love becomes beautiful when we grow gently together.
+                </div>
+              </div>
+            </div>
+
+            {/* Right Page (Exact 50% width): 2 Horizontal Full-Bleed Photos without Text */}
+            <div className="w-1/2 shrink-0 flex-none h-full flex flex-col min-h-0 overflow-hidden">
+              {/* Top Photo (Slot 0) */}
+              <div className="w-full h-1/2 min-h-0 relative border-b border-white/20">
+                {renderSlot(0, 'w-full h-full rounded-none')}
+              </div>
+
+              {/* Bottom Photo (Slot 1) */}
+              <div className="w-full h-1/2 min-h-0 relative">
+                {renderSlot(1, 'w-full h-full rounded-none')}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Layout Template: Mẫu số 20 (Great Ending) */}
+        {templateId === 'album-50x35-great-ending' && (
+          <div className="w-full h-full flex bg-white overflow-hidden">
+            {/* Left Page (Exact 50% width): Large Portrait Photo with Elegant Passepartout Margin */}
+            <div className="w-1/2 shrink-0 flex-none h-full flex items-center justify-center p-6 sm:p-10 select-none overflow-hidden min-h-0">
+              <div className="w-[84%] h-[92%] bg-white p-2 sm:p-2.5 shadow-sm rounded-xs overflow-hidden">
+                {renderSlot(0, 'w-full h-full')}
+              </div>
+            </div>
+
+            {/* Right Page (Exact 50% width): 3x3 Grid (8 Photos + 1 Editorial Great Ending Typography) */}
+            <div className="w-1/2 shrink-0 flex-none h-full p-6 sm:p-10 flex items-center justify-center bg-white select-none overflow-hidden min-h-0">
+              <div className="w-full h-[92%] grid grid-cols-3 grid-rows-3 gap-2 sm:gap-2.5">
+                {/* Row 1 */}
+                <div className="w-full h-full min-h-0 shadow-2xs overflow-hidden bg-stone-100">
+                  {renderSlot(1, 'w-full h-full')}
+                </div>
+                <div className="w-full h-full min-h-0 shadow-2xs overflow-hidden bg-stone-100">
+                  {renderSlot(2, 'w-full h-full')}
+                </div>
+                <div className="w-full h-full min-h-0 shadow-2xs overflow-hidden bg-stone-100">
+                  {renderSlot(3, 'w-full h-full')}
+                </div>
+
+                {/* Row 2 */}
+                <div className="w-full h-full min-h-0 shadow-2xs overflow-hidden bg-stone-100">
+                  {renderSlot(4, 'w-full h-full')}
+                </div>
+                <div className="w-full h-full min-h-0 shadow-2xs overflow-hidden bg-stone-100">
+                  {renderSlot(5, 'w-full h-full')}
+                </div>
+                <div className="w-full h-full min-h-0 shadow-2xs overflow-hidden bg-stone-100">
+                  {renderSlot(6, 'w-full h-full')}
+                </div>
+
+                {/* Row 3 */}
+                <div className="w-full h-full min-h-0 shadow-2xs overflow-hidden bg-stone-100">
+                  {renderSlot(7, 'w-full h-full')}
+                </div>
+                <div className="w-full h-full min-h-0 shadow-2xs overflow-hidden bg-stone-100">
+                  {renderSlot(8, 'w-full h-full')}
+                </div>
+
+                {/* Slot 9: Editorial Typography (Canh phải hoàn toàn, không có WE SING OF A) */}
+                <div className="w-full h-full min-h-0 flex flex-col justify-end items-end select-none pointer-events-none pb-1 sm:pb-2 text-right">
+                  <div className="flex flex-col items-end text-right">
+                    <span style={{ fontFamily: "'Bodoni Moda', 'Playfair Display', serif" }} className="text-[16px] sm:text-[19px] font-black italic tracking-normal uppercase text-stone-900 leading-none">
+                      GREAT
+                    </span>
+                    <span style={{ fontFamily: "'Bodoni Moda', 'Playfair Display', serif" }} className="text-[16px] sm:text-[19px] font-black tracking-normal uppercase text-stone-900 leading-none mt-1 whitespace-nowrap">
+                      — ENDING
+                    </span>
+                  </div>
+                  <p className="font-serif italic text-[8.5px] sm:text-[10px] leading-snug text-stone-700 text-right mt-2 sm:mt-2.5">
+                    “Since I met you
+                    <br />
+                    This small town hasn't got room
+                    <br />
+                    For my big feelings.”
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Layout Template: Mẫu số 21 (Maison Amour) */}
+        {templateId === 'album-50x35-maison-amour' && (
+          <div className="w-full h-full flex bg-white overflow-hidden">
+            {/* Left Page (Exact 50% width): Header Tags, Maison Amour Calligraphy, 3 Staggered Photos, Love Poem & Pink Bottom Bar */}
+            <div className="w-1/2 shrink-0 flex-none h-full flex flex-col justify-between pt-5 px-8 sm:px-12 pb-0 bg-white select-none overflow-hidden min-h-0 relative">
+              {/* Top Header Tags */}
+              <div className="w-full flex items-center justify-between text-[9px] sm:text-[10px] font-sans font-bold tracking-[0.2em] text-rose-400 uppercase select-none px-2 shrink-0">
+                <span>#ORIGINAL</span>
+                <span>#SERIES .999.</span>
+                <span>#DETAIL</span>
+              </div>
+
+              {/* Big Title: Maison Amour */}
+              <div className="w-full text-center my-0.5 select-none shrink-0">
+                <span
+                  style={{
+                    fontFamily: "'Alex Brush', 'Dancing Script', cursive",
+                    fontSize: '52px',
+                    color: '#fb7185',
+                    lineHeight: 1,
+                  }}
+                  className="inline-block select-none pointer-events-none drop-shadow-2xs"
+                >
+                  Maison Amour
+                </span>
+              </div>
+
+              {/* Middle: 3 Staggered Vertical Photos */}
+              <div className="w-full flex-1 flex items-center justify-center gap-3 my-1.5 min-h-0">
+                {/* Left Slot (Slot 1) */}
+                <div className="w-[30%] h-[80%] mt-6 shadow-xs overflow-hidden">
+                  {renderSlot(1, 'w-full h-full')}
+                </div>
+                {/* Center Slot (Slot 2, taller, hero) */}
+                <div className="w-[38%] h-[96%] -mt-3 shadow-md z-10 overflow-hidden ring-2 ring-white">
+                  {renderSlot(2, 'w-full h-full')}
+                </div>
+                {/* Right Slot (Slot 3) */}
+                <div className="w-[30%] h-[78%] mt-4 shadow-xs overflow-hidden">
+                  {renderSlot(3, 'w-full h-full')}
+                </div>
+              </div>
+
+              {/* Bottom Love Poem */}
+              <div className="w-full text-center pb-2.5 px-3 select-none shrink-0">
+                <p style={{ fontFamily: "'Bodoni Moda', 'Playfair Display', serif" }} className="text-[10px] sm:text-[11.5px] text-stone-800 leading-relaxed font-normal">
+                  Life will continue to surprise us with <span style={{ fontFamily: "'Alex Brush', cursive" }} className="text-rose-500 text-sm font-normal italic">unexpected paths</span>, yet
+                  <br />
+                  every <span style={{ fontFamily: "'Alex Brush', cursive" }} className="text-rose-500 text-sm font-normal italic">journey feels</span> less uncertain when taken together.
+                  <br />
+                  In every challenge and every celebration, we <span style={{ fontFamily: "'Alex Brush', cursive" }} className="text-rose-500 text-sm font-normal italic">discover another reason</span>
+                  <br />
+                  to believe in what we have built.
+                </p>
+              </div>
+
+              {/* Bottom Soft Pink Bar */}
+              <div className="w-full h-3.5 sm:h-4 bg-[#f8cdd7] shrink-0 -mx-8 sm:-mx-12 px-8 sm:px-12"></div>
+            </div>
+
+            {/* Right Page (Exact 50% width): 1 Full Bleed Portrait Photo covering 100% of right page */}
+            <div className="w-1/2 shrink-0 flex-none h-full min-h-0 overflow-hidden">
+              {renderSlot(0, 'w-full h-full rounded-none')}
+            </div>
+          </div>
+        )}
+
+        {/* Layout Template: Mẫu số 22 (The Seasons of Love) */}
+        {templateId === 'album-50x35-seasons-of-love' && (
+          <div className="w-full h-full flex bg-white overflow-hidden">
+            {/* Left Page (Exact 50% width): Large Portrait with Elegant White Margin */}
+            <div className="w-1/2 shrink-0 flex-none h-full flex items-center justify-center p-6 sm:p-10 select-none overflow-hidden min-h-0">
+              <div className="w-[84%] h-[92%] bg-stone-100 shadow-sm rounded-xs overflow-hidden">
+                {renderSlot(0, 'w-full h-full')}
+              </div>
+            </div>
+
+            {/* Right Page (Exact 50% width): Header (Tags + The Seasons Of Love), 3 Vertical Photos Triptych, Footer Romantic Text with Black Badges */}
+            <div className="w-1/2 shrink-0 flex-none h-full p-6 sm:p-8 flex flex-col justify-between bg-white select-none overflow-hidden min-h-0">
+              {/* Header Area */}
+              <div className="w-full flex items-start justify-between shrink-0 pt-1">
+                {/* Left Tags */}
+                <div className="flex flex-col gap-1 text-[7.5px] sm:text-[9px] font-sans font-semibold tracking-[0.2em] text-stone-600 uppercase select-none">
+                  <span>|THE SEASON OF LOVEEE</span>
+                  <span>|LOVER.RR &nbsp;—&nbsp; SIGNATURE</span>
+                  <span>|GOOD.MOOD</span>
+                </div>
+
+                {/* Right Title */}
+                <div className="flex flex-col items-end text-right leading-none select-none">
+                  <h2
+                    style={{ fontFamily: "'Bodoni Moda', 'Playfair Display', serif" }}
+                    className="text-2xl sm:text-3xl font-normal tracking-[0.14em] text-stone-900 uppercase"
+                  >
+                    THE SEASONS
+                  </h2>
+                  <div className="flex items-baseline justify-end -mt-1 sm:-mt-1.5">
+                    <span
+                      style={{ fontFamily: "'Alex Brush', 'Dancing Script', cursive" }}
+                      className="text-2xl sm:text-3xl font-normal text-stone-900 italic mr-1.5 select-none"
+                    >
+                      Of
+                    </span>
+                    <span
+                      style={{ fontFamily: "'Bodoni Moda', 'Playfair Display', serif" }}
+                      className="text-3xl sm:text-4xl font-normal tracking-[0.18em] text-stone-900 uppercase"
+                    >
+                      LOVE
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Middle Section: 3 Vertical Photos (Triptych) */}
+              <div className="w-full flex-1 flex items-center justify-between gap-2.5 sm:gap-3.5 my-3 min-h-0">
+                <div className="w-1/3 h-full min-h-0 shadow-2xs overflow-hidden bg-stone-100">
+                  {renderSlot(1, 'w-full h-full')}
+                </div>
+                <div className="w-1/3 h-full min-h-0 shadow-2xs overflow-hidden bg-stone-100">
+                  {renderSlot(2, 'w-full h-full')}
+                </div>
+                <div className="w-1/3 h-full min-h-0 shadow-2xs overflow-hidden bg-stone-100">
+                  {renderSlot(3, 'w-full h-full')}
+                </div>
+              </div>
+
+              {/* Footer Section: Romantic paragraph with black badges */}
+              <div className="w-full shrink-0 pb-1 text-right select-none">
+                <p className="text-[6.5px] sm:text-[7.5px] font-sans font-medium uppercase tracking-[0.12em] text-stone-700 leading-[1.65] max-w-[96%] ml-auto">
+                  THE STRONGEST BONDS ARE{' '}
+                  <span className="bg-black text-white px-1.5 py-0.5 font-serif italic text-[7.5px] sm:text-[8.5px] tracking-normal font-normal">
+                    OFTEN FORMED
+                  </span>{' '}
+                  THROUGH
+                  <br />
+                  COUNTLESS QUIET MOMENTS RATHER THAN GRAND DECLARATIONS.
+                  <br />
+                  THEY{' '}
+                  <span className="bg-black text-white px-1.5 py-0.5 font-serif italic text-[7.5px] sm:text-[8.5px] tracking-normal font-normal">
+                    GROW THROUGH TRUST
+                  </span>{' '}
+                  SHARED EXPERIENCES, AND THE
+                  <br />
+                  WILLINGNESS TO STAND TOGETHER THROUGH EVERY CHALLENGE.
+                  <br />
+                  TODAY, WE{' '}
+                  <span className="bg-black text-white px-1.5 py-0.5 font-serif italic text-[7.5px] sm:text-[8.5px] tracking-normal font-normal">
+                    CELEBRATE A LOVE
+                  </span>{' '}
+                  THAT HAS BECOME OUR GREATEST
+                  <br />
+                  SOURCE OF STRENGTH AND A FUTURE FILLED WITH ENDLESS{' '}
+                  <span className="bg-black text-white px-1.5 py-0.5 font-serif italic text-[7.5px] sm:text-[8.5px] tracking-normal font-normal">
+                    OPPORTUNITIES
+                  </span>
+                  <br />
+                  TO CREATE BEAUTIFUL MEMORIES.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Layout Template: Mẫu số 23 (Quietly Yours) */}
+        {templateId === 'album-50x35-quietly-yours' && (
+          <div className="w-full h-full flex bg-white overflow-hidden">
+            {/* Left Page (Exact 50% width): Vertical Watermark Quietly Yours, 2 Stacked Photos, Right Vertical Hashtags */}
+            <div className="relative w-1/2 shrink-0 flex-none h-full flex items-center justify-center bg-white select-none overflow-hidden min-h-0 pl-14 sm:pl-16 pr-6 sm:pr-8 py-6 sm:py-8">
+              {/* Left Edge Vertical Watermark Display Text */}
+              <div className="absolute left-1 sm:left-2 inset-y-0 flex items-center justify-center pointer-events-none select-none overflow-hidden z-0">
+                <span
+                  style={{
+                    fontFamily: "'Playfair Display', 'Bodoni Moda', serif",
+                    writingMode: 'vertical-rl',
+                    letterSpacing: '0.12em',
+                  }}
+                  className="text-5xl sm:text-7xl font-bold uppercase text-stone-200/70 select-none tracking-widest whitespace-nowrap rotate-180"
+                >
+                  QUIETLY YOURS
+                </span>
+              </div>
+
+              {/* 2 Stacked Vertical Photos (Slot 1, Slot 2) */}
+              <div className="relative z-10 w-[62%] h-full flex flex-col justify-between gap-3 sm:gap-4 min-h-0">
+                <div className="w-full h-1/2 min-h-0 shadow-xs overflow-hidden bg-stone-100">
+                  {renderSlot(1, 'w-full h-full')}
+                </div>
+                <div className="w-full h-1/2 min-h-0 shadow-xs overflow-hidden bg-stone-100">
+                  {renderSlot(2, 'w-full h-full')}
+                </div>
+              </div>
+
+              {/* Right Vertical Hashtags */}
+              <div className="relative z-10 flex flex-col justify-between h-[88%] ml-3 sm:ml-4 select-none pointer-events-none text-stone-500 font-sans text-[7px] sm:text-[8px] font-semibold tracking-[0.25em]">
+                <span style={{ writingMode: 'vertical-rl' }} className="rotate-180 uppercase whitespace-nowrap">
+                  #NEWCHAPTER.
+                </span>
+                <span style={{ writingMode: 'vertical-rl' }} className="rotate-180 uppercase whitespace-nowrap">
+                  #LOVECHRONICLE.
+                </span>
+                <span style={{ writingMode: 'vertical-rl' }} className="rotate-180 uppercase whitespace-nowrap">
+                  #GROOM/BRIDE.
+                </span>
+              </div>
+            </div>
+
+            {/* Right Page (Exact 50% width): Full Bleed Photo Covering 100% of Right Page */}
+            <div className="w-1/2 shrink-0 flex-none h-full min-h-0 overflow-hidden bg-stone-100">
+              {renderSlot(0, 'w-full h-full rounded-none')}
+            </div>
+          </div>
+        )}
+
+        {/* Layout Template: Mẫu số 24 (Our Finest Chapter) */}
+        {templateId === 'album-50x35-finest-chapter' && (
+          <div className="w-full h-full flex bg-white overflow-hidden">
+            {/* Left Page (Exact 50% width): 2 Vertical Photos Side-by-Side */}
+            <div className="w-1/2 shrink-0 flex-none h-full flex items-center justify-center p-6 sm:p-10 select-none overflow-hidden min-h-0 gap-3.5 sm:gap-4.5">
+              <div className="w-1/2 h-[86%] shadow-xs overflow-hidden bg-stone-100">
+                {renderSlot(0, 'w-full h-full')}
+              </div>
+              <div className="w-1/2 h-[86%] shadow-xs overflow-hidden bg-stone-100">
+                {renderSlot(1, 'w-full h-full')}
+              </div>
+            </div>
+
+            {/* Right Page (Exact 50% width): 2 Asymmetric Vertical Photos + Our Finest Chapter Typography */}
+            <div className="w-1/2 shrink-0 flex-none h-full p-6 sm:p-10 flex items-center justify-center select-none overflow-hidden min-h-0">
+              <div className="w-full h-[86%] flex justify-between gap-4">
+                {/* Left Staggered Photo: Slot 2 (Sitting Lower Down) */}
+                <div className="w-[48%] h-full flex flex-col justify-end">
+                  <div className="w-full h-[84%] shadow-xs overflow-hidden bg-stone-100">
+                    {renderSlot(2, 'w-full h-full')}
+                  </div>
+                </div>
+
+                {/* Right Staggered Photo: Slot 3 (Positioned High) + Typography Bottom */}
+                <div className="w-[48%] h-full flex flex-col justify-between">
+                  <div className="w-full h-[80%] shadow-xs overflow-hidden bg-stone-100">
+                    {renderSlot(3, 'w-full h-full')}
+                  </div>
+                  <div className="w-full flex flex-col items-end text-right pt-2 select-none pointer-events-none">
+                    <span
+                      style={{ fontFamily: "'Bodoni Moda', 'Playfair Display', serif" }}
+                      className="text-base sm:text-xl font-normal tracking-[0.18em] text-stone-900 uppercase leading-none"
+                    >
+                      OUR FINEST
+                    </span>
+                    <span
+                      style={{ fontFamily: "'Alex Brush', 'Dancing Script', cursive" }}
+                      className="text-2xl sm:text-3xl font-normal text-rose-400 italic -mt-1 sm:-mt-1.5 mr-0.5 leading-none select-none"
+                    >
+                      Chapter
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Layout Template: Mẫu số 25 (Familiar Soul) */}
+        {templateId === 'album-50x35-familiar-soul' && (
+          <div className="w-full h-full flex bg-white overflow-hidden">
+            {/* Left Page (Exact 50% width): 2 Vertical Photos with Center Crimson Title & Tags */}
+            <div className="relative w-1/2 shrink-0 flex-none h-full flex flex-col items-center justify-between py-6 px-10 sm:px-14 bg-white select-none overflow-hidden min-h-0">
+              {/* Top Vertical Photo (Slot 1) */}
+              <div className="w-[62%] h-[43%] shadow-xs overflow-hidden bg-stone-100 min-h-0">
+                {renderSlot(1, 'w-full h-full')}
+              </div>
+
+              {/* Middle Section: Metadata Tags + Familiar Soul Title */}
+              <div className="w-full flex items-center justify-between px-2 -my-2.5 z-10 select-none pointer-events-none">
+                {/* Left Metadata */}
+                <div className="flex flex-col text-[7.5px] sm:text-[9px] font-sans font-medium tracking-[0.2em] text-stone-700 leading-tight uppercase">
+                  <span>#CONCEPT</span>
+                  <span>#PREWEDDING</span>
+                </div>
+
+                {/* Center Title */}
+                <h2
+                  style={{
+                    fontFamily: "'Bodoni Moda', 'Playfair Display', serif",
+                    color: '#b91c1c',
+                    lineHeight: 1,
+                  }}
+                  className="text-2xl sm:text-3xl font-normal tracking-wide text-center whitespace-nowrap px-2"
+                >
+                  Familiar Soul
+                </h2>
+
+                {/* Right Metadata */}
+                <div className="flex flex-col text-[7.5px] sm:text-[9px] font-sans font-medium tracking-[0.2em] text-stone-700 leading-tight uppercase text-right">
+                  <span>#PHOTODESIGN</span>
+                  <span>#GROOM-BRIDE</span>
+                </div>
+              </div>
+
+              {/* Bottom Vertical Photo (Slot 2) */}
+              <div className="w-[62%] h-[43%] shadow-xs overflow-hidden bg-stone-100 min-h-0">
+                {renderSlot(2, 'w-full h-full')}
+              </div>
+            </div>
+
+            {/* Right Page (Exact 50% width): 1 Full Bleed Portrait Photo covering 100% of right page */}
+            <div className="w-1/2 shrink-0 flex-none h-full min-h-0 overflow-hidden bg-stone-100">
+              {renderSlot(0, 'w-full h-full rounded-none')}
+            </div>
+          </div>
+        )}
+
+        {/* Layout Template: Mẫu số 26 (Ordinary Forever) */}
+        {templateId === 'album-50x35-ordinary-forever' && (
+          <div className="w-full h-full flex bg-white overflow-hidden">
+            {/* Left Page (Exact 50% width): 1 Full-bleed background photo + 6 small overlaid photo boxes */}
+            <div className="relative w-1/2 shrink-0 flex-none h-full bg-stone-100 overflow-hidden min-h-0 select-none">
+              {/* 1 Full Page Background Photo (Slot 1) */}
+              <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
+                {renderSlot(1, 'w-full h-full rounded-none')}
+              </div>
+
+              {/* 6 Overlaid Small Photo Boxes (Slots 2-7) in 3x3 layout */}
+              <div className="relative z-10 w-full h-full grid grid-cols-3 grid-rows-3 gap-2 sm:gap-2.5 p-3 sm:p-4 min-h-0 pointer-events-none">
+                {/* Row 1: Col 1 & 2 Empty (shows background photo with indicator if empty), Col 3 (Slot 2) */}
+                <div className="col-span-2 row-span-1 pointer-events-none flex flex-col justify-start p-2 select-none">
+                  {!slots[1]?.imageUri && (
+                    <div
+                      className="pointer-events-auto inline-flex items-center gap-1.5 self-start bg-black/60 hover:bg-black/80 text-white text-[9px] sm:text-[10px] px-2.5 py-1 rounded-md backdrop-blur-xs shadow-sm cursor-pointer transition-colors"
+                      onClick={() => {
+                        const el = document.getElementById('file-input-1');
+                        el?.click();
+                      }}
+                    >
+                      <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      <span>Ảnh nền toàn trang</span>
+                    </div>
+                  )}
+                </div>
+                <div className="w-full h-full min-h-0 shadow-md border-2 border-white/90 bg-white/30 backdrop-blur-2xs overflow-hidden pointer-events-auto rounded-[2px]">
+                  {renderSlot(2, 'w-full h-full')}
+                </div>
+
+                {/* Row 2: Col 1 (Slot 3), Col 2 (Slot 4), Col 3 (Slot 5) */}
+                <div className="w-full h-full min-h-0 shadow-md border-2 border-white/90 bg-white/30 backdrop-blur-2xs overflow-hidden pointer-events-auto rounded-[2px]">
+                  {renderSlot(3, 'w-full h-full')}
+                </div>
+                <div className="w-full h-full min-h-0 shadow-md border-2 border-white/90 bg-white/30 backdrop-blur-2xs overflow-hidden pointer-events-auto rounded-[2px]">
+                  {renderSlot(4, 'w-full h-full')}
+                </div>
+                <div className="w-full h-full min-h-0 shadow-md border-2 border-white/90 bg-white/30 backdrop-blur-2xs overflow-hidden pointer-events-auto rounded-[2px]">
+                  {renderSlot(5, 'w-full h-full')}
+                </div>
+
+                {/* Row 3: Col 1 (Slot 6), Col 2 (Slot 7), Col 3 Empty (shows background photo) */}
+                <div className="w-full h-full min-h-0 shadow-md border-2 border-white/90 bg-white/30 backdrop-blur-2xs overflow-hidden pointer-events-auto rounded-[2px]">
+                  {renderSlot(6, 'w-full h-full')}
+                </div>
+                <div className="w-full h-full min-h-0 shadow-md border-2 border-white/90 bg-white/30 backdrop-blur-2xs overflow-hidden pointer-events-auto rounded-[2px]">
+                  {renderSlot(7, 'w-full h-full')}
+                </div>
+                <div className="pointer-events-none select-none" />
+              </div>
+            </div>
+
+            {/* Right Page (Exact 50% width): Editorial Title + Portrait Photo + Romantic Badge Quotes */}
+            <div className="w-1/2 shrink-0 flex-none h-full p-6 sm:p-8 flex flex-col justify-between bg-white select-none overflow-hidden min-h-0">
+              {/* Header Area */}
+              <div className="w-full flex items-start justify-between shrink-0 pt-1">
+                {/* Title */}
+                <div className="flex flex-col select-none leading-none">
+                  <span
+                    style={{ fontFamily: "'Bodoni Moda', 'Playfair Display', serif" }}
+                    className="text-xl sm:text-2xl font-normal tracking-[0.16em] text-stone-900 uppercase"
+                  >
+                    AN ORDINARY
+                  </span>
+                  <div className="flex items-baseline -mt-1 sm:-mt-1.5">
+                    <span
+                      style={{ fontFamily: "'Alex Brush', 'Dancing Script', cursive" }}
+                      className="text-2xl sm:text-3xl font-normal text-stone-900 italic mr-1.5 select-none"
+                    >
+                      Kind
+                    </span>
+                    <span
+                      style={{ fontFamily: "'Bodoni Moda', 'Playfair Display', serif" }}
+                      className="text-xl sm:text-2xl font-normal tracking-[0.16em] text-stone-900 uppercase"
+                    >
+                      OF FOREVER
+                    </span>
+                  </div>
+                </div>
+
+                {/* Right Tags */}
+                <div className="flex flex-col text-[7px] sm:text-[8px] font-sans font-medium tracking-[0.2em] text-stone-500 uppercase text-right leading-relaxed select-none">
+                  <span>|EDITORIAL NEW|</span>
+                  <span>|WEDDING PHOTOBOOK|</span>
+                </div>
+              </div>
+
+              {/* Middle Section: Centered Portrait Photo (Slot 0) */}
+              <div className="w-full flex-1 flex items-center justify-center my-3 min-h-0">
+                <div className="w-[66%] h-[92%] shadow-xs overflow-hidden bg-stone-100">
+                  {renderSlot(0, 'w-full h-full')}
+                </div>
+              </div>
+
+              {/* Footer Section: Romantic paragraph with black badges */}
+              <div className="w-full shrink-0 pb-1 text-center select-none">
+                <p className="text-[6.5px] sm:text-[7.5px] font-sans font-medium uppercase tracking-[0.12em] text-stone-700 leading-[1.65] max-w-[96%] mx-auto">
+                  THE STRONGEST BONDS ARE{' '}
+                  <span className="bg-black text-white px-1.5 py-0.5 font-serif italic text-[7.5px] sm:text-[8.5px] tracking-normal font-normal">
+                    OFTEN FORMED
+                  </span>{' '}
+                  THROUGH
+                  <br />
+                  COUNTLESS QUIET MOMENTS RATHER THAN GRAND DECLARATIONS.
+                  <br />
+                  THEY{' '}
+                  <span className="bg-black text-white px-1.5 py-0.5 font-serif italic text-[7.5px] sm:text-[8.5px] tracking-normal font-normal">
+                    GROW THROUGH TRUST
+                  </span>{' '}
+                  SHARED EXPERIENCES, AND THE
+                  <br />
+                  WILLINGNESS TO STAND TOGETHER THROUGH EVERY CHALLENGE.
+                  <br />
+                  TODAY, WE{' '}
+                  <span className="bg-black text-white px-1.5 py-0.5 font-serif italic text-[7.5px] sm:text-[8.5px] tracking-normal font-normal">
+                    CELEBRATE A LOVE
+                  </span>{' '}
+                  THAT HAS BECOME OUR GREATEST
+                  <br />
+                  SOURCE OF STRENGTH AND A FUTURE FILLED WITH ENDLESS{' '}
+                  <span className="bg-black text-white px-1.5 py-0.5 font-serif italic text-[7.5px] sm:text-[8.5px] tracking-normal font-normal">
+                    OPPORTUNITIES
+                  </span>
+                  <br />
+                  TO CREATE BEAUTIFUL MEMORIES.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Layout Template: Mẫu số 27 (Mutual Muse) */}
+        {templateId === 'album-50x35-mutual-muse' && (
+          <div className="w-full h-full flex bg-white overflow-hidden">
+            {/* Left Page (Exact 50% width): 2 Vertical Full-Bleed Photos + Mutual Muse Bottom Overlap */}
+            <div className="relative w-1/2 shrink-0 flex-none h-full flex overflow-hidden min-h-0 bg-stone-100">
+              {/* Left Photo (Slot 0) */}
+              <div className="w-[46%] h-full min-h-0 overflow-hidden bg-stone-200">
+                {renderSlot(0, 'w-full h-full rounded-none')}
+              </div>
+              {/* Right Photo (Slot 1) */}
+              <div className="w-[54%] h-full min-h-0 overflow-hidden bg-stone-200">
+                {renderSlot(1, 'w-full h-full rounded-none')}
+              </div>
+
+              {/* Bottom Overlapping Typography */}
+              <div className="absolute left-[24%] bottom-6 sm:bottom-8 z-20 pointer-events-none select-none flex items-baseline drop-shadow-xs">
+                <span
+                  style={{ fontFamily: "'Bodoni Moda', 'Playfair Display', serif" }}
+                  className="text-3xl sm:text-4xl font-normal tracking-wide text-[#8b181b] uppercase"
+                >
+                  Mutual
+                </span>
+                <span
+                  style={{ fontFamily: "'Alex Brush', 'Dancing Script', cursive" }}
+                  className="text-3xl sm:text-4xl font-normal italic text-[#b95d52] -ml-1 select-none"
+                >
+                  Muse
+                </span>
+              </div>
+            </div>
+
+            {/* Right Page (Exact 50% width): 3x3 Grid with 8 Photos + Center Cherished Moments Box */}
+            <div className="w-1/2 shrink-0 flex-none h-full p-5 sm:p-7 flex items-center justify-center bg-white select-none overflow-hidden min-h-0">
+              <div className="w-full h-full grid grid-cols-3 grid-rows-3 gap-2 sm:gap-2.5 min-h-0">
+                {/* Row 1 */}
+                <div className="w-full h-full min-h-0 shadow-2xs overflow-hidden bg-stone-100">
+                  {renderSlot(2, 'w-full h-full')}
+                </div>
+                <div className="w-full h-full min-h-0 shadow-2xs overflow-hidden bg-stone-100">
+                  {renderSlot(3, 'w-full h-full')}
+                </div>
+                <div className="w-full h-full min-h-0 shadow-2xs overflow-hidden bg-stone-100">
+                  {renderSlot(4, 'w-full h-full')}
+                </div>
+
+                {/* Row 2 */}
+                <div className="w-full h-full min-h-0 shadow-2xs overflow-hidden bg-stone-100">
+                  {renderSlot(5, 'w-full h-full')}
+                </div>
+                {/* Center Typography Card (Row 2, Col 2) */}
+                <div className="w-full h-full bg-white flex flex-col items-center justify-center p-2 text-center select-none shadow-2xs border border-stone-100">
+                  <h3
+                    style={{ fontFamily: "'Bodoni Moda', 'Playfair Display', serif", letterSpacing: '0.2em' }}
+                    className="text-[10px] sm:text-[12px] font-normal text-stone-900 uppercase leading-snug"
+                  >
+                    CHERISHED
+                    <br />
+                    MOMENTS
+                  </h3>
+                  <div className="mt-3 sm:mt-4 text-[7px] sm:text-[8px] font-serif italic text-stone-600 leading-tight">
+                    <p>With you,</p>
+                    <p>forever is just the beginning.</p>
+                  </div>
+                </div>
+                <div className="w-full h-full min-h-0 shadow-2xs overflow-hidden bg-stone-100">
+                  {renderSlot(6, 'w-full h-full')}
+                </div>
+
+                {/* Row 3 */}
+                <div className="w-full h-full min-h-0 shadow-2xs overflow-hidden bg-stone-100">
+                  {renderSlot(7, 'w-full h-full')}
+                </div>
+                <div className="w-full h-full min-h-0 shadow-2xs overflow-hidden bg-stone-100">
+                  {renderSlot(8, 'w-full h-full')}
+                </div>
+                <div className="w-full h-full min-h-0 shadow-2xs overflow-hidden bg-stone-100">
+                  {renderSlot(9, 'w-full h-full')}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         {customTexts.map((item) => {
           const preset = TEXT_STYLE_PRESETS.find((p) => p.id === item.styleId) || TEXT_STYLE_PRESETS[0];
           const isSelected = selectedTextId === item.id && !isExporting;
@@ -2204,7 +3079,224 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
             </div>
           );
         })}
+
+        {/* SAFE ZONE & PRINT GUIDE OVERLAY (Hiển thị Vùng Cắt Xén, Khung An Toàn & Đường Gióng Căn Chỉnh) */}
+        {!isExporting && (posterSettings.showCutZone || posterSettings.showSafeZone || posterSettings.showGuides) && (
+          <div className="absolute inset-0 z-30 pointer-events-none select-none overflow-hidden">
+            {/* 1. CUT ZONE (Vùng cắt xén / Bleed Trim Margin: viền đỏ nhạt mép ngoài) */}
+            {posterSettings.showCutZone && (
+              <div 
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  border: '14px solid rgba(244, 63, 94, 0.12)',
+                  boxShadow: 'inset 0 0 0 1px rgba(239, 68, 68, 0.5)',
+                }}
+              />
+            )}
+
+            {/* 2. SAFE ZONE (Vùng an toàn - 2 khung viền Cyan trên trang Trái & trang Phải) */}
+            {posterSettings.showSafeZone && (
+              <>
+                {/* Left Page Safe Zone */}
+                <div 
+                  className="absolute pointer-events-none"
+                  style={{
+                    top: '4.5%',
+                    bottom: '4.5%',
+                    left: '3.5%',
+                    right: '51.5%',
+                    border: '1.5px solid #06b6d4',
+                    boxShadow: '0 0 0 0.5px rgba(6, 182, 212, 0.7)',
+                  }}
+                />
+
+                {/* Right Page Safe Zone */}
+                <div 
+                  className="absolute pointer-events-none"
+                  style={{
+                    top: '4.5%',
+                    bottom: '4.5%',
+                    left: '51.5%',
+                    right: '3.5%',
+                    border: '1.5px solid #06b6d4',
+                    boxShadow: '0 0 0 0.5px rgba(6, 182, 212, 0.7)',
+                  }}
+                />
+              </>
+            )}
+
+            {/* 3. PRINT GUIDES (Đường gióng tâm trang, đường gáy giữa & nếp gấp) */}
+            {posterSettings.showGuides && (
+              <>
+                {/* Center Spine Line (Đường gáy chính giữa 50%) */}
+                <div 
+                  className="absolute top-0 bottom-0 pointer-events-none"
+                  style={{
+                    left: '50%',
+                    width: '1px',
+                    backgroundColor: 'rgba(239, 68, 68, 0.75)',
+                    zIndex: 2,
+                  }}
+                />
+
+                {/* Spine Gutter Guide Lines (2 đường nếp gấp 2 bên gáy) */}
+                <div 
+                  className="absolute top-0 bottom-0 pointer-events-none"
+                  style={{
+                    left: '48.5%',
+                    width: '1px',
+                    backgroundColor: 'rgba(6, 182, 212, 0.85)',
+                  }}
+                />
+                <div 
+                  className="absolute top-0 bottom-0 pointer-events-none"
+                  style={{
+                    left: '51.5%',
+                    width: '1px',
+                    backgroundColor: 'rgba(6, 182, 212, 0.85)',
+                  }}
+                />
+
+                {/* Horizontal Center Guide (Trục ngang 50%) */}
+                <div 
+                  className="absolute left-0 right-0 pointer-events-none"
+                  style={{
+                    top: '50%',
+                    height: '1px',
+                    backgroundColor: 'rgba(6, 182, 212, 0.75)',
+                  }}
+                />
+
+                {/* Left Page Quarter Guide (Trục dọc 25% chia đôi trang trái) */}
+                <div 
+                  className="absolute top-0 bottom-0 pointer-events-none"
+                  style={{
+                    left: '25%',
+                    width: '1px',
+                    backgroundColor: 'rgba(6, 182, 212, 0.65)',
+                  }}
+                />
+
+                {/* Right Page Quarter Guide (Trục dọc 75% chia đôi trang phải) */}
+                <div 
+                  className="absolute top-0 bottom-0 pointer-events-none"
+                  style={{
+                    left: '75%',
+                    width: '1px',
+                    backgroundColor: 'rgba(6, 182, 212, 0.65)',
+                  }}
+                />
+              </>
+            )}
+          </div>
+        )}
       </div>
+
+        {/* Bottom Legend Bar matching image.png */}
+        {!isExporting && (
+          <div className="w-full h-8 flex items-center justify-between text-[11.5px] text-stone-700 bg-stone-100/95 border border-stone-300/80 rounded-b-xl px-3 shadow-2xs mt-auto select-none shrink-0">
+            <div className="flex items-center gap-4">
+              {/* Cut Zone Checkbox / Indicator */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (onUpdatePosterSettings) {
+                    onUpdatePosterSettings({
+                      ...posterSettings,
+                      showCutZone: !posterSettings.showCutZone,
+                    });
+                  }
+                }}
+                className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition"
+                title="Bấm để bật/tắt Vùng cắt xén"
+              >
+                <span className={`w-3.5 h-3.5 rounded-[2px] border ${
+                  posterSettings.showCutZone
+                    ? 'bg-rose-200 border-rose-500'
+                    : 'bg-white border-stone-400'
+                }`} />
+                <span className={posterSettings.showCutZone ? 'font-semibold text-rose-800' : 'text-stone-500'}>
+                  Cut Zone
+                </span>
+              </button>
+
+              {/* Safe Zone Checkbox / Indicator */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (onUpdatePosterSettings) {
+                    onUpdatePosterSettings({
+                      ...posterSettings,
+                      showSafeZone: !posterSettings.showSafeZone,
+                    });
+                  }
+                }}
+                className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition"
+                title="Bấm để bật/tắt Khung an toàn"
+              >
+                <span className={`w-3.5 h-3.5 rounded-[2px] border ${
+                  posterSettings.showSafeZone
+                    ? 'bg-cyan-100 border-cyan-500'
+                    : 'bg-white border-stone-400'
+                }`} />
+                <span className={posterSettings.showSafeZone ? 'font-semibold text-cyan-800' : 'text-stone-500'}>
+                  Safe Zone
+                </span>
+              </button>
+
+              {/* Guides Checkbox / Indicator */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (onUpdatePosterSettings) {
+                    onUpdatePosterSettings({
+                      ...posterSettings,
+                      showGuides: !posterSettings.showGuides,
+                    });
+                  }
+                }}
+                className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition"
+                title="Bấm để bật/tắt Đường gióng và gáy giữa"
+              >
+                <span className="w-3.5 h-3.5 flex items-center justify-center">
+                  <span className={`w-3 h-0.5 rounded-full ${
+                    posterSettings.showGuides
+                      ? 'bg-cyan-500'
+                      : 'bg-stone-400'
+                  }`} />
+                </span>
+                <span className={posterSettings.showGuides ? 'font-semibold text-sky-800' : 'text-stone-500'}>
+                  Guides
+                </span>
+              </button>
+            </div>
+
+            {/* Info Tooltip */}
+            <div className="relative group">
+              <button
+                type="button"
+                className="w-4 h-4 rounded-full bg-stone-300 text-stone-700 hover:bg-stone-400 flex items-center justify-center text-[10px] font-bold cursor-help"
+                title="Quy tắc canh lề in ấn"
+              >
+                ?
+              </button>
+              <div className="absolute right-0 bottom-full mb-2 hidden group-hover:block w-72 p-3 bg-stone-900/95 backdrop-blur-xs text-white text-[11px] rounded-xl shadow-2xl z-50 leading-relaxed pointer-events-none">
+                <p className="font-bold text-cyan-300 mb-1.5 flex items-center gap-1">
+                  <span>📐</span> Quy chuẩn thiết kế Album in ấn:
+                </p>
+                <p className="mb-1 text-stone-200">
+                  <span className="text-rose-400 font-bold">■ Cut Zone:</span> Vùng mép ngoài máy xén thành phẩm sẽ cắt đi. Tuyệt đối không để mặt người hoặc chữ ở sát mép này.
+                </p>
+                <p className="mb-1 text-stone-200">
+                  <span className="text-cyan-400 font-bold">■ Safe Zone:</span> Khung viền an toàn. Đặt toàn bộ nội dung quan trọng bên trong khung xanh này.
+                </p>
+                <p className="text-stone-300">
+                  <span className="text-sky-300 font-bold">— Guides:</span> Đường gióng tâm 50% & rãnh gáy gấp đôi trang album.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

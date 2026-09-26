@@ -2,6 +2,15 @@ import { SavedProject, AlbumPage } from '../types';
 import { openDB, STORE_PROJECTS } from './db';
 import { imageOptimizer } from './imageOptimizer';
 
+export const AUTOSAVE_PROJECT_ID = 'xalbum_autosave_session';
+export const AUTOSAVE_META_KEY = 'xalbum_autosave_meta';
+
+export interface AutoSaveSession {
+  project: SavedProject;
+  activePageIndex: number;
+  savedAt: number;
+}
+
 const LOCAL_STORAGE_KEY = 'xalbum_saved_projects';
 
 // Fallback LocalStorage methods
@@ -68,7 +77,9 @@ export async function getAllProjects(): Promise<SavedProject[]> {
       const req = store.getAll();
 
       req.onsuccess = () => {
-        const list: SavedProject[] = req.result || [];
+        let list: SavedProject[] = req.result || [];
+        // Exclude internal autosave draft
+        list = list.filter((p) => p.id !== AUTOSAVE_PROJECT_ID);
         // Sort newest updated first
         list.sort((a, b) => b.updatedAt - a.updatedAt);
         resolve(list);
@@ -78,7 +89,8 @@ export async function getAllProjects(): Promise<SavedProject[]> {
     });
   } catch (err) {
     console.warn('IndexedDB unavailable, falling back to localStorage:', err);
-    const list = getLocalStorageProjects();
+    let list = getLocalStorageProjects();
+    list = list.filter((p) => p.id !== AUTOSAVE_PROJECT_ID);
     list.sort((a, b) => b.updatedAt - a.updatedAt);
     return list;
   }
@@ -141,6 +153,138 @@ export async function deleteProject(id: string): Promise<void> {
     const list = getLocalStorageProjects();
     const filtered = list.filter((p) => p.id !== id);
     saveLocalStorageProjects(filtered);
+  }
+}
+
+/**
+ * Save current working draft/session for auto-save
+ */
+export async function saveAutoSaveSession(session: AutoSaveSession): Promise<void> {
+  // 1. Sync metadata to localStorage immediately for fast synchronous detection
+  try {
+    const meta = {
+      id: session.project.id,
+      originalId: session.project.originalId,
+      name: session.project.name,
+      savedAt: session.savedAt,
+      isSetupComplete: session.project.isSetupComplete,
+      pageCount: session.project.pages?.length || 0,
+      activePageIndex: session.activePageIndex,
+    };
+    localStorage.setItem(AUTOSAVE_META_KEY, JSON.stringify(meta));
+  } catch (e) {
+    console.warn('Could not write autosave meta to localStorage:', e);
+  }
+
+  // 2. Put into IndexedDB STORE_PROJECTS with key AUTOSAVE_PROJECT_ID
+  const autosaveRecord: SavedProject & { activePageIndex: number } = {
+    ...session.project,
+    id: AUTOSAVE_PROJECT_ID,
+    originalId: session.project.originalId || (session.project.id !== AUTOSAVE_PROJECT_ID ? session.project.id : undefined),
+    updatedAt: session.savedAt,
+    activePageIndex: session.activePageIndex,
+  };
+
+  try {
+    const db = await openDB();
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(STORE_PROJECTS, 'readwrite');
+      const store = tx.objectStore(STORE_PROJECTS);
+      const req = store.put(autosaveRecord);
+      req.onsuccess = () => resolve();
+      req.onerror = () => reject(req.error);
+    });
+  } catch (err) {
+    console.warn('IndexedDB autosave write failed, saving to localStorage fallback:', err);
+    try {
+      localStorage.setItem('xalbum_autosave_data', JSON.stringify(autosaveRecord));
+    } catch (lsErr) {
+      console.warn('LocalStorage autosave write failed:', lsErr);
+    }
+  }
+
+  // 3. If session belongs to a named user project, also update the actual project in IndexedDB
+  const targetId = session.project.originalId || session.project.id;
+  if (targetId && targetId.startsWith('proj_') && targetId !== AUTOSAVE_PROJECT_ID) {
+    try {
+      const userProject: SavedProject = {
+        ...session.project,
+        id: targetId,
+        updatedAt: session.savedAt,
+      };
+      await saveProject(userProject);
+    } catch (syncErr) {
+      console.warn('Failed to sync autosave to original project:', syncErr);
+    }
+  }
+}
+
+/**
+ * Retrieve saved working session if available
+ */
+export async function getAutoSaveSession(): Promise<AutoSaveSession | null> {
+  // Check IndexedDB first
+  try {
+    const db = await openDB();
+    const result = await new Promise<any>((resolve, reject) => {
+      const tx = db.transaction(STORE_PROJECTS, 'readonly');
+      const store = tx.objectStore(STORE_PROJECTS);
+      const req = store.get(AUTOSAVE_PROJECT_ID);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => reject(req.error);
+    });
+
+    if (result && Array.isArray(result.pages) && result.pages.length > 0) {
+      return {
+        project: result,
+        activePageIndex: typeof result.activePageIndex === 'number' ? result.activePageIndex : 0,
+        savedAt: result.updatedAt || Date.now(),
+      };
+    }
+  } catch (err) {
+    console.warn('IndexedDB autosave read failed, trying localStorage fallback:', err);
+  }
+
+  // Fallback to localStorage
+  try {
+    const raw = localStorage.getItem('xalbum_autosave_data');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && Array.isArray(parsed.pages) && parsed.pages.length > 0) {
+        return {
+          project: parsed,
+          activePageIndex: typeof parsed.activePageIndex === 'number' ? parsed.activePageIndex : 0,
+          savedAt: parsed.updatedAt || Date.now(),
+        };
+      }
+    }
+  } catch (err) {
+    console.warn('LocalStorage autosave read failed:', err);
+  }
+
+  return null;
+}
+
+/**
+ * Clear the auto-save session (e.g. when creating a new project or resetting)
+ */
+export async function clearAutoSaveSession(): Promise<void> {
+  try {
+    localStorage.removeItem(AUTOSAVE_META_KEY);
+    localStorage.removeItem('xalbum_autosave_data');
+  } catch {}
+
+  try {
+    const db = await openDB();
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(STORE_PROJECTS, 'readwrite');
+      const store = tx.objectStore(STORE_PROJECTS);
+      const req = store.delete(AUTOSAVE_PROJECT_ID);
+      req.onsuccess = () => resolve();
+      req.onerror = () => reject(req.error);
+    });
+  } catch (err) {
+    console.warn('IndexedDB clear autosave failed:', err);
   }
 }
 

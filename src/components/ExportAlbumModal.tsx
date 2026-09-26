@@ -1,9 +1,10 @@
 import React, { useState, useRef } from 'react';
-import { X, Download, FileArchive, Loader2, Sparkles, Lock, KeyRound, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { X, Download, FileArchive, Loader2, Sparkles, Lock, KeyRound, Eye, EyeOff, AlertCircle, ShieldCheck, LogIn, MessageCircle } from 'lucide-react';
 import { AlbumPage } from '../types';
 import JSZip from 'jszip';
 import { captureCanvasAs300DpiJpeg } from '../utils/albumExporter';
 import { PosterCanvas } from './PosterCanvas';
+import { useAuth } from '../context/AuthContext';
 
 interface ExportAlbumModalProps {
   isOpen: boolean;
@@ -11,6 +12,7 @@ interface ExportAlbumModalProps {
   pages: AlbumPage[];
   activePageIndex: number;
   currentCanvasRef?: React.RefObject<HTMLDivElement | null>;
+  onOpenLogin?: () => void;
 }
 
 export const ExportAlbumModal: React.FC<ExportAlbumModalProps> = ({
@@ -19,7 +21,9 @@ export const ExportAlbumModal: React.FC<ExportAlbumModalProps> = ({
   pages,
   activePageIndex: _activePageIndex,
   currentCanvasRef: _currentCanvasRef,
+  onOpenLogin,
 }) => {
+  const { user, userProfile, isVip } = useAuth();
   const [isExportingZip, setIsExportingZip] = useState(false);
   const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
   const [password, setPassword] = useState('');
@@ -36,12 +40,6 @@ export const ExportAlbumModal: React.FC<ExportAlbumModalProps> = ({
   const offscreenCanvasRef = useRef<HTMLDivElement>(null);
 
   if (!isOpen) return null;
-
-  const handleStartDownloadFlow = () => {
-    setShowPasswordPrompt(true);
-    setPassword('');
-    setPasswordError('');
-  };
 
   const handlePasswordSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -197,7 +195,7 @@ export const ExportAlbumModal: React.FC<ExportAlbumModalProps> = ({
               <form onSubmit={handlePasswordSubmit} className="bg-white rounded-xl p-3.5 border border-sky-200 space-y-3 mt-1 shadow-xs">
                 <div className="flex items-center gap-2 text-xs font-bold text-stone-800">
                   <KeyRound className="w-4 h-4 text-sky-600" />
-                  <span>Xác thực mật khẩu tải album</span>
+                  <span>Xác thực mật khẩu quản trị viên tải album</span>
                 </div>
 
                 <div className="relative">
@@ -253,22 +251,80 @@ export const ExportAlbumModal: React.FC<ExportAlbumModalProps> = ({
                   </button>
                 </div>
               </form>
-            ) : (
-              <button
-                onClick={handleStartDownloadFlow}
-                className="w-full py-2.5 bg-sky-500 hover:bg-sky-600 active:bg-sky-700 text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-2 cursor-pointer mt-1"
-              >
-                <FileArchive className="w-4 h-4" />
-                <span>Tải File ZIP Trọn Bộ ({pages.length} Trang)</span>
-              </button>
-            )}
-          </div>
+            ) : isVip ? (
+              /* User is VIP -> Allow Direct Download */
+              <div className="space-y-2 mt-1">
+                <div className="p-2.5 bg-amber-50/90 border border-amber-200 rounded-xl flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full bg-amber-500 text-stone-900 flex items-center justify-center font-black text-[10px] shadow-2xs">
+                      VIP
+                    </div>
+                    <div>
+                      <p className="font-bold text-amber-950 text-xs leading-none">
+                        Tài khoản VIP: {userProfile?.displayName || user?.email}
+                      </p>
+                      <p className="text-[10px] text-amber-700 mt-0.5">Đã mở khóa quyền tải file in ấn 300 DPI</p>
+                    </div>
+                  </div>
+                  <ShieldCheck className="w-5 h-5 text-emerald-600" />
+                </div>
 
-          <div className="p-3 bg-stone-50 rounded-xl text-stone-500 text-[11px] leading-relaxed flex items-start gap-2">
-            <Sparkles className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-            <span>
-              File ảnh xuất ra có độ phân giải <strong>5906 x 4134 px (300 DPI)</strong>, hoàn toàn tương thích và đạt tiêu chuẩn sản xuất album photobook tại Photobook Vietnam.
-            </span>
+                <button
+                  onClick={handleExportZip}
+                  className="w-full py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:scale-[0.99] text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs hover:shadow transition flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Tải File ZIP Trọn Bộ ({pages.length} Trang - 300 DPI)</span>
+                </button>
+              </div>
+            ) : user ? (
+              /* User logged in but not VIP */
+              <div className="space-y-3 mt-1">
+                <div className="p-3 bg-amber-50/90 border border-amber-200/90 rounded-xl flex items-start gap-2.5">
+                  <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <div className="text-xs text-amber-900 leading-snug space-y-1">
+                    <p className="font-bold text-amber-950">Tải album chỉ áp dụng cho khách hàng VIP</p>
+                    <p className="text-[11px] text-amber-800 leading-relaxed">
+                      Chức năng tải album chỉ áp dụng cho những khách hàng VIP đang đặt hàng bên Photobook Vietnam. Nếu bạn đang là khách hàng bên đây, hãy liên hệ chúng tôi nâng cấp lên VIP để tải album.
+                    </p>
+                  </div>
+                </div>
+
+                <a
+                  href="https://zalo.me/0938023079"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-2.5 bg-sky-500 hover:bg-sky-600 active:bg-sky-700 text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs hover:shadow transition flex items-center justify-center gap-2 cursor-pointer decoration-none"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span>Liên hệ admin</span>
+                </a>
+              </div>
+            ) : (
+              /* Not logged in -> Prompt to sign in with VIP account */
+              <div className="space-y-2 mt-1">
+                <div className="p-3 bg-stone-50 border border-stone-200 rounded-xl flex items-start gap-2.5">
+                  <Sparkles className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                  <div className="text-xs text-stone-700 leading-snug">
+                    <p className="font-bold text-stone-900">Yêu cầu tài khoản VIP</p>
+                    <p className="text-[11px] text-stone-500 mt-0.5">
+                      Quyền tải file in ấn trọn bộ album dành riêng cho thành viên VIP trong hệ thống.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => {
+                    onClose();
+                    onOpenLogin?.();
+                  }}
+                  className="w-full py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs hover:shadow transition flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span>Đăng nhập tài khoản VIP để tải</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

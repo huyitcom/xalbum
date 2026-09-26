@@ -57,7 +57,7 @@ export async function captureCanvasAs300DpiJpeg(
   try {
     rawDataUrl = await toJpeg(element, {
       pixelRatio,
-      quality: 0.92,
+      quality: 0.96,
       backgroundColor: bgColor || '#ffffff',
       fontEmbedCSS,
       imagePlaceholder: transparentPixel,
@@ -67,7 +67,7 @@ export async function captureCanvasAs300DpiJpeg(
     try {
       rawDataUrl = await toJpeg(element, {
         pixelRatio,
-        quality: 0.92,
+        quality: 0.96,
         backgroundColor: bgColor || '#ffffff',
         imagePlaceholder: transparentPixel,
       });

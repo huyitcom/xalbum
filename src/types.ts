@@ -50,6 +50,10 @@ export interface PosterSettings {
   borderColor: string;
   blockBgColor?: string;
   aspectRatio: AspectRatioType;
+  // --- Print Safety & Guide Overlays ---
+  showSafeZone?: boolean; // Tắt / bật vùng an toàn & đường guide in ấn
+  showCutZone?: boolean; // Tắt / bật vùng cắt xén (Cut Zone)
+  showGuides?: boolean; // Tắt / bật đường gióng tâm & gáy
   // --- Custom Overlay Overrides ---
   customOverlayUri?: string;
   customBackgroundUri?: string;
@@ -120,6 +124,7 @@ export interface AlbumProject {
 
 export interface SavedProject {
   id: string;
+  originalId?: string;
   name: string;
   createdAt: number;
   updatedAt: number;
