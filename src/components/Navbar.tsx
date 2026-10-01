@@ -91,50 +91,52 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* Right: Action Buttons */}
       <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
 
-        {/* Project Manager / Open */}
+        {/* Nút Dự án: Mobile displays text only without icon */}
         <button
           onClick={onOpenProjectManager}
-          className="p-2 sm:p-2 bg-stone-100 hover:bg-stone-200 text-stone-800 rounded-xl border border-stone-200 transition cursor-pointer shadow-2xs"
+          className="flex items-center justify-center gap-1.5 px-2.5 sm:px-3 py-2 bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs sm:text-sm font-semibold rounded-xl border border-stone-200 transition cursor-pointer shadow-2xs"
           title="Quản lý dự án"
         >
-          <FolderOpen className="w-4 h-4 text-stone-700" />
+          <FolderOpen className="hidden sm:inline-block w-4 h-4 text-stone-700" />
+          <span>Dự án</span>
         </button>
 
-        {/* Save Project */}
+        {/* Save Project - Hidden on mobile as it exists inside Project Manager modal */}
         <button
           onClick={onOpenSaveProject}
-          className="p-2 sm:p-2 bg-sky-50 hover:bg-sky-100 border border-sky-200 rounded-xl transition cursor-pointer shadow-2xs"
+          className="hidden sm:inline-flex p-2 bg-sky-50 hover:bg-sky-100 border border-sky-200 rounded-xl transition cursor-pointer shadow-2xs"
           title="Lưu album hiện tại"
         >
           <Save className="w-4 h-4 text-sky-700" />
         </button>
 
-        {/* Tải Album (VIP) Button */}
+        {/* Tải Album (VIP) Button - Hidden on mobile */}
         {onOpenExportModal && (
           <button
             onClick={onOpenExportModal}
-            className="p-2 sm:p-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl transition cursor-pointer shadow-2xs"
+            className="hidden sm:inline-flex p-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl transition cursor-pointer shadow-2xs"
             title="Tải trọn bộ Album chất lượng in ấn 300 DPI"
           >
             <Download className="w-4 h-4 text-emerald-600" />
           </button>
         )}
 
-        {/* Đặt hàng */}
+        {/* Đặt hàng: Mobile displays text only without icon */}
         <button
           onClick={onOpenOrderModal}
-          className="flex items-center gap-1.5 bg-sky-500 hover:bg-sky-600 active:bg-sky-700 text-white text-xs sm:text-sm font-semibold px-3.5 sm:px-4 py-2 rounded-xl shadow-xs hover:shadow transition cursor-pointer"
+          className="flex items-center justify-center gap-1.5 bg-sky-500 hover:bg-sky-600 active:bg-sky-700 text-white text-xs sm:text-sm font-semibold px-3 sm:px-4 py-2 rounded-xl shadow-xs hover:shadow transition cursor-pointer"
         >
-          <ShoppingBag className="w-4 h-4" />
-          <span className="hidden sm:inline">Đặt hàng</span>
+          <ShoppingBag className="hidden sm:inline-block w-4 h-4" />
+          <span>Đặt hàng</span>
         </button>
 
-        {/* User Account / VIP Button */}
+        {/* User Account / VIP Button: Hidden on mobile */}
         {user ? (
-          <div className="relative" ref={userMenuRef}>
+          <div className="hidden sm:block relative" ref={userMenuRef}>
             <button
               onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
               className="flex items-center gap-1.5 p-1 sm:px-2.5 sm:py-1.5 bg-stone-100 hover:bg-stone-200/80 border border-stone-200 rounded-xl text-xs font-medium text-stone-800 transition cursor-pointer"
+              title={userProfile?.displayName || user.email || 'Tài khoản'}
             >
               {userProfile?.photoURL ? (
                 <img
@@ -151,7 +153,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {userProfile?.displayName || user.email?.split('@')[0]}
               </span>
               {isVip ? (
-                <span className="px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500 to-yellow-400 text-stone-900 text-[10px] font-black shadow-2xs flex items-center gap-0.5">
+                <span className="hidden sm:flex px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500 to-yellow-400 text-stone-900 text-[10px] font-black shadow-2xs items-center gap-0.5">
                   <Sparkles className="w-2.5 h-2.5" />
                   VIP
                 </span>
@@ -199,18 +201,20 @@ export const Navbar: React.FC<NavbarProps> = ({
         ) : (
           <button
             onClick={onOpenLogin}
-            className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-xs hover:shadow transition cursor-pointer"
+            className="hidden sm:inline-flex items-center gap-1.5 p-2 sm:px-3 sm:py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-xs hover:shadow transition cursor-pointer"
+            title="Đăng nhập VIP"
           >
-            <User className="w-3.5 h-3.5" />
+            <User className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
             <span className="hidden sm:inline">Đăng nhập</span>
-            <span className="px-1 py-0.2 bg-white/20 text-white text-[9px] rounded-xs font-black">VIP</span>
+            <span className="hidden sm:inline-block px-1 py-0.2 bg-white/20 text-white text-[9px] rounded-xs font-black">VIP</span>
           </button>
         )}
 
+        {/* Reset All - Hidden on mobile as it is inside Project Manager */}
         <button
           onClick={onResetAll}
           title="Làm mới lại từ đầu"
-          className="p-2 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-xl transition cursor-pointer"
+          className="hidden sm:inline-flex p-2 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-xl transition cursor-pointer"
         >
           <RotateCcw className="w-4 h-4" />
         </button>

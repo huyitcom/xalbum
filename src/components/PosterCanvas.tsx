@@ -406,8 +406,11 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
         }}
         onDrop={(e) => handleDropOnSlot(index, e)}
         onPointerDown={(e) => handleSlotPointerDown(index, e)}
+        onClick={() => {
+          if (onSelectSlotRef.current) onSelectSlotRef.current(index);
+        }}
         className={`relative group overflow-hidden select-none transition-shadow duration-150 ${
-          activeSlotIndex === index ? 'ring-2 ring-sky-500 ring-offset-1 z-10' : ''
+          activeSlotIndex === index ? 'ring-2 ring-sky-500 ring-offset-2 ring-offset-white shadow-md z-20' : ''
         } ${isPanningThis ? 'cursor-grabbing ring-2 ring-sky-400' : isFilled ? 'cursor-grab' : 'cursor-pointer'} ${className}`}
         style={{
           borderRadius: className.includes('rounded-none') ? 0 : `${posterSettings.cornerRadius}px`,
@@ -423,6 +426,13 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
           className="hidden"
           onChange={(e) => handleSingleFileInput(index, e)}
         />
+
+        {/* Selected Slot Indicator Badge */}
+        {activeSlotIndex === index && (
+          <div className="absolute top-1.5 left-1.5 z-30 bg-sky-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm pointer-events-none animate-in fade-in duration-150">
+            Khung #{index + 1}
+          </div>
+        )}
 
         {/* Drag Over Visual Indicator for Desktop Files */}
         {isDragOver && (
@@ -508,9 +518,12 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
           </div>
         );
         })() : (
-          <label
-            htmlFor={`file-input-${index}`}
-            className="w-full h-full flex flex-col items-center justify-center p-3 text-stone-400 hover:text-stone-600 hover:bg-stone-200/60 transition cursor-pointer border border-dashed border-stone-300 rounded-lg group/placeholder"
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onSelectSlotRef.current) onSelectSlotRef.current(index);
+            }}
+            className="w-full h-full flex flex-col items-center justify-center p-2 text-stone-400 hover:text-stone-600 hover:bg-stone-200/60 transition cursor-pointer border border-dashed border-stone-300 rounded-lg group/placeholder"
           >
             <div className="w-8 h-8 rounded-full bg-white shadow-xs flex items-center justify-center mb-1 group-hover/placeholder:scale-110 transition">
               <Plus className="w-4 h-4 text-stone-500" />
@@ -518,8 +531,18 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
             <span className="text-[11px] font-medium text-stone-500 text-center">
               Khung #{index + 1}
             </span>
-            <span className="text-[9px] text-stone-400 text-center">Kéo thả hoặc bấm để tải ảnh</span>
-          </label>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span className="text-[9px] text-stone-400 text-center">Chạm để chọn</span>
+              <span className="text-[9px] text-stone-300">·</span>
+              <label
+                htmlFor={`file-input-${index}`}
+                onClick={(e) => e.stopPropagation()}
+                className="text-[9px] text-sky-600 hover:underline cursor-pointer"
+              >
+                Tải file
+              </label>
+            </div>
+          </div>
         )}
       </div>
     );
@@ -2872,6 +2895,356 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
                 </div>
                 <div className="w-full h-full min-h-0 shadow-2xs overflow-hidden bg-stone-100">
                   {renderSlot(9, 'w-full h-full')}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Layout Template: Mẫu số 28 (Meadow) */}
+        {templateId === 'album-50x35-meadow' && (
+          <div className="w-full h-full flex bg-white overflow-hidden">
+            {/* Left Page (Exact 50% width): 3 Staggered Photos + Meadow Typography + Hashtags */}
+            <div className="relative w-1/2 shrink-0 flex-none h-full flex flex-col justify-between py-6 px-6 sm:px-10 bg-white select-none overflow-hidden min-h-0">
+              {/* Top Hashtags */}
+              <div className="w-full flex items-center justify-between pt-1 px-1 text-[7.5px] sm:text-[9.5px] font-sans font-medium tracking-[0.22em] text-stone-700 uppercase italic select-none">
+                <span>#NEWSEASON</span>
+                <span>#MOMENTGOLD</span>
+                <span>#PREWEDDING</span>
+              </div>
+
+              {/* Middle Section: 3 Staggered Portrait Photos with Cherished Moments Watermark */}
+              <div className="w-full flex-1 flex items-center justify-between gap-3 sm:gap-4 my-2 min-h-0 relative">
+                {/* Left Photo (Slot 1) - Lower */}
+                <div className="w-[30%] h-[72%] mt-10 shadow-sm relative overflow-hidden bg-stone-100 min-h-0">
+                  {renderSlot(1, 'w-full h-full')}
+                  <div className="absolute inset-x-0 bottom-2 text-center pointer-events-none select-none px-1">
+                    <span
+                      style={{ fontFamily: "'Bodoni Moda', 'Playfair Display', serif", letterSpacing: '0.14em' }}
+                      className="text-[6.5px] sm:text-[8px] font-normal uppercase text-white drop-shadow-sm whitespace-nowrap block"
+                    >
+                      CHERISHED MOMENTS
+                    </span>
+                    <span className="text-[5px] sm:text-[6px] font-serif italic text-white/95 drop-shadow-sm leading-none block">
+                      With you, forever is just the beginning.
+                    </span>
+                  </div>
+                </div>
+
+                {/* Center Photo (Slot 2) - Higher */}
+                <div className="w-[34%] h-[84%] -mt-6 shadow-md relative overflow-hidden bg-stone-100 z-10 min-h-0">
+                  {renderSlot(2, 'w-full h-full')}
+                  <div className="absolute inset-x-0 bottom-3 text-center pointer-events-none select-none px-1">
+                    <span
+                      style={{ fontFamily: "'Bodoni Moda', 'Playfair Display', serif", letterSpacing: '0.14em' }}
+                      className="text-[7.5px] sm:text-[9px] font-normal uppercase text-white drop-shadow-sm whitespace-nowrap block"
+                    >
+                      CHERISHED MOMENTS
+                    </span>
+                    <span className="text-[5.5px] sm:text-[6.5px] font-serif italic text-white/95 drop-shadow-sm leading-none block">
+                      With you, forever is just the beginning.
+                    </span>
+                  </div>
+                </div>
+
+                {/* Right Photo (Slot 3) - Lower */}
+                <div className="w-[30%] h-[72%] mt-10 shadow-sm relative overflow-hidden bg-stone-100 min-h-0">
+                  {renderSlot(3, 'w-full h-full')}
+                  <div className="absolute inset-x-0 bottom-2 text-center pointer-events-none select-none px-1">
+                    <span
+                      style={{ fontFamily: "'Bodoni Moda', 'Playfair Display', serif", letterSpacing: '0.14em' }}
+                      className="text-[6.5px] sm:text-[8px] font-normal uppercase text-white drop-shadow-sm whitespace-nowrap block"
+                    >
+                      CHERISHED MOMENTS
+                    </span>
+                    <span className="text-[5px] sm:text-[6px] font-serif italic text-white/95 drop-shadow-sm leading-none block">
+                      With you, forever is just the beginning.
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom: Meadow Typography + Romantic Quote */}
+              <div className="w-full shrink-0 flex flex-col items-center text-center pb-2 select-none">
+                {/* Meadow Title */}
+                <div className="flex items-baseline justify-center select-none leading-none -mb-1">
+                  <span
+                    style={{ fontFamily: "'Alex Brush', 'Dancing Script', cursive", color: '#15803d' }}
+                    className="text-5xl sm:text-7xl font-normal leading-none -mb-2"
+                  >
+                    M
+                  </span>
+                  <span
+                    style={{ fontFamily: "'Playfair Display', 'Bodoni Moda', serif", color: '#15803d' }}
+                    className="text-xs sm:text-sm italic font-normal -ml-1 mr-1"
+                  >
+                    e.
+                  </span>
+                  <span
+                    style={{ fontFamily: "'Bodoni Moda', 'Playfair Display', serif", color: '#166534', letterSpacing: '0.14em' }}
+                    className="text-2xl sm:text-4xl font-normal uppercase leading-none"
+                  >
+                    ADOW
+                  </span>
+                </div>
+                {/* Quote */}
+                <p className="mt-2 text-[6.5px] sm:text-[8px] font-sans font-medium uppercase tracking-[0.12em] text-stone-700 leading-relaxed max-w-[92%] mx-auto">
+                  TOGETHER WE DISCOVERED THAT HAPPINESS IS OFTEN FOUND IN THE SMALLEST MOMENTS.
+                  <br />
+                  A SMILE ACROSS THE ROOM, A GENTLE TOUCH, OR SIMPLY BEING BESIDE ONE
+                  <br />
+                  ANOTHER CAN BECOME MEMORIES THAT REMAIN MEANINGFUL LONG AFTER THE
+                  <br />
+                  MOMENT ITSELF HAS PASSED.
+                </p>
+              </div>
+            </div>
+
+            {/* Right Page (Exact 50% width): Full Bleed Photo with Large Cherished Moments Title */}
+            <div className="relative w-1/2 shrink-0 flex-none h-full overflow-hidden min-h-0 bg-stone-100">
+              {renderSlot(0, 'w-full h-full rounded-none')}
+              <div className="absolute inset-x-0 bottom-0 pt-20 pb-8 px-6 sm:px-10 flex flex-col items-center text-center pointer-events-none select-none bg-gradient-to-t from-black/40 via-black/15 to-transparent">
+                <h2
+                  style={{ fontFamily: "'Bodoni Moda', 'Cinzel', serif", letterSpacing: '0.22em' }}
+                  className="text-2xl sm:text-4xl font-normal uppercase text-white tracking-[0.22em] drop-shadow-md whitespace-nowrap"
+                >
+                  CHERISHED MOMENTS
+                </h2>
+                <div className="mt-1 sm:mt-1.5 text-xs sm:text-sm font-serif italic text-white/95 drop-shadow-sm leading-tight">
+                  <p>With you,</p>
+                  <p>forever is just the beginning.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Layout Template: Mẫu số 29 (A Lifetime By Your Side) */}
+        {templateId === 'album-50x35-lifetime-side' && (
+          <div className="w-full h-full flex bg-white overflow-hidden">
+            {/* Left Page (Exact 50% width): Large Framed Portrait Photo */}
+            <div className="w-1/2 shrink-0 flex-none h-full p-6 sm:p-10 flex items-center justify-center bg-white min-h-0">
+              <div className="w-[84%] h-[88%] shadow-xs overflow-hidden bg-stone-100">
+                {renderSlot(0, 'w-full h-full')}
+              </div>
+            </div>
+
+            {/* Right Page (Exact 50% width): Editorial Multi-photo with Pink Wax Seal & Typography */}
+            <div className="w-1/2 shrink-0 flex-none h-full py-6 px-6 sm:px-10 flex flex-col justify-between bg-white select-none overflow-hidden min-h-0">
+              {/* Top Row: Landscape Photo (Slot 1) + Pink Wax Seal & Lifetime by your side */}
+              <div className="w-full h-[46%] flex items-center justify-between gap-4 min-h-0">
+                <div className="w-[54%] h-full shadow-xs overflow-hidden bg-stone-100">
+                  {renderSlot(1, 'w-full h-full')}
+                </div>
+                <div className="flex-1 flex flex-col items-center justify-center pl-2 sm:pl-4 text-center select-none pointer-events-none">
+                  {/* Pink Wax Seal */}
+                  <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-gradient-to-br from-pink-300 via-rose-300 to-pink-400 shadow-md flex items-center justify-center border border-white/70 mb-2 relative">
+                    <svg className="w-5 h-5 sm:w-6 sm:h-6 text-rose-500 drop-shadow-2xs" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 13a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zm-4.5-4a4 4 0 0 1 3.5 2.05 4 4 0 0 1 3.5-2.05 4 4 0 1 1 2 7.46V19a1 1 0 0 1-1.6.8L12 17.5l-2.9 2.3A1 1 0 0 1 7.5 19v-2.54A4 4 0 1 1 7.5 9z" opacity="0.85" />
+                    </svg>
+                  </div>
+                  <span
+                    style={{ fontFamily: "'Bodoni Moda', 'Playfair Display', serif", letterSpacing: '0.16em' }}
+                    className="text-base sm:text-xl font-normal uppercase text-stone-900 leading-none whitespace-nowrap"
+                  >
+                    A LIFETIME
+                  </span>
+                  <div className="flex items-baseline mt-1 leading-none">
+                    <span
+                      style={{ fontFamily: "'Bodoni Moda', 'Playfair Display', serif" }}
+                      className="text-xs sm:text-sm uppercase font-normal text-stone-800 mr-1.5"
+                    >
+                      BY
+                    </span>
+                    <span
+                      style={{ fontFamily: "'Alex Brush', 'Dancing Script', cursive" }}
+                      className="text-2xl sm:text-3xl font-normal italic text-stone-900 -mb-1"
+                    >
+                      Your Side
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom Row: Detail Photo (Slot 2) + Hashtags, and Tall Detail Photo (Slot 3) */}
+              <div className="w-full h-[50%] flex items-end justify-between gap-4 min-h-0">
+                <div className="w-[42%] h-full flex flex-col justify-between">
+                  <div className="w-full h-[72%] shadow-xs overflow-hidden bg-stone-100">
+                    {renderSlot(2, 'w-full h-full')}
+                  </div>
+                  <div className="flex flex-col text-[7.5px] sm:text-[9px] font-sans font-medium tracking-[0.2em] text-stone-700 leading-relaxed uppercase pb-1 select-none pointer-events-none">
+                    <span>#PREWEDDING</span>
+                    <span>#MOMENTGOLD</span>
+                    <span>#GOODVIBE</span>
+                  </div>
+                </div>
+                <div className="w-[54%] h-full shadow-xs overflow-hidden bg-stone-100">
+                  {renderSlot(3, 'w-full h-full')}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Layout Template: Mẫu số 30 (Roselune) */}
+        {templateId === 'album-50x35-roselune' && (
+          <div className="w-full h-full flex bg-white overflow-hidden">
+            {/* Left Page (Exact 50% width): Large Portrait with Cherished Moments Overlay */}
+            <div className="w-1/2 shrink-0 flex-none h-full p-6 sm:p-10 flex items-center justify-center bg-white min-h-0 relative">
+              <div className="w-[84%] h-[88%] shadow-xs overflow-hidden bg-stone-100 relative">
+                {renderSlot(0, 'w-full h-full')}
+                <div className="absolute inset-x-0 bottom-[22%] text-center pointer-events-none select-none px-4">
+                  <h3
+                    style={{ fontFamily: "'Bodoni Moda', 'Cinzel', serif", letterSpacing: '0.22em' }}
+                    className="text-xl sm:text-2xl font-normal uppercase text-white drop-shadow-md whitespace-nowrap"
+                  >
+                    CHERISHED MOMENTS
+                  </h3>
+                  <p className="text-[10px] sm:text-xs font-serif italic text-white/95 drop-shadow-sm mt-0.5">
+                    With you, forever is just the beginning.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Page (Exact 50% width): Editorial Layout with Top Photo, Quote, Vertical Roselune & 2 Detail Photos */}
+            <div className="w-1/2 shrink-0 flex-none h-full py-6 px-6 sm:px-10 flex flex-col justify-between bg-white select-none overflow-hidden min-h-0">
+              {/* Top Row: Landscape Photo (Slot 1) with Cherished Moments + Black bar Quote */}
+              <div className="w-full h-[46%] flex items-center justify-between gap-4 min-h-0">
+                <div className="w-[54%] h-full shadow-xs overflow-hidden bg-stone-100 relative">
+                  {renderSlot(1, 'w-full h-full')}
+                  <div className="absolute inset-x-0 bottom-2 text-center pointer-events-none select-none px-1">
+                    <span
+                      style={{ fontFamily: "'Bodoni Moda', 'Playfair Display', serif", letterSpacing: '0.14em' }}
+                      className="text-[7.5px] sm:text-[9px] font-normal uppercase text-white drop-shadow-sm whitespace-nowrap block"
+                    >
+                      CHERISHED MOMENTS
+                    </span>
+                    <span className="text-[5.5px] sm:text-[6.5px] font-serif italic text-white/95 drop-shadow-sm leading-none block">
+                      With you, forever is just the beginning.
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex-1 flex items-center pl-2 sm:pl-4 select-none pointer-events-none">
+                  <div className="border-l-2 border-black pl-3 py-1">
+                    <p className="text-[7.5px] sm:text-[8.5px] font-sans font-medium uppercase tracking-[0.14em] text-stone-900 leading-[1.6]">
+                      TOGETHER WE DISCOVERED A LOVE
+                      <br />
+                      THAT FEELS CALM, SINCERE, AND
+                      <br />
+                      ENDLESS,
+                      <br />
+                      LIKE SUNLIGHT RESTING GENTLY
+                      <br />
+                      THROUGH A QUIET MORNING
+                      <br />
+                      WINDOW.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom Row: Vertical Roselune text + 2 Detail Photos (Slot 2 & Slot 3) */}
+              <div className="w-full h-[50%] flex items-end justify-between gap-3 min-h-0">
+                {/* Vertical Roselune */}
+                <div className="flex items-center justify-center shrink-0 pr-1 sm:pr-2 select-none pointer-events-none">
+                  <span
+                    style={{
+                      fontFamily: "'Bodoni Moda', 'Playfair Display', serif",
+                      writingMode: 'vertical-rl',
+                      transform: 'rotate(180deg)',
+                      letterSpacing: '0.08em',
+                    }}
+                    className="text-2xl sm:text-3xl font-normal text-stone-900 select-none"
+                  >
+                    Roselune
+                  </span>
+                </div>
+
+                {/* Slot 2 (Medium portrait) */}
+                <div className="w-[38%] h-[80%] shadow-xs overflow-hidden bg-stone-100">
+                  {renderSlot(2, 'w-full h-full')}
+                </div>
+
+                {/* Slot 3 (Large portrait) */}
+                <div className="w-[50%] h-full shadow-xs overflow-hidden bg-stone-100">
+                  {renderSlot(3, 'w-full h-full')}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Layout Template: Mẫu số 31 (Quietly Yours) */}
+        {templateId === 'album-50x35-quietly-seals' && (
+          <div className="w-full h-full flex bg-white overflow-hidden">
+            {/* Left Page (Exact 50% width): Large Framed Portrait Photo */}
+            <div className="w-1/2 shrink-0 flex-none h-full p-6 sm:p-10 flex items-center justify-center bg-white min-h-0">
+              <div className="w-[84%] h-[84%] shadow-xs overflow-hidden bg-stone-100">
+                {renderSlot(0, 'w-full h-full')}
+              </div>
+            </div>
+
+            {/* Right Page (Exact 50% width): Top Triptych (3 photos) + Heart Wax Seal + QUIETLY YOURS + Send to her! */}
+            <div className="w-1/2 shrink-0 flex-none h-full py-6 px-6 sm:px-10 flex flex-col justify-between bg-white select-none overflow-hidden min-h-0">
+              {/* Top Row: 3 Photos Triptych (Slot 1, Slot 2, Slot 3) */}
+              <div className="w-full h-[45%] flex items-center justify-between gap-2.5 sm:gap-3.5 pt-2 min-h-0">
+                <div className="w-1/3 h-full shadow-xs overflow-hidden bg-stone-100">
+                  {renderSlot(1, 'w-full h-full')}
+                </div>
+                <div className="w-1/3 h-full shadow-xs overflow-hidden bg-stone-100">
+                  {renderSlot(2, 'w-full h-full')}
+                </div>
+                <div className="w-1/3 h-full shadow-xs overflow-hidden bg-stone-100">
+                  {renderSlot(3, 'w-full h-full')}
+                </div>
+              </div>
+
+              {/* Bottom Section: Heart Wax Seal + QUIETLY YOURS Typography + Quote & Calligraphy */}
+              <div className="w-full flex-1 flex flex-col items-center justify-center select-none pointer-events-none mt-2">
+                {/* Heart Wax Seal */}
+                <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-full bg-gradient-to-br from-[#801b1b] via-[#601212] to-[#400808] shadow-md flex items-center justify-center border border-[#a83232]/50 relative mb-1.5">
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-[#b93b3b] drop-shadow-inner" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                  </svg>
+                </div>
+
+                {/* Title */}
+                <h2
+                  style={{ fontFamily: "'Bodoni Moda', 'Playfair Display', serif", fontWeight: 900, letterSpacing: '0.08em' }}
+                  className="text-3xl sm:text-4xl font-black uppercase text-center text-stone-900 leading-none tracking-wider whitespace-nowrap"
+                >
+                  QUIETLY YOURS
+                </h2>
+
+                {/* Subtitle Columns */}
+                <div className="w-full flex items-center justify-between px-2 pt-2 sm:pt-3">
+                  {/* Left Column: Quote */}
+                  <div className="text-left">
+                    <p
+                      style={{ fontFamily: "'Playfair Display', serif", fontStyle: 'italic' }}
+                      className="text-[10px] sm:text-xs text-stone-700 leading-tight"
+                    >
+                      Love quietly transforms
+                      <br />
+                      ordinary moments into memories
+                      <br />
+                      that continue glowing softly
+                      <br />
+                      throughout our lives.
+                    </p>
+                  </div>
+
+                  {/* Right Column: Send to her */}
+                  <div className="text-right flex items-center justify-end">
+                    <span
+                      style={{ fontFamily: "'Alex Brush', 'Dancing Script', cursive" }}
+                      className="text-3xl sm:text-4xl font-normal italic text-stone-900 leading-none select-none"
+                    >
+                      Send to her!
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>

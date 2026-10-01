@@ -20,6 +20,8 @@ import { TextStylePreset } from './data/textStyles';
 import { Navbar } from './components/Navbar';
 import { PosterCanvas } from './components/PosterCanvas';
 import { EditorSidebar } from './components/EditorSidebar';
+import { MobileBottomStudio } from './components/MobileBottomStudio';
+import { MobileTopFilmstrip } from './components/MobileTopFilmstrip';
 import { PageFilmstrip } from './components/PageFilmstrip';
 import { PhotoCropModal } from './components/PhotoCropModal';
 import { OrderPrintModal } from './components/OrderPrintModal';
@@ -1053,6 +1055,16 @@ export default function App() {
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         {/* Workspace Center Display (Canvas Area + Fixed Bottom Filmstrip Navigator) */}
         <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-stone-200/60 relative">
+          {/* Mobile Only: Top Filmstrip Bar for fast page selection right above canvas */}
+          <div className="lg:hidden shrink-0 w-full z-20">
+            <MobileTopFilmstrip
+              pages={pages}
+              activePageIndex={activePageIndex}
+              onSelectPage={(index) => setActivePageIndex(index)}
+              onAddPage={handleAddPage}
+            />
+          </div>
+
           {/* Scrollable Canvas Viewport */}
           <main 
             onPointerDown={(e) => {
@@ -1132,8 +1144,8 @@ export default function App() {
             </div>
           </main>
 
-          {/* Permanently Fixed Bottom Filmstrip for Page Management & Quick Navigation */}
-          <div className="shrink-0 flex-none w-full border-t border-stone-200 bg-white z-20 shadow-xs">
+          {/* Desktop Only: Permanently Fixed Bottom Filmstrip for Page Management & Quick Navigation */}
+          <div className="hidden lg:block shrink-0 flex-none w-full border-t border-stone-200 bg-white z-20 shadow-xs">
             <PageFilmstrip
               pages={pages}
               activePageIndex={activePageIndex}
@@ -1156,40 +1168,80 @@ export default function App() {
               }}
             />
           </div>
+
+          {/* Mobile Only: Bottom Studio with collapsible photo strip + tab tools */}
+          <div className="lg:hidden shrink-0 flex-none w-full z-30">
+            <MobileBottomStudio
+              pages={pages}
+              activePageIndex={activePageIndex}
+              onSelectPage={(index) => setActivePageIndex(index)}
+              onAddPage={handleAddPage}
+              onDuplicatePage={handleDuplicatePage}
+              onDeletePage={handleDeletePage}
+              onMovePage={handleMovePage}
+              templateId={currentPage.templateId}
+              onChangeTemplate={handleTemplateChange}
+              onApplyTemplateToAll={handleApplyTemplateToAll}
+              posterSettings={currentPage.posterSettings}
+              onChangePosterSettings={handlePosterSettingsChange}
+              activeSlotIndex={activeSlotIndex}
+              onSelectSlot={(index) => setActiveSlotIndex(index)}
+              onSlotImageChange={handleSlotImageChange}
+              onAutoFill={handleApplyBatchPhotos}
+              totalEmptySlotsCount={pages.reduce(
+                (acc, page) =>
+                  acc +
+                  page.slots.filter(
+                    (s) =>
+                      !s.imageUri ||
+                      s.imageUri.includes('unsplash.com') ||
+                      (s.imageUri.startsWith('img_') && !imageOptimizer.getImage(s.imageUri))
+                  ).length,
+                0
+              )}
+              usedImageIds={pages.flatMap((p) => p.slots).map((s) => s.imageUri).filter(Boolean) as string[]}
+              missingImagesCount={missingImagesCount}
+              onSmartRelink={handleSmartRelinkPhotos}
+              onOpenAddTextModal={() => setIsAddTextModalOpen(true)}
+              currentPageSlots={currentPage.slots}
+            />
+          </div>
         </div>
 
-        {/* Right Editor Controls Sidebar */}
-        <EditorSidebar
-          templateId={currentPage.templateId}
-          onChangeTemplate={handleTemplateChange}
-          onApplyTemplateToAll={handleApplyTemplateToAll}
-          textConfig={currentPage.textConfig}
-          onChangeTextConfig={handleTextConfigChange}
-          customTexts={currentPage.customTexts || []}
-          onOpenAddTextModal={() => setIsAddTextModalOpen(true)}
-          onUpdateCustomText={handleUpdateCustomText}
-          onDeleteCustomText={handleDeleteCustomText}
-          selectedTextId={selectedTextId}
-          onSelectText={(id) => setSelectedTextId(id)}
-          posterSettings={currentPage.posterSettings}
-          onChangePosterSettings={handlePosterSettingsChange}
-          onAutoFill={handleApplyBatchPhotos}
-          totalEmptySlotsCount={pages.reduce(
-            (acc, page) =>
-              acc +
-              page.slots.filter(
-                (s) =>
-                  !s.imageUri ||
-                  s.imageUri.includes('unsplash.com') ||
-                  (s.imageUri.startsWith('img_') && !imageOptimizer.getImage(s.imageUri))
-              ).length,
-            0
-          )}
-          usedImageIds={pages.flatMap((p) => p.slots).map((s) => s.imageUri).filter(Boolean) as string[]}
-          missingImagesCount={missingImagesCount}
-          onSmartRelink={handleSmartRelinkPhotos}
-          onClearAllImages={handleClearAllPhotos}
-        />
+        {/* Right Editor Controls Sidebar - Desktop Only */}
+        <div className="hidden lg:flex h-full shrink-0">
+          <EditorSidebar
+            templateId={currentPage.templateId}
+            onChangeTemplate={handleTemplateChange}
+            onApplyTemplateToAll={handleApplyTemplateToAll}
+            textConfig={currentPage.textConfig}
+            onChangeTextConfig={handleTextConfigChange}
+            customTexts={currentPage.customTexts || []}
+            onOpenAddTextModal={() => setIsAddTextModalOpen(true)}
+            onUpdateCustomText={handleUpdateCustomText}
+            onDeleteCustomText={handleDeleteCustomText}
+            selectedTextId={selectedTextId}
+            onSelectText={(id) => setSelectedTextId(id)}
+            posterSettings={currentPage.posterSettings}
+            onChangePosterSettings={handlePosterSettingsChange}
+            onAutoFill={handleApplyBatchPhotos}
+            totalEmptySlotsCount={pages.reduce(
+              (acc, page) =>
+                acc +
+                page.slots.filter(
+                  (s) =>
+                    !s.imageUri ||
+                    s.imageUri.includes('unsplash.com') ||
+                    (s.imageUri.startsWith('img_') && !imageOptimizer.getImage(s.imageUri))
+                ).length,
+              0
+            )}
+            usedImageIds={pages.flatMap((p) => p.slots).map((s) => s.imageUri).filter(Boolean) as string[]}
+            missingImagesCount={missingImagesCount}
+            onSmartRelink={handleSmartRelinkPhotos}
+            onClearAllImages={handleClearAllPhotos}
+          />
+        </div>
       </div>
 
       {/* Modals */}
@@ -1299,6 +1351,7 @@ export default function App() {
         onLoadProject={handleLoadProject}
         onNewProject={handleNewProject}
         onOpenSaveCurrent={() => setIsSaveModalOpen(true)}
+        onResetAll={handleResetAll}
         onShowToast={showAlert}
       />
 

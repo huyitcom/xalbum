@@ -640,6 +640,38 @@ export const WITH_TEXT_TEMPLATES: TemplateDefinition[] = [
     aspectRatio: '50:35',
     category: 'with-text',
   },
+  {
+    id: 'album-50x35-meadow',
+    name: 'Mẫu số 28',
+    description: 'Bố cục 50x35 cm: 3 ảnh đứng so le lồng chữ Meadow xanh rừng & Cherished Moments bên trái, 1 ảnh full tràn viền toàn trang phải kèm trích dẫn',
+    slotCount: 4,
+    aspectRatio: '50:35',
+    category: 'with-text',
+  },
+  {
+    id: 'album-50x35-lifetime-side',
+    name: 'Mẫu số 29',
+    description: 'Bố cục 50x35 cm: 1 ảnh chân dung viền thanh lịch bên trái, 3 ảnh chi tiết + tem sáp hồng & chữ nghệ thuật A Lifetime By Your Side bên phải',
+    slotCount: 4,
+    aspectRatio: '50:35',
+    category: 'with-text',
+  },
+  {
+    id: 'album-50x35-roselune',
+    name: 'Mẫu số 30',
+    description: 'Bố cục 50x35 cm: 1 ảnh đứng lớn lồng chữ Cherished Moments bên trái, 3 ảnh chi tiết + chữ đứng Roselune & khối thơ hiện đại bên phải',
+    slotCount: 4,
+    aspectRatio: '50:35',
+    category: 'with-text',
+  },
+  {
+    id: 'album-50x35-quietly-seals',
+    name: 'Mẫu số 31',
+    description: 'Bố cục 50x35 cm: 1 ảnh đứng lớn bên trái, bộ ba ảnh ngang triptych + tem sáp trái tim & chữ nghệ thuật Quietly Yours bên phải',
+    slotCount: 4,
+    aspectRatio: '50:35',
+    category: 'with-text',
+  },
 ];
 
 export const TEMPLATES: TemplateDefinition[] = [

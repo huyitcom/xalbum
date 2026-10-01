@@ -5,7 +5,6 @@ import {
   Plus,
   Trash2,
   Download,
-  Upload,
   Calendar,
   Layers,
   Edit2,
@@ -13,6 +12,7 @@ import {
   Search,
   BookOpen,
   Sparkles,
+  RotateCcw,
 } from 'lucide-react';
 import { SavedProject } from '../types';
 import { imageOptimizer } from '../utils/imageOptimizer';
@@ -31,6 +31,7 @@ interface ProjectManagerModalProps {
   onLoadProject: (project: SavedProject) => void;
   onNewProject: () => void;
   onOpenSaveCurrent: () => void;
+  onResetAll?: () => void;
   onShowToast: (title: string, type: 'success' | 'error' | 'info') => void;
 }
 
@@ -41,6 +42,7 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
   onLoadProject,
   onNewProject,
   onOpenSaveCurrent,
+  onResetAll,
   onShowToast,
 }) => {
   const [projects, setProjects] = useState<SavedProject[]>([]);
@@ -265,18 +267,33 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
               title="Khởi tạo một album mới từ đầu"
             >
               <Plus className="w-3.5 h-3.5 text-stone-700" />
-              <span className="hidden sm:inline">Tạo mới</span>
+              <span>Tạo mới</span>
             </button>
 
-            {/* Import Project File */}
+            {/* Mở file dự án từ thiết bị */}
             <button
               onClick={() => fileInputRef.current?.click()}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs sm:text-sm font-semibold rounded-xl border border-stone-200 transition cursor-pointer"
-              title="Nhập file sao lưu (.xalbum) từ máy tính"
+              title="Mở file dự án (.xalbum/.json) từ máy tính hoặc điện thoại"
             >
-              <Upload className="w-3.5 h-3.5 text-stone-700" />
-              <span className="hidden sm:inline">Nhập file</span>
+              <FolderOpen className="w-3.5 h-3.5 text-stone-700" />
+              <span>Mở dự án</span>
             </button>
+
+            {/* Làm mới lại từ đầu */}
+            {onResetAll && (
+              <button
+                onClick={() => {
+                  onClose();
+                  onResetAll();
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-stone-100 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 text-stone-800 text-xs sm:text-sm font-semibold rounded-xl border border-stone-200 transition cursor-pointer"
+                title="Khôi phục lại toàn bộ album về các trang mẫu mặc định"
+              >
+                <RotateCcw className="w-3.5 h-3.5 text-rose-500" />
+                <span>Làm mới</span>
+              </button>
+            )}
           </div>
         </div>
 

@@ -1045,6 +1045,168 @@ export const TemplateThumbnail: React.FC<{ id: string; slots?: import('../types'
     );
   }
 
+  if (id === 'album-50x35-meadow') {
+    return (
+      <div className={`w-full h-full bg-white flex items-center select-none overflow-hidden ${className}`}>
+        {/* Left Side: 3 staggered photos + Meadow green title */}
+        <div className="relative w-1/2 h-full flex flex-col justify-between p-1 shrink-0 bg-white">
+          {/* Top hashtags */}
+          <div className="flex justify-between items-center px-0.5 text-[2px] font-sans text-stone-500 uppercase italic">
+            <span>#NEWSEASON</span>
+            <span>#MOMENTGOLD</span>
+            <span>#PREWEDDING</span>
+          </div>
+          {/* 3 staggered portrait photos */}
+          <div className="flex items-center justify-between gap-0.5 my-0.5 min-h-0">
+            <div className="w-[30%] h-[68%] mt-2 bg-stone-200 relative overflow-hidden rounded-[0.5px]">
+              <ThumbnailSlot slot={slots?.[1]} placeholder="2" />
+            </div>
+            <div className="w-[32%] h-[82%] -mt-1 bg-stone-200 relative overflow-hidden rounded-[0.5px] shadow-2xs">
+              <ThumbnailSlot slot={slots?.[2]} placeholder="3" />
+            </div>
+            <div className="w-[30%] h-[68%] mt-2 bg-stone-200 relative overflow-hidden rounded-[0.5px]">
+              <ThumbnailSlot slot={slots?.[3]} placeholder="4" />
+            </div>
+          </div>
+          {/* Meadow title & quote */}
+          <div className="text-center leading-none">
+            <span className="text-[4px] font-serif text-[#15803d] font-bold">MEADOW</span>
+            <span className="text-[1.8px] font-sans text-stone-400 block tracking-tighter uppercase mt-0.5">SMALLEST MOMENTS</span>
+          </div>
+        </div>
+        {/* Right Side: Full bleed photo with Cherished moments text */}
+        <div className="relative w-1/2 h-full bg-stone-200 flex items-center justify-center text-[7px] text-stone-400 font-bold overflow-hidden shrink-0">
+          <ThumbnailSlot slot={slots?.[0]} placeholder="1" />
+          <div className="absolute bottom-1 right-1 left-1 text-center pointer-events-none">
+            <span className="text-[2.5px] font-serif uppercase tracking-widest text-white drop-shadow-sm font-semibold">CHERISHED MOMENTS</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (id === 'album-50x35-lifetime-side') {
+    return (
+      <div className={`w-full h-full bg-white flex items-center select-none overflow-hidden ${className}`}>
+        {/* Left Side: 1 Portrait with white margin */}
+        <div className="w-1/2 h-full flex items-center justify-center p-1 shrink-0 bg-white">
+          <div className="w-[82%] h-[88%] bg-stone-200 relative overflow-hidden rounded-[0.5px]">
+            <ThumbnailSlot slot={slots?.[0]} placeholder="1" />
+          </div>
+        </div>
+        {/* Right Side: Top landscape photo + wax seal & text, bottom 2 detail photos */}
+        <div className="w-1/2 h-full p-1 flex flex-col justify-between shrink-0 bg-white">
+          {/* Top row */}
+          <div className="flex items-center justify-between gap-1 h-[46%]">
+            <div className="w-[52%] h-full bg-stone-200 relative overflow-hidden rounded-[0.5px]">
+              <ThumbnailSlot slot={slots?.[1]} placeholder="2" />
+            </div>
+            <div className="flex-1 flex flex-col items-center justify-center text-center">
+              <div className="w-2.5 h-2.5 rounded-full bg-[#f472b6] flex items-center justify-center shadow-2xs mb-0.5">
+                <span className="text-[2px] text-white">🎀</span>
+              </div>
+              <span className="text-[2.8px] font-serif uppercase text-stone-900 font-bold leading-none">A LIFETIME</span>
+              <span className="text-[3px] font-serif italic text-stone-800 leading-none">By Your Side</span>
+            </div>
+          </div>
+          {/* Bottom row */}
+          <div className="flex items-end justify-between gap-1 h-[48%]">
+            <div className="flex flex-col justify-between h-full w-[38%]">
+              <div className="w-full h-[70%] bg-stone-200 relative overflow-hidden rounded-[0.5px]">
+                <ThumbnailSlot slot={slots?.[2]} placeholder="3" />
+              </div>
+              <div className="text-[1.8px] font-sans text-stone-500 uppercase leading-none">
+                <span>#PREWEDDING</span>
+              </div>
+            </div>
+            <div className="w-[54%] h-full bg-stone-200 relative overflow-hidden rounded-[0.5px]">
+              <ThumbnailSlot slot={slots?.[3]} placeholder="4" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (id === 'album-50x35-roselune') {
+    return (
+      <div className={`w-full h-full bg-white flex items-center select-none overflow-hidden ${className}`}>
+        {/* Left Side: 1 Portrait with white margin & text */}
+        <div className="w-1/2 h-full flex items-center justify-center p-1 shrink-0 bg-white relative">
+          <div className="w-[82%] h-[88%] bg-stone-200 relative overflow-hidden rounded-[0.5px]">
+            <ThumbnailSlot slot={slots?.[0]} placeholder="1" />
+            <div className="absolute bottom-1 inset-x-0 text-center">
+              <span className="text-[2px] font-serif uppercase tracking-widest text-white drop-shadow-sm">CHERISHED MOMENTS</span>
+            </div>
+          </div>
+        </div>
+        {/* Right Side: Top photo + black bar quote, vertical Roselune, bottom 2 photos */}
+        <div className="w-1/2 h-full p-1 flex flex-col justify-between shrink-0 bg-white">
+          <div className="flex items-center justify-between gap-1 h-[46%]">
+            <div className="w-[54%] h-full bg-stone-200 relative overflow-hidden rounded-[0.5px]">
+              <ThumbnailSlot slot={slots?.[1]} placeholder="2" />
+            </div>
+            <div className="flex-1 flex items-center gap-0.5 border-l border-stone-800 pl-0.5 leading-none">
+              <span className="text-[1.8px] font-sans text-stone-600 uppercase">TOGETHER WE DISCOVERED</span>
+            </div>
+          </div>
+          <div className="flex items-end justify-between gap-0.5 h-[48%]">
+            <div className="flex items-center justify-center h-full">
+              <span style={{ writingMode: 'vertical-rl' }} className="text-[3px] font-serif text-stone-800 rotate-180 font-bold">
+                Roselune
+              </span>
+            </div>
+            <div className="w-[36%] h-[72%] bg-stone-200 relative overflow-hidden rounded-[0.5px]">
+              <ThumbnailSlot slot={slots?.[2]} placeholder="3" />
+            </div>
+            <div className="w-[48%] h-full bg-stone-200 relative overflow-hidden rounded-[0.5px]">
+              <ThumbnailSlot slot={slots?.[3]} placeholder="4" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (id === 'album-50x35-quietly-seals') {
+    return (
+      <div className={`w-full h-full bg-white flex items-center select-none overflow-hidden ${className}`}>
+        {/* Left Side: 1 Portrait with white margin */}
+        <div className="w-1/2 h-full flex items-center justify-center p-1 shrink-0 bg-white">
+          <div className="w-[82%] h-[84%] bg-stone-200 relative overflow-hidden rounded-[0.5px]">
+            <ThumbnailSlot slot={slots?.[0]} placeholder="1" />
+          </div>
+        </div>
+        {/* Right Side: Top row of 3 photos + bottom wax seal, Quietly Yours & Send to her */}
+        <div className="w-1/2 h-full p-1 flex flex-col justify-between shrink-0 bg-white">
+          {/* Top row of 3 photos */}
+          <div className="flex items-center justify-between gap-0.5 h-[42%] mt-1">
+            <div className="w-1/3 h-full bg-stone-200 relative overflow-hidden rounded-[0.5px]">
+              <ThumbnailSlot slot={slots?.[1]} placeholder="2" />
+            </div>
+            <div className="w-1/3 h-full bg-stone-200 relative overflow-hidden rounded-[0.5px]">
+              <ThumbnailSlot slot={slots?.[2]} placeholder="3" />
+            </div>
+            <div className="w-1/3 h-full bg-stone-300 relative overflow-hidden rounded-[0.5px]">
+              <ThumbnailSlot slot={slots?.[3]} placeholder="4" />
+            </div>
+          </div>
+          {/* Bottom area */}
+          <div className="flex flex-col items-center justify-center my-auto leading-none text-center">
+            <div className="w-2.5 h-2.5 rounded-full bg-[#991b1b] flex items-center justify-center shadow-2xs mb-0.5">
+              <span className="text-[2px] text-white">❤</span>
+            </div>
+            <span className="text-[3.2px] font-black uppercase tracking-wider text-stone-900">QUIETLY YOURS</span>
+            <div className="w-full flex justify-between items-center px-1 mt-0.5">
+              <span className="text-[1.8px] font-serif italic text-stone-500">Love quietly</span>
+              <span className="text-[2.5px] font-serif italic text-stone-800">Send to her!</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // --- OVERLAY / VIP TEMPLATES ---
   if (id.startsWith('overlay-')) {
     const vipTmpl = VIP_TEMPLATES.find((t) => t.id === id);
