@@ -32,7 +32,14 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     if (code === 'auth/cancelled-popup-request') {
       return 'Yêu cầu đăng nhập đã bị hủy.';
     }
-    return err?.message || 'Đã có lỗi xảy ra khi kết nối tài khoản Google. Vui lòng thử lại!';
+    if (
+      err?.name === 'SecurityError' ||
+      String(err?.message || '').includes('cross-origin frame') ||
+      String(err?.message || '').includes('$$typeof')
+    ) {
+      return 'Khung xem trước chặn popup xác thực. Vui lòng mở ứng dụng ở tab trình duyệt mới để đăng nhập Google.';
+    }
+    return typeof err?.message === 'string' ? err.message : 'Đã có lỗi xảy ra khi kết nối tài khoản Google. Vui lòng thử lại!';
   };
 
   const handleGoogleSignIn = async () => {

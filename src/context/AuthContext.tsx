@@ -135,6 +135,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (res.user) {
         await fetchProfile(res.user);
       }
+    } catch (err: any) {
+      if (
+        err?.name === 'SecurityError' ||
+        String(err?.message || '').includes('cross-origin frame') ||
+        String(err?.message || '').includes('$$typeof')
+      ) {
+        throw new Error('Trình duyệt trong khung xem trước chặn popup. Vui lòng mở ứng dụng ở tab trình duyệt riêng để đăng nhập Google.');
+      }
+      throw err;
     } finally {
       setIsLoading(false);
     }

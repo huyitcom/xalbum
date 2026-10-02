@@ -205,7 +205,7 @@ export async function saveAutoSaveSession(session: AutoSaveSession): Promise<voi
 
   // 3. If session belongs to a named user project, also update the actual project in IndexedDB
   const targetId = session.project.originalId || session.project.id;
-  if (targetId && targetId.startsWith('proj_') && targetId !== AUTOSAVE_PROJECT_ID) {
+  if (targetId && typeof targetId === 'string' && targetId.startsWith('proj_') && targetId !== AUTOSAVE_PROJECT_ID) {
     try {
       const userProject: SavedProject = {
         ...session.project,
@@ -293,7 +293,7 @@ export function extractProjectThumbnail(pages: AlbumPage[]): string | null {
   for (const page of pages) {
     const filledSlot = page.slots.find((s) => s.imageUri && s.imageUri.length > 0);
     if (filledSlot && filledSlot.imageUri) {
-      if (filledSlot.imageUri.startsWith('img_')) {
+      if (typeof filledSlot.imageUri === 'string' && filledSlot.imageUri.startsWith('img_')) {
         const opt = imageOptimizer.getImage(filledSlot.imageUri);
         if (opt) return opt.thumbnailUrl || opt.previewUrl || opt.originalUrl;
       }
@@ -335,7 +335,7 @@ export function exportProjectFile(project: SavedProject): void {
   const referencedImageIds = new Set<string>();
   project.pages.forEach((p) => {
     p.slots.forEach((s) => {
-      if (s.imageUri && s.imageUri.startsWith('img_')) {
+      if (s.imageUri && typeof s.imageUri === 'string' && s.imageUri.startsWith('img_')) {
         referencedImageIds.add(s.imageUri);
       }
     });

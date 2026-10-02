@@ -13,6 +13,7 @@ import {
   SAMPLE_WEDDING_PHOTOS,
   TEMPLATES,
   WITH_TEXT_TEMPLATES,
+  VIP_THEME_SETS,
   createDefaultPage,
   generateAlbumPages,
 } from './data/constants';
@@ -31,6 +32,7 @@ import { InitialSetupModal } from './components/InitialSetupModal';
 import { AddTextModal } from './components/AddTextModal';
 import { SaveProjectModal } from './components/SaveProjectModal';
 import { ProjectManagerModal } from './components/ProjectManagerModal';
+import { RestoreOrNewProjectModal } from './components/RestoreOrNewProjectModal';
 import { LoginModal } from './components/LoginModal';
 import { useAuth } from './context/AuthContext';
 import {
@@ -40,6 +42,7 @@ import {
   saveAutoSaveSession,
   getAutoSaveSession,
   clearAutoSaveSession,
+  AutoSaveSession,
 } from './utils/projectStorage';
 import { imageOptimizer } from './utils/imageOptimizer';
 import { AlertCircle, Sparkles, X } from 'lucide-react';
@@ -80,6 +83,8 @@ export default function App() {
 
   // Auto-Save State
   const [hasRestoredSession, setHasRestoredSession] = useState<boolean>(false);
+  const [pendingRestoreSession, setPendingRestoreSession] = useState<AutoSaveSession | null>(null);
+  const [showRestorePrompt, setShowRestorePrompt] = useState<boolean>(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState<'saved' | 'saving' | 'idle'>('idle');
   const [lastSavedTime, setLastSavedTime] = useState<number | null>(null);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -110,6 +115,7 @@ export default function App() {
         page.slots.forEach((slot) => {
           if (
             slot.imageUri &&
+            typeof slot.imageUri === 'string' &&
             slot.imageUri.startsWith('img_') &&
             !imageOptimizer.getImage(slot.imageUri)
           ) {
@@ -125,7 +131,7 @@ export default function App() {
     return unsub;
   }, [pages]);
 
-  // 1. Auto-restore session from IndexedDB/localStorage on initial mount
+  // 1. Check for saved session on initial mount: prompt user to restore or start new
   useEffect(() => {
     let isMounted = true;
     (async () => {
@@ -139,24 +145,17 @@ export default function App() {
           Array.isArray(session.project.pages) &&
           session.project.pages.length > 0
         ) {
-          setPages(session.project.pages);
-          setIsSetupComplete(true);
-          if (session.project.originalId || (session.project.id && session.project.id !== 'xalbum_autosave_session')) {
-            setCurrentProjectId(session.project.originalId || session.project.id);
+          // Found previous session! Show choice modal instead of auto-restoring silently
+          setPendingRestoreSession(session);
+          setShowRestorePrompt(true);
+        } else {
+          // No previous session, ready for setup
+          if (isMounted) {
+            setHasRestoredSession(true);
           }
-          if (session.project.name) {
-            setCurrentProjectName(session.project.name);
-          }
-          if (typeof session.activePageIndex === 'number') {
-            setActivePageIndex(Math.min(session.activePageIndex, session.project.pages.length - 1));
-          }
-          setAutoSaveStatus('saved');
-          setLastSavedTime(session.savedAt || Date.now());
-          showAlert(`Đã tự động khôi phục dự án "${session.project.name || 'Album Cưới'}" của bạn!`, 'success');
         }
       } catch (err) {
-        console.warn('Could not restore auto-save session:', err);
-      } finally {
+        console.warn('Could not check auto-save session:', err);
         if (isMounted) {
           setHasRestoredSession(true);
         }
@@ -167,6 +166,62 @@ export default function App() {
       isMounted = false;
     };
   }, []);
+
+  // Helper: Đảm bảo trang Bìa Album luôn ở vị trí đầu tiên (trước trang 1-2)
+  const ensureCoverIsFirst = (pagesList: AlbumPage[]): AlbumPage[] => {
+    const coverIdx = pagesList.findIndex((p) => p.templateId?.startsWith('cover-'));
+    if (coverIdx > 0) {
+      const copy = [...pagesList];
+      const [coverPage] = copy.splice(coverIdx, 1);
+      copy.unshift(coverPage);
+      return copy;
+    }
+    return pagesList;
+  };
+
+  // Đảm bảo nếu state hiện tại có bìa ở sau trang 1-2, lập tức đưa lên đầu tiên
+  useEffect(() => {
+    setPages((prev) => ensureCoverIsFirst(prev));
+  }, []);
+
+  const handleConfirmRestore = () => {
+    if (!pendingRestoreSession || !pendingRestoreSession.project) return;
+    const session = pendingRestoreSession;
+    const restoredPages = ensureCoverIsFirst(session.project.pages);
+    setPages(restoredPages);
+    setIsSetupComplete(true);
+    if (session.project.originalId || (session.project.id && session.project.id !== 'xalbum_autosave_session')) {
+      setCurrentProjectId(session.project.originalId || session.project.id);
+    }
+    if (session.project.name) {
+      setCurrentProjectName(session.project.name);
+    }
+    const coverIdxOriginal = session.project.pages.findIndex((p) => p.templateId?.startsWith('cover-'));
+    if (coverIdxOriginal > 0 && session.activePageIndex === coverIdxOriginal) {
+      setActivePageIndex(0);
+    } else if (typeof session.activePageIndex === 'number') {
+      setActivePageIndex(Math.min(session.activePageIndex, restoredPages.length - 1));
+    }
+    setAutoSaveStatus('saved');
+    setLastSavedTime(session.savedAt || Date.now());
+    setHasRestoredSession(true);
+    setShowRestorePrompt(false);
+    setPendingRestoreSession(null);
+    showAlert(`Đã khôi phục dự án "${session.project.name || 'Album Cưới'}" thành công!`, 'success');
+  };
+
+  const handleStartNewProjectFromPrompt = async () => {
+    setShowRestorePrompt(false);
+    setPendingRestoreSession(null);
+    await clearAutoSaveSession();
+    setCurrentProjectId(null);
+    setCurrentProjectName('Album Cưới Mới');
+    setHasRestoredSession(true);
+    setIsSetupComplete(false); // Opens InitialSetupModal so user selects size & pages
+    setAutoSaveStatus('idle');
+    setLastSavedTime(null);
+    showAlert('Bắt đầu tạo dự án album mới!', 'info');
+  };
 
   // 2. Debounced auto-save when designing
   useEffect(() => {
@@ -270,6 +325,7 @@ export default function App() {
         slots: page.slots.map((slot) => {
           if (
             slot.imageUri &&
+            typeof slot.imageUri === 'string' &&
             slot.imageUri.startsWith('img_') &&
             !imageOptimizer.getImage(slot.imageUri)
           ) {
@@ -310,68 +366,97 @@ export default function App() {
   const handleTemplateChange = (newTemplateId: TemplateId) => {
     const selectedTemplate = TEMPLATES.find((t) => t.id === newTemplateId);
     const targetCount = selectedTemplate ? selectedTemplate.slotCount : 3;
+    const isCoverTemplate = Boolean(typeof newTemplateId === 'string' && newTemplateId.startsWith('cover-'));
+    const isSwitchingOverlay = Boolean(
+      selectedTemplate?.isOverlay ||
+        selectedTemplate?.category === 'vip' ||
+        (typeof newTemplateId === 'string' && newTemplateId.startsWith('overlay-'))
+    );
 
-    updateCurrentPage((page) => {
-      const currentSlots = page.slots || [];
-      let newSlots: FrameSlot[];
+    setSelectedTextId(null);
+    setActiveSlotIndex(null);
 
-      if (currentSlots.length === targetCount) {
-        newSlots = currentSlots;
-      } else if (currentSlots.length < targetCount) {
-        const added = Array.from({ length: targetCount - currentSlots.length }, (_, i) => ({
-          id: `slot-${page.pageNumber}-${currentSlots.length + i}-${Date.now()}`,
-          imageUri: SAMPLE_WEDDING_PHOTOS[(currentSlots.length + i) % SAMPLE_WEDDING_PHOTOS.length] || null,
-          zoom: 1,
-          offsetX: 0,
-          offsetY: 0,
-          filter: 'none',
-          rotation: 0,
-        }));
-        newSlots = [...currentSlots, ...added];
-      } else {
-        newSlots = currentSlots.slice(0, targetCount);
+    setPages((prevPages) => {
+      let updatedPages = prevPages.map((page, idx) => {
+        if (idx !== activePageIndex) {
+          if (isSwitchingOverlay) {
+            return {
+              ...page,
+              posterSettings: {
+                ...page.posterSettings,
+                aspectRatio: '50:20',
+              },
+            };
+          }
+          return page;
+        }
+
+        const currentSlots = page.slots || [];
+        let newSlots: FrameSlot[];
+
+        if (currentSlots.length === targetCount) {
+          newSlots = currentSlots;
+        } else if (currentSlots.length < targetCount) {
+          const added = Array.from({ length: targetCount - currentSlots.length }, (_, i) => ({
+            id: `slot-${page.pageNumber}-${currentSlots.length + i}-${Date.now()}`,
+            imageUri: SAMPLE_WEDDING_PHOTOS[(currentSlots.length + i) % SAMPLE_WEDDING_PHOTOS.length] || null,
+            zoom: 1,
+            offsetX: 0,
+            offsetY: 0,
+            filter: 'none',
+            rotation: 0,
+          }));
+          newSlots = [...currentSlots, ...added];
+        } else {
+          newSlots = currentSlots.slice(0, targetCount);
+        }
+
+        const overlaySettings = isSwitchingOverlay
+          ? {
+              aspectRatio: '50:20',
+              outerMargin: 0,
+              gap: 0,
+              borderStyle: 'none' as const,
+              customOverlayUri: selectedTemplate?.overlayUri,
+              customSlotX: undefined,
+              customSlotY: undefined,
+              customSlotW: undefined,
+              customSlotH: undefined,
+              customSlotRotation: undefined,
+            }
+          : {
+              customOverlayUri: undefined,
+            };
+
+        return {
+          ...page,
+          templateId: newTemplateId,
+          title: isCoverTemplate ? 'Bìa Album' : page.title,
+          slots: newSlots,
+          posterSettings: {
+            ...page.posterSettings,
+            ...overlaySettings,
+            aspectRatio: isSwitchingOverlay
+              ? '50:20'
+              : (selectedTemplate?.aspectRatio || page.posterSettings.aspectRatio || '50:20'),
+          },
+        };
+      });
+
+      // Nếu chọn layout Bìa Album và trang không ở vị trí đầu tiên, đưa ngay lên đầu trước Trang 1-2!
+      if (isCoverTemplate && activePageIndex !== 0) {
+        const copy = [...updatedPages];
+        const [coverPage] = copy.splice(activePageIndex, 1);
+        copy.unshift(coverPage);
+        updatedPages = copy;
       }
 
-      const isSwitchingOverlay = Boolean(selectedTemplate?.isOverlay || selectedTemplate?.category === 'vip' || newTemplateId.startsWith('overlay-'));
-      const overlaySettings = isSwitchingOverlay
-        ? {
-            aspectRatio: '50:20',
-            outerMargin: 0,
-            gap: 0,
-            borderStyle: 'none' as const,
-            customOverlayUri: selectedTemplate?.overlayUri,
-            customSlotX: undefined,
-            customSlotY: undefined,
-            customSlotW: undefined,
-            customSlotH: undefined,
-            customSlotRotation: undefined,
-          }
-        : {};
-
-      return {
-        ...page,
-        templateId: newTemplateId,
-        slots: newSlots,
-        posterSettings: {
-          ...page.posterSettings,
-          ...overlaySettings,
-          aspectRatio: isSwitchingOverlay ? '50:20' : (selectedTemplate?.aspectRatio || page.posterSettings.aspectRatio || '50:20'),
-        },
-      };
+      return updatedPages;
     });
 
-    // If switching to a VIP layout, ensure all pages synchronize to standard 50:20 aspect ratio
-    const isOverlayTmpl = Boolean(selectedTemplate?.isOverlay || selectedTemplate?.category === 'vip' || newTemplateId.startsWith('overlay-'));
-    if (isOverlayTmpl) {
-      setPages((prevPages) =>
-        prevPages.map((p) => ({
-          ...p,
-          posterSettings: {
-            ...p.posterSettings,
-            aspectRatio: '50:20',
-          },
-        }))
-      );
+    if (isCoverTemplate && activePageIndex !== 0) {
+      setActivePageIndex(0);
+      showAlert('Đã đem Bìa Album lên trang đầu tiên trước Trang 1-2!', 'success');
     }
   };
 
@@ -379,7 +464,7 @@ export default function App() {
   const handleApplyTemplateToAll = (newTemplateId: TemplateId) => {
     const selectedTemplate = TEMPLATES.find((t) => t.id === newTemplateId);
     const targetCount = selectedTemplate ? selectedTemplate.slotCount : 3;
-    const isSwitchingOverlay = Boolean(selectedTemplate?.isOverlay || selectedTemplate?.category === 'vip' || newTemplateId.startsWith('overlay-'));
+    const isSwitchingOverlay = Boolean(selectedTemplate?.isOverlay || selectedTemplate?.category === 'vip' || (typeof newTemplateId === 'string' && newTemplateId.startsWith('overlay-')));
 
     setPages((prevPages) => {
       return prevPages.map((page) => {
@@ -430,6 +515,59 @@ export default function App() {
         };
       });
     });
+  };
+
+  // Apply an entire Theme Set (e.g. "Hoa cỏ mùa xuân") across all album pages with synchronized 50:20 ratio
+  const handleApplyThemeSet = (themeId: string) => {
+    const theme = VIP_THEME_SETS.find((t) => t.id === themeId) || VIP_THEME_SETS[0];
+    if (!theme) return;
+
+    setPages((prevPages) => {
+      return prevPages.map((page, index) => {
+        const targetTemplate = theme.templates[index % theme.templates.length];
+        const targetCount = targetTemplate.slotCount;
+        const currentSlots = page.slots || [];
+
+        let newSlots: FrameSlot[];
+        if (currentSlots.length === targetCount) {
+          newSlots = currentSlots;
+        } else if (currentSlots.length < targetCount) {
+          const added = Array.from({ length: targetCount - currentSlots.length }, (_, i) => ({
+            id: `slot-${page.pageNumber}-${currentSlots.length + i}-${Date.now()}`,
+            imageUri: SAMPLE_WEDDING_PHOTOS[(currentSlots.length + i) % SAMPLE_WEDDING_PHOTOS.length] || null,
+            zoom: 1,
+            offsetX: 0,
+            offsetY: 0,
+            filter: 'none',
+            rotation: 0,
+          }));
+          newSlots = [...currentSlots, ...added];
+        } else {
+          newSlots = currentSlots.slice(0, targetCount);
+        }
+
+        return {
+          ...page,
+          templateId: targetTemplate.id,
+          slots: newSlots,
+          posterSettings: {
+            ...page.posterSettings,
+            aspectRatio: theme.aspectRatio,
+            outerMargin: 0,
+            gap: 0,
+            borderStyle: 'none' as const,
+            customOverlayUri: targetTemplate.overlayUri,
+            customSlotX: undefined,
+            customSlotY: undefined,
+            customSlotW: undefined,
+            customSlotH: undefined,
+            customSlotRotation: undefined,
+          },
+        };
+      });
+    });
+
+    showAlert(`Đã áp dụng trọn bộ "${theme.name}" (10 layout, kích thước 50x20 cm) cho toàn bộ album!`, 'success');
   };
 
   // Add New Page to Album
@@ -580,8 +718,8 @@ export default function App() {
         const updatedSlots = page.slots.map((slot) => {
           const isSlotEmptyOrMissing =
             !slot.imageUri ||
-            slot.imageUri.includes('unsplash.com') ||
-            (slot.imageUri.startsWith('img_') && !imageOptimizer.getImage(slot.imageUri));
+            (typeof slot.imageUri === 'string' && slot.imageUri.includes('unsplash.com')) ||
+            (typeof slot.imageUri === 'string' && slot.imageUri.startsWith('img_') && !imageOptimizer.getImage(slot.imageUri));
 
           // If the slot is empty/missing and we still have images to place
           if (imageIndex < images.length && isSlotEmptyOrMissing) {
@@ -628,6 +766,26 @@ export default function App() {
       ...page,
       textConfig: newTextConfig,
     }));
+  };
+
+  // Apply Bride & Groom Names and Wedding Date to ALL pages in album
+  const handleApplyTextConfigToAll = (newTextConfig: TextConfig) => {
+    setPages((prev) =>
+      prev.map((page) => ({
+        ...page,
+        textConfig: {
+          ...page.textConfig,
+          groomName: newTextConfig.groomName,
+          brideName: newTextConfig.brideName,
+          connector: newTextConfig.connector,
+          dateText: newTextConfig.dateText,
+          tagline: newTextConfig.tagline,
+          namesFont: newTextConfig.namesFont,
+          namesColor: newTextConfig.namesColor,
+        },
+      }))
+    );
+    showAlert('Đã áp dụng tên cô dâu chú rể & ngày cưới cho toàn bộ album!', 'success');
   };
 
   // Add a new custom overlay text
@@ -960,7 +1118,8 @@ export default function App() {
   };
 
   const handleLoadProject = (project: SavedProject) => {
-    setPages(project.pages);
+    const pagesToLoad = ensureCoverIsFirst(project.pages);
+    setPages(pagesToLoad);
     setIsSetupComplete(project.isSetupComplete);
     setCurrentProjectId(project.id);
     setCurrentProjectName(project.name);
@@ -1031,6 +1190,16 @@ export default function App() {
   
   return (
     <div className="h-[100dvh] overflow-hidden flex flex-col bg-stone-100 font-sans text-stone-900 selection:bg-sky-200 selection:text-sky-900">
+      {/* Modal: Khôi phục dự án đã lưu hay Tạo dự án mới */}
+      {showRestorePrompt && pendingRestoreSession && (
+        <RestoreOrNewProjectModal
+          isOpen={showRestorePrompt}
+          session={pendingRestoreSession}
+          onRestore={handleConfirmRestore}
+          onNewProject={handleStartNewProjectFromPrompt}
+        />
+      )}
+
       {hasRestoredSession && !isSetupComplete && <InitialSetupModal onComplete={handleSetupComplete} />}
 
       {/* Top Navbar */}
@@ -1124,6 +1293,7 @@ export default function App() {
                 templateId={currentPage.templateId}
                 slots={currentPage.slots}
                 textConfig={currentPage.textConfig}
+                onChangeTextConfig={handleTextConfigChange}
                 posterSettings={currentPage.posterSettings}
                 customTexts={currentPage.customTexts || []}
                 selectedTextId={selectedTextId}
@@ -1182,6 +1352,9 @@ export default function App() {
               templateId={currentPage.templateId}
               onChangeTemplate={handleTemplateChange}
               onApplyTemplateToAll={handleApplyTemplateToAll}
+              textConfig={currentPage.textConfig}
+              onChangeTextConfig={handleTextConfigChange}
+              onApplyTextConfigToAll={handleApplyTextConfigToAll}
               posterSettings={currentPage.posterSettings}
               onChangePosterSettings={handlePosterSettingsChange}
               activeSlotIndex={activeSlotIndex}
@@ -1194,8 +1367,8 @@ export default function App() {
                   page.slots.filter(
                     (s) =>
                       !s.imageUri ||
-                      s.imageUri.includes('unsplash.com') ||
-                      (s.imageUri.startsWith('img_') && !imageOptimizer.getImage(s.imageUri))
+                      (typeof s.imageUri === 'string' && s.imageUri.includes('unsplash.com')) ||
+                      (typeof s.imageUri === 'string' && s.imageUri.startsWith('img_') && !imageOptimizer.getImage(s.imageUri))
                   ).length,
                 0
               )}
@@ -1204,6 +1377,7 @@ export default function App() {
               onSmartRelink={handleSmartRelinkPhotos}
               onOpenAddTextModal={() => setIsAddTextModalOpen(true)}
               currentPageSlots={currentPage.slots}
+              onApplyThemeSet={handleApplyThemeSet}
             />
           </div>
         </div>
@@ -1214,8 +1388,10 @@ export default function App() {
             templateId={currentPage.templateId}
             onChangeTemplate={handleTemplateChange}
             onApplyTemplateToAll={handleApplyTemplateToAll}
+            onApplyThemeSet={handleApplyThemeSet}
             textConfig={currentPage.textConfig}
             onChangeTextConfig={handleTextConfigChange}
+            onApplyTextConfigToAll={handleApplyTextConfigToAll}
             customTexts={currentPage.customTexts || []}
             onOpenAddTextModal={() => setIsAddTextModalOpen(true)}
             onUpdateCustomText={handleUpdateCustomText}
@@ -1231,8 +1407,8 @@ export default function App() {
                 page.slots.filter(
                   (s) =>
                     !s.imageUri ||
-                    s.imageUri.includes('unsplash.com') ||
-                    (s.imageUri.startsWith('img_') && !imageOptimizer.getImage(s.imageUri))
+                    (typeof s.imageUri === 'string' && s.imageUri.includes('unsplash.com')) ||
+                    (typeof s.imageUri === 'string' && s.imageUri.startsWith('img_') && !imageOptimizer.getImage(s.imageUri))
                 ).length,
               0
             )}
@@ -1240,6 +1416,7 @@ export default function App() {
             missingImagesCount={missingImagesCount}
             onSmartRelink={handleSmartRelinkPhotos}
             onClearAllImages={handleClearAllPhotos}
+            currentPageSlots={currentPage.slots}
           />
         </div>
       </div>
@@ -1333,6 +1510,8 @@ export default function App() {
           handleApplyTemplateToAll(newId);
           setIsTemplatePickerOpen(false);
         }}
+        currentPageSlots={currentPage.slots}
+        onApplyThemeSet={handleApplyThemeSet}
       />
 
       <SaveProjectModal

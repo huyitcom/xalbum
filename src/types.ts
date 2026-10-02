@@ -64,7 +64,7 @@ export interface PosterSettings {
   customSlotRotation?: number; // degrees
 }
 
-export type TemplateCategory = 'basic' | 'with-text' | 'vip';
+export type TemplateCategory = 'basic' | 'with-text' | 'vip' | 'cover';
 
 export type TemplateId = string;
 
@@ -133,5 +133,15 @@ export interface SavedProject {
   thumbnail?: string | null;
   pages: AlbumPage[];
   isSetupComplete: boolean;
+}
+
+export interface LayoutThemeSet {
+  id: string;
+  name: string;
+  description: string;
+  aspectRatio: AspectRatioType;
+  previewUri?: string;
+  templateIds: TemplateId[];
+  templates: TemplateDefinition[];
 }
 

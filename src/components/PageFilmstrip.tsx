@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Copy, Trash2, ChevronLeft, ChevronRight, LayoutGrid, Layers, Type, Sparkles } from 'lucide-react';
+import { Plus, Copy, Trash2, ChevronLeft, ChevronRight, LayoutGrid, Type, Sparkles } from 'lucide-react';
 import { AlbumPage, TemplateId } from '../types';
 import { TEMPLATES } from '../data/constants';
 import { TemplateThumbnail } from './EditorSidebar';
@@ -30,13 +30,18 @@ export const PageFilmstrip: React.FC<PageFilmstripProps> = ({
   onAutoFill,
 }) => {
   const activeThumbRef = React.useRef<HTMLDivElement>(null);
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
-    if (activeThumbRef.current) {
-      activeThumbRef.current.scrollIntoView({
+    if (activeThumbRef.current && scrollContainerRef.current) {
+      const container = scrollContainerRef.current;
+      // If container is hidden (display: none), offsetParent is null; skip scrolling
+      if (container.offsetParent === null) return;
+      const thumb = activeThumbRef.current;
+      const targetScroll = thumb.offsetLeft - container.clientWidth / 2 + thumb.clientWidth / 2;
+      container.scrollTo({
+        left: Math.max(0, targetScroll),
         behavior: 'smooth',
-        block: 'nearest',
-        inline: 'nearest',
       });
     }
   }, [activePageIndex]);
@@ -46,11 +51,6 @@ export const PageFilmstrip: React.FC<PageFilmstripProps> = ({
       {/* Top Bar of Filmstrip: Current Page summary & navigation controls */}
       <div className="flex items-center justify-between text-xs text-stone-600 gap-2 overflow-x-auto scrollbar-none py-0.5">
         <div className="flex items-center gap-2 font-medium">
-          <span className="flex items-center gap-1.5 bg-stone-100 text-stone-800 font-bold px-2.5 py-1 rounded-lg border border-stone-200">
-            <Layers className="w-3.5 h-3.5 text-sky-600" />
-            Trang {activePageIndex * 2 + 1}-{activePageIndex * 2 + 2} / {pages.length * 2}
-          </span>
-
           <button
             onClick={onOpenTemplatePicker}
             className="hidden sm:flex items-center gap-1 text-[11px] font-semibold text-sky-600 hover:text-sky-700 bg-sky-50 hover:bg-sky-100 px-2 py-0.5 rounded-md border border-sky-200 transition cursor-pointer"
@@ -90,8 +90,12 @@ export const PageFilmstrip: React.FC<PageFilmstripProps> = ({
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <span className="text-[11px] font-semibold text-stone-700 px-1">
-            {activePageIndex * 2 + 1}-{activePageIndex * 2 + 2}
+          <span className="text-[11px] font-semibold text-stone-700 px-1 font-mono">
+            {pages[activePageIndex]?.templateId?.startsWith('cover-')
+              ? 'Bìa Album'
+              : Boolean(pages[0]?.templateId?.startsWith('cover-'))
+              ? `${(activePageIndex - 1) * 2 + 1}-${(activePageIndex - 1) * 2 + 2}`
+              : `${activePageIndex * 2 + 1}-${activePageIndex * 2 + 2}`}
           </span>
           <button
             onClick={() => onSelectPage(Math.min(pages.length - 1, activePageIndex + 1))}
@@ -128,7 +132,10 @@ export const PageFilmstrip: React.FC<PageFilmstripProps> = ({
       </div>
 
       {/* Pages Thumbnails Carousel */}
-      <div className="flex items-center gap-3 overflow-x-auto pb-1 pt-0.5 scrollbar-thin">
+      <div
+        ref={scrollContainerRef}
+        className="flex items-center gap-3 overflow-x-auto pb-1 pt-0.5 scrollbar-thin"
+      >
         {pages.map((page, index) => {
           const isActive = index === activePageIndex;
           const template = TEMPLATES.find((t) => t.id === page.templateId);
@@ -155,8 +162,14 @@ export const PageFilmstrip: React.FC<PageFilmstripProps> = ({
                 <TemplateThumbnail id={page.templateId} slots={page.slots} className="w-full h-full" />
 
                 {/* Page Number Overlay Tag */}
-                <div className="absolute top-1 left-1 bg-stone-900/80 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-xs">
-                  P.{index * 2 + 1}-{index * 2 + 2}
+                <div className={`absolute top-1 left-1 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-xs ${
+                  page.templateId?.startsWith('cover-') ? 'bg-amber-600' : 'bg-stone-900/80'
+                }`}>
+                  {page.templateId?.startsWith('cover-')
+                    ? 'Bìa'
+                    : Boolean(pages[0]?.templateId?.startsWith('cover-'))
+                    ? `P.${(index - 1) * 2 + 1}-${(index - 1) * 2 + 2}`
+                    : `P.${index * 2 + 1}-${index * 2 + 2}`}
                 </div>
 
                 {/* Photo Count Tag */}
@@ -168,11 +181,15 @@ export const PageFilmstrip: React.FC<PageFilmstripProps> = ({
               {/* Page Footer Label & Quick Reorder */}
               <div className="w-full flex items-center justify-between mt-1 px-1 text-[10px]">
                 <span
-                  className={`font-semibold truncate max-w-[60px] ${
-                    isActive ? 'text-sky-700' : 'text-stone-600'
+                  className={`font-semibold truncate max-w-[80px] ${
+                    isActive ? 'text-sky-700 font-bold' : 'text-stone-600'
                   }`}
                 >
-                  Trang {index * 2 + 1}-{index * 2 + 2}
+                  {page.templateId?.startsWith('cover-')
+                    ? 'Bìa Album'
+                    : Boolean(pages[0]?.templateId?.startsWith('cover-'))
+                    ? `Trang ${(index - 1) * 2 + 1}-${(index - 1) * 2 + 2}`
+                    : `Trang ${index * 2 + 1}-${index * 2 + 2}`}
                 </span>
 
                 {/* Mini Reorder controls on hover */}

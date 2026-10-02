@@ -270,7 +270,13 @@ export const OrderPrintModal: React.FC<OrderPrintModalProps> = ({
       `- Ghi chú: ${notes || 'Không có'}`
     );
     
-    window.open(`https://zalo.me/0938023079?text=${message}`, '_blank');
+    const link = document.createElement('a');
+    link.href = `https://zalo.me/0938023079?text=${message}`;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -323,21 +329,21 @@ export const OrderPrintModal: React.FC<OrderPrintModalProps> = ({
                   </a>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4">
                   {GATE_PHOTO_MATERIALS.map((mat) => {
                     const isSelected = mat.id === selectedMaterialId;
                     return (
                       <div
                         key={mat.id}
                         onClick={() => setSelectedMaterialId(mat.id)}
-                        className={`group relative rounded-2xl border-2 overflow-hidden transition-all duration-200 cursor-pointer flex flex-col ${
+                        className={`group relative rounded-xl sm:rounded-2xl border-2 overflow-hidden transition-all duration-200 cursor-pointer flex flex-col ${
                           isSelected
                             ? 'border-sky-500 bg-sky-50/40 ring-2 ring-sky-500/20 shadow-md scale-[1.01]'
                             : 'border-stone-200 hover:border-stone-300 bg-white hover:shadow-xs'
                         }`}
                       >
-                        {/* Material Product Image Preview (Portrait Vertical display) */}
-                        <div className="relative w-full aspect-[3/4] sm:aspect-[4/5] bg-stone-50 p-2 sm:p-3 overflow-hidden flex items-center justify-center border-b border-stone-100">
+                        {/* Material Product Image Preview (Compact 2-columns on mobile) */}
+                        <div className="relative w-full aspect-[4/3] sm:aspect-[4/5] bg-stone-50 p-1.5 sm:p-3 overflow-hidden flex items-center justify-center border-b border-stone-100">
                           <img
                             src={mat.imagePreview}
                             alt={mat.name}
@@ -346,40 +352,40 @@ export const OrderPrintModal: React.FC<OrderPrintModalProps> = ({
                           />
 
                           {/* Top Badge */}
-                          <div className="absolute top-2.5 left-2.5 z-10">
-                            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border shadow-2xs backdrop-blur-xs ${mat.highlightColor}`}>
+                          <div className="absolute top-1.5 left-1.5 sm:top-2.5 sm:left-2.5 z-10">
+                            <span className={`text-[9px] sm:text-[10px] font-semibold px-1.5 sm:px-2 py-0.5 rounded-full border shadow-2xs backdrop-blur-xs ${mat.highlightColor}`}>
                               {mat.highlightTag}
                             </span>
                           </div>
 
                           {/* Selection Checkmark */}
                           <div
-                            className={`absolute top-2.5 right-2.5 z-10 w-6 h-6 rounded-full border flex items-center justify-center shadow-xs transition ${
+                            className={`absolute top-1.5 right-1.5 sm:top-2.5 sm:right-2.5 z-10 w-5 h-5 sm:w-6 sm:h-6 rounded-full border flex items-center justify-center shadow-xs transition ${
                               isSelected
                                 ? 'bg-sky-600 border-sky-600 text-white'
                                 : 'border-stone-300 bg-white/90 text-transparent'
                             }`}
                           >
-                            <Check className="w-3.5 h-3.5 stroke-[3] text-white" />
+                            <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[3] text-white" />
                           </div>
                         </div>
 
                         {/* Card Info */}
-                        <div className="p-3 flex-1 flex flex-col justify-between">
+                        <div className="p-2 sm:p-3 flex-1 flex flex-col justify-between">
                           <div>
                             <h4 className="text-xs sm:text-sm font-bold text-stone-900 leading-snug">
                               {mat.name}
                             </h4>
-                            <p className="text-[11px] text-stone-500 mt-1 leading-relaxed line-clamp-2">
+                            <p className="text-[10px] sm:text-[11px] text-stone-500 mt-0.5 sm:mt-1 leading-tight sm:leading-relaxed line-clamp-2">
                               {mat.shortDesc}
                             </p>
                           </div>
 
-                          <div className="mt-2.5 pt-2 border-t border-stone-100 flex items-center justify-between">
-                            <span className={`text-[11px] font-medium ${isSelected ? 'text-sky-600 font-bold' : 'text-stone-400 group-hover:text-stone-600'}`}>
+                          <div className="mt-1.5 sm:mt-2.5 pt-1.5 sm:pt-2 border-t border-stone-100 flex items-center justify-between">
+                            <span className={`text-[10px] sm:text-[11px] font-medium ${isSelected ? 'text-sky-600 font-bold' : 'text-stone-400 group-hover:text-stone-600'}`}>
                               {isSelected ? '✓ Đã chọn' : 'Bấm để chọn'}
                             </span>
-                            <span className="text-[10px] text-stone-400">Ép gỗ cao cấp</span>
+                            <span className="text-[9px] sm:text-[10px] text-stone-400">Ép gỗ cao cấp</span>
                           </div>
                         </div>
                       </div>

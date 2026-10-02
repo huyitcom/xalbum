@@ -10,6 +10,7 @@ import {
   BASIC_TEMPLATES,
   WITH_TEXT_TEMPLATES,
   VIP_TEMPLATES,
+  COVER_TEMPLATES,
   BG_PRESETS,
   OVERLAY_SVG,
 } from '../data/constants';
@@ -22,8 +23,12 @@ import {
   Trash2,
   CopyCheck,
   Sparkles,
-  ShieldCheck,
-  Info,
+  Type,
+  Heart,
+  Calendar,
+  Plus,
+  RotateCcw,
+  RotateCw,
 } from 'lucide-react';
 import { imageOptimizer, OptimizedImage } from '../utils/imageOptimizer';
 import { useEffect } from 'react';
@@ -34,6 +39,7 @@ interface EditorSidebarProps {
   onApplyTemplateToAll?: (id: TemplateId) => void;
   textConfig?: TextConfig;
   onChangeTextConfig?: (updated: TextConfig) => void;
+  onApplyTextConfigToAll?: (updated: TextConfig) => void;
   customTexts?: CustomTextElement[];
   onOpenAddTextModal?: () => void;
   onUpdateCustomText?: (updated: CustomTextElement) => void;
@@ -48,6 +54,8 @@ interface EditorSidebarProps {
   missingImagesCount?: number;
   onSmartRelink?: () => void;
   onClearAllImages?: (clearFromPages?: boolean) => void;
+  currentPageSlots?: import('../types').FrameSlot[];
+  onApplyThemeSet?: (themeId: string) => void;
 }
 
 
@@ -56,7 +64,7 @@ export const ThumbnailSlot: React.FC<{ slot?: import('../types').FrameSlot; plac
   if (!imageUri) return <>{placeholder}</>;
   
   let finalSrc = imageUri;
-  if (finalSrc.startsWith('img_')) {
+  if (typeof finalSrc === 'string' && finalSrc.startsWith('img_')) {
     const optimized = imageOptimizer.getImage(finalSrc);
     if (optimized) {
       finalSrc = optimized.thumbnailUrl || optimized.previewUrl;
@@ -65,11 +73,165 @@ export const ThumbnailSlot: React.FC<{ slot?: import('../types').FrameSlot; plac
     }
   }
   return (
-    <img src={finalSrc} className={`absolute inset-0 w-full h-full object-cover rounded-[2px] ${className}`} />
+    <img
+      src={finalSrc}
+      alt=""
+      loading="lazy"
+      onError={(e) => {
+        e.currentTarget.onerror = null;
+        e.currentTarget.style.display = 'none';
+      }}
+      className={`absolute inset-0 w-full h-full object-cover rounded-[2px] ${className}`}
+    />
   );
 };
 
-export const TemplateThumbnail: React.FC<{ id: string; slots?: import('../types').FrameSlot[]; className?: string }> = ({ id, slots, className = '' }) => {
+export const TemplateThumbnail: React.FC<{ id?: string; slots?: import('../types').FrameSlot[]; className?: string }> = ({ id, slots, className = '' }) => {
+  if (!id || typeof id !== 'string') {
+    return <div className={`w-full h-full bg-stone-100 rounded-[2px] ${className}`} />;
+  }
+
+  // --- COVER TEMPLATES (Bìa Album Photobook) ---
+  if (id === 'cover-classic-wrap') {
+    return (
+      <div className={`w-full h-full bg-[#fdfbf7] p-0.5 flex select-none overflow-hidden border border-amber-900/10 ${className}`}>
+        {/* Back Cover (Left) */}
+        <div className="w-[47%] h-full flex flex-col items-center justify-between p-1 bg-stone-100/70 rounded-[1px] border border-amber-800/10">
+          <div className="w-2.5 h-2.5 rounded-full border border-amber-600/40 flex items-center justify-center text-[4px] text-amber-700 font-serif">M</div>
+          <div className="w-6 h-6 rounded-full bg-stone-300 relative overflow-hidden border border-amber-600/30">
+            <ThumbnailSlot slot={slots?.[1]} />
+          </div>
+          <div className="text-[3.5px] text-stone-500 text-center leading-[3.5px]">
+            <span className="italic opacity-60">printed by</span><br />
+            <span className="font-semibold uppercase tracking-tighter">PHOTOBOOK VIETNAM</span>
+          </div>
+        </div>
+
+        {/* Spine (Center) */}
+        <div className="w-[6%] h-full bg-stone-200/90 border-x border-amber-800/20 flex flex-col items-center justify-center">
+          <div className="w-[1px] h-full bg-amber-700/20" />
+        </div>
+
+        {/* Front Cover (Right) */}
+        <div className="w-[47%] h-full flex flex-col items-center justify-between p-1 bg-amber-50/40 rounded-[1px] border border-amber-800/20">
+          <div className="text-[5px] font-serif font-bold text-amber-900 tracking-widest uppercase">WEDDING</div>
+          <div className="w-11 h-8 bg-stone-300 rounded-[1px] relative overflow-hidden shadow-2xs border border-amber-600/30">
+            <ThumbnailSlot slot={slots?.[0]} />
+          </div>
+          <div className="text-[4px] font-serif text-stone-700 font-semibold truncate max-w-full">ALBUM CƯỚI</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (id === 'cover-editorial-vogue') {
+    return (
+      <div className={`w-full h-full bg-[#f8f8f8] p-0.5 flex select-none overflow-hidden border border-stone-200 ${className}`}>
+        {/* Back Cover */}
+        <div className="w-[47%] h-full flex flex-col items-center justify-between p-1 bg-white rounded-[1px]">
+          <div className="text-[4px] font-mono tracking-widest text-stone-500">THE ARCHIVE</div>
+          <div className="flex gap-0.5 w-full h-5">
+            <div className="w-1/2 h-full bg-stone-300 relative overflow-hidden rounded-[1px]"><ThumbnailSlot slot={slots?.[1]} /></div>
+            <div className="w-1/2 h-full bg-stone-300 relative overflow-hidden rounded-[1px]"><ThumbnailSlot slot={slots?.[2]} /></div>
+          </div>
+          <div className="w-4 h-1 bg-stone-800/10 rounded-[1px]" />
+        </div>
+
+        {/* Spine */}
+        <div className="w-[6%] h-full bg-stone-800 text-white flex items-center justify-center">
+          <div className="text-[3px] font-mono tracking-tighter uppercase rotate-90 whitespace-nowrap">VOGUE</div>
+        </div>
+
+        {/* Front Cover */}
+        <div className="w-[47%] h-full relative overflow-hidden rounded-[1px] bg-stone-900 text-white">
+          <ThumbnailSlot slot={slots?.[0]} className="opacity-90" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/40 flex flex-col justify-between p-0.5">
+            <div className="text-[5px] font-serif font-black tracking-widest text-white leading-none">THE WEDDING</div>
+            <div className="text-[4px] font-sans text-stone-200 font-bold uppercase truncate">SPECIAL ISSUE</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (id === 'cover-minimalist-embossed') {
+    return (
+      <div className={`w-full h-full bg-[#f5f4f0] p-0.5 flex select-none overflow-hidden border border-stone-200 ${className}`}>
+        {/* Back Cover */}
+        <div className="w-[47%] h-full flex flex-col items-center justify-center p-1 bg-stone-100/60 rounded-[1px]">
+          <div className="w-3 h-3 rounded-full border border-stone-400/40 flex items-center justify-center text-[4px] text-stone-600 font-serif">♥</div>
+          <div className="text-[4px] text-stone-400 font-serif mt-0.5">FOREVER</div>
+        </div>
+
+        {/* Spine */}
+        <div className="w-[6%] h-full bg-stone-200/80 border-x border-stone-300/60" />
+
+        {/* Front Cover */}
+        <div className="w-[47%] h-full flex flex-col items-center justify-center p-1 bg-white rounded-[1px] border border-stone-200/80 shadow-2xs">
+          <div className="text-[4.5px] font-sans text-stone-500 tracking-wider uppercase mb-0.5">MEMORIES</div>
+          <div className="w-8 h-8 bg-stone-300 relative overflow-hidden rounded-[1px] shadow-inner border border-stone-300">
+            <ThumbnailSlot slot={slots?.[0]} />
+          </div>
+          <div className="text-[4px] font-serif text-stone-800 font-semibold mt-0.5 truncate max-w-full">OUR WEDDING</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (id === 'cover-all-we-need-is-love') {
+    return (
+      <div className={`w-full h-full bg-[#faf9f5] p-0.5 flex select-none overflow-hidden border border-stone-200 ${className}`}>
+        {/* Back Cover (Left) */}
+        <div className="w-[47%] h-full flex flex-col items-center justify-between p-1 bg-white rounded-[1px] border border-stone-200/60">
+          <div className="text-[3px] font-serif text-stone-500 italic">our story</div>
+          <div className="w-6 h-6 bg-stone-200 relative overflow-hidden rounded-[1px] shadow-2xs border border-stone-300">
+            <ThumbnailSlot slot={slots?.[3]} />
+          </div>
+          <div className="text-[2.5px] text-stone-400 text-center leading-[3px]">
+            <span className="italic opacity-60">printed by</span><br />
+            <span className="font-semibold uppercase tracking-tighter">PHOTOBOOK VIETNAM</span>
+          </div>
+        </div>
+
+        {/* Spine (Center) */}
+        <div className="w-[6%] h-full bg-stone-100 border-x border-stone-300/60 flex items-center justify-center">
+          <div className="w-[0.5px] h-full bg-stone-300" />
+        </div>
+
+        {/* Front Cover (Right) */}
+        <div className="w-[47%] h-full relative overflow-hidden bg-white p-0.5 rounded-[1px] border border-stone-200/60">
+          <div className="w-full h-full relative overflow-hidden bg-white">
+            {/* Top-Left text */}
+            <div className="absolute top-[2%] left-[2%] z-20 text-[3.5px] font-bold text-stone-800 leading-tight">
+              All we need<br />is love...
+            </div>
+            {/* Top-Right triangle */}
+            <div 
+              className="absolute bg-stone-300"
+              style={{ top: 0, left: '55%', width: '45%', height: '52%', clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%)' }}
+            >
+              <ThumbnailSlot slot={slots?.[1]} />
+            </div>
+            {/* Bottom-Left triangle */}
+            <div 
+              className="absolute bg-stone-300"
+              style={{ top: '60%', left: 0, width: '56%', height: '40%', clipPath: 'polygon(0% 0%, 100% 100%, 0% 100%)' }}
+            >
+              <ThumbnailSlot slot={slots?.[2]} />
+            </div>
+            {/* Center hero */}
+            <div 
+              className="absolute inset-0 bg-stone-400"
+              style={{ clipPath: 'polygon(0% 56%, 55% 17%, 98% 56%, 100% 100%, 60% 100%)' }}
+            >
+              <ThumbnailSlot slot={slots?.[0]} />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // --- BASIC TEMPLATES (23 Clean Photo Layouts matching album design standard) ---
   if (id === 'basic-full-bleed') {
     return (
@@ -1208,7 +1370,7 @@ export const TemplateThumbnail: React.FC<{ id: string; slots?: import('../types'
   }
 
   // --- OVERLAY / VIP TEMPLATES ---
-  if (id.startsWith('overlay-')) {
+  if (typeof id === 'string' && id.startsWith('overlay-')) {
     const vipTmpl = VIP_TEMPLATES.find((t) => t.id === id);
     const slotsCoords = vipTmpl?.slotsCoordinates || [
       { x: 25, y: 25, width: 50, height: 50, rotation: 0 },
@@ -1245,22 +1407,13 @@ export const TemplateThumbnail: React.FC<{ id: string; slots?: import('../types'
           className="absolute inset-0 w-full h-full object-cover pointer-events-none z-10"
           onError={(e) => {
             const target = e.currentTarget;
-            const currentSrc = target.src;
+            target.onerror = null;
+            const currentSrc = target.src || '';
             const fileMatch = currentSrc.match(/(\d\d-\d\d\.png)/) || (filename ? [null, filename] : null);
             const fName = fileMatch ? fileMatch[1] : '';
-            const step = parseInt(target.dataset.fallbackStep || '0', 10);
-
-            if (step === 0 && fName) {
-              target.dataset.fallbackStep = '1';
-              // If live URL had any issue, try local relative path
-              target.src = `/images/layout/lay01/${fName}`;
-            } else if (step === 1 && fName) {
-              target.dataset.fallbackStep = '2';
-              // If local failed, retry live URL
+            if (fName && !currentSrc.includes('photobookvietnam.net')) {
               target.src = `https://www.photobookvietnam.net/images/layout/lay01/${fName}`;
             } else {
-              target.dataset.fallbackStep = '3';
-              // Fallback to inline SVG mask so no broken image icon ever shows
               target.src = OVERLAY_SVG;
             }
           }}
@@ -1276,6 +1429,15 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
   templateId,
   onChangeTemplate,
   onApplyTemplateToAll,
+  textConfig,
+  onChangeTextConfig,
+  onApplyTextConfigToAll,
+  customTexts = [],
+  onOpenAddTextModal,
+  onUpdateCustomText,
+  onDeleteCustomText,
+  selectedTextId,
+  onSelectText,
   posterSettings,
   onChangePosterSettings,
   onAutoFill,
@@ -1284,9 +1446,11 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
   missingImagesCount = 0,
   onSmartRelink,
   onClearAllImages,
+  currentPageSlots,
+  onApplyThemeSet,
 }) => {
-  const [activeTab, setActiveTab] = useState<'images' | 'layouts' | 'style'>('images');
-  const [layoutCategory, setLayoutCategory] = useState<'basic' | 'with-text' | 'vip'>('basic');
+  const [activeTab, setActiveTab] = useState<'images' | 'layouts' | 'text' | 'style'>('images');
+  const [layoutCategory, setLayoutCategory] = useState<'cover' | 'basic' | 'with-text' | 'vip'>('basic');
   const [isDraggingOverLibrary, setIsDraggingOverLibrary] = useState(false);
   const [libraryImages, setLibraryImages] = useState<OptimizedImage[]>(() => imageOptimizer.getImages());
   const [imageColumns, setImageColumns] = useState<number>(2);
@@ -1298,6 +1462,7 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
   const [lastUploadedCount, setLastUploadedCount] = useState(0);
   const [pendingUploads, setPendingUploads] = useState(0);
   const [appliedAllNotice, setAppliedAllNotice] = useState(false);
+  const [textAppliedNotice, setTextAppliedNotice] = useState(false);
 
   const handleConfirmClearAll = async () => {
     setIsClearing(true);
@@ -1367,7 +1532,7 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
   return (
     <div className="w-full lg:w-96 bg-white border-l border-stone-200 flex flex-col h-full shadow-sm">
       {/* Sidebar Navigation Tabs */}
-      <div className="grid grid-cols-3 border-b border-stone-200 bg-stone-50/80 p-1">
+      <div className="grid grid-cols-4 border-b border-stone-200 bg-stone-50/80 p-1">
         <button
           onClick={() => setActiveTab('images')}
           className={`flex flex-col items-center justify-center py-2 px-1 text-xs font-semibold rounded-xl transition cursor-pointer ${
@@ -1391,6 +1556,17 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
           Layout
         </button>
         <button
+          onClick={() => setActiveTab('text')}
+          className={`flex flex-col items-center justify-center py-2 px-1 text-xs font-semibold rounded-xl transition cursor-pointer ${
+            activeTab === 'text'
+              ? 'bg-white text-sky-600 shadow-xs'
+              : 'text-stone-500 hover:text-stone-800'
+          }`}
+        >
+          <Type className="w-4 h-4 mb-1" />
+          Chữ & Bìa
+        </button>
+        <button
           onClick={() => setActiveTab('style')}
           className={`flex flex-col items-center justify-center py-2 px-1 text-xs font-semibold rounded-xl transition cursor-pointer ${
             activeTab === 'style'
@@ -1408,8 +1584,22 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
         {/* TAB: LAYOUT TEMPLATES */}
         {activeTab === 'layouts' && (
           <div className="flex-1 flex flex-col p-4 overflow-hidden animate-fade-in min-h-0">
-            {/* Sub-tabs: Tiêu chuẩn, Chuyên nghiệp, Họa tiết */}
-            <div className="flex bg-stone-100 p-1 rounded-xl mb-3 shrink-0">
+            {/* Sub-tabs: Bìa Album, Tiêu chuẩn, Chuyên nghiệp, Họa tiết */}
+            <div className="flex bg-stone-100 p-1 rounded-xl mb-3 shrink-0 gap-1 overflow-x-auto scrollbar-none">
+              {/* Tab 0: Bìa Album */}
+              <button
+                type="button"
+                onClick={() => setLayoutCategory('cover')}
+                className={`py-1.5 px-2.5 rounded-lg text-xs font-bold transition text-center whitespace-nowrap cursor-pointer flex items-center gap-1 shrink-0 ${
+                  layoutCategory === 'cover'
+                    ? 'bg-amber-600 text-white shadow-xs'
+                    : 'text-stone-600 hover:text-stone-800'
+                }`}
+              >
+                <span>📖</span>
+                <span>Bìa ({COVER_TEMPLATES.length})</span>
+              </button>
+
               {/* Tab 1: Tiêu chuẩn */}
               <button
                 type="button"
@@ -1451,8 +1641,51 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
             </div>
 
             <div className="flex-1 overflow-y-auto pr-1 -mr-1 pb-2">
+              {/* VIP Theme Set Header Card */}
+              {layoutCategory === 'vip' && (
+                <div className="bg-gradient-to-br from-amber-50 via-rose-50/60 to-emerald-50/70 p-3 rounded-2xl border-2 border-amber-300/80 shadow-xs mb-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white font-bold text-[9px] uppercase tracking-wider flex items-center gap-1 shadow-2xs">
+                      <Sparkles className="w-2.5 h-2.5" />
+                      Bộ chủ đề
+                    </span>
+                    <span className="text-[10px] font-semibold text-amber-900 bg-amber-100/90 px-1.5 py-0.5 rounded-md">
+                      10 layout đôi • 50x20 cm
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-16 aspect-[5/2] bg-white rounded-md border border-amber-200 overflow-hidden shadow-2xs shrink-0">
+                      <img src="https://www.photobookvietnam.net/images/layout/lay01/01-02.png" alt="Hoa cỏ mùa xuân" className="w-full h-full object-cover" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-bold text-stone-900 text-xs truncate">Hoa cỏ mùa xuân</h4>
+                      <p className="text-[10px] text-stone-500 leading-tight">
+                        Trọn bộ 10 layout hoa cỏ vintage
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => onApplyThemeSet?.('theme-hoa-co-mua-xuan')}
+                    className="w-full py-1.5 px-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 active:scale-[0.98] text-white font-bold text-xs rounded-xl shadow-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                    title="Áp dụng toàn bộ layout và kích thước 50x20 cm cho toàn album"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>Áp dụng trọn bộ cho album</span>
+                  </button>
+                </div>
+              )}
+
+              {layoutCategory === 'vip' && (
+                <div className="text-[11px] font-semibold text-stone-600 mb-2 px-0.5">
+                  Các layout trong bộ "Hoa cỏ mùa xuân" (10 mẫu):
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-2.5">
-                {(layoutCategory === 'vip' ? VIP_TEMPLATES : layoutCategory === 'basic' ? BASIC_TEMPLATES : WITH_TEXT_TEMPLATES).map((tmpl) => (
+                {(layoutCategory === 'cover' ? COVER_TEMPLATES : layoutCategory === 'vip' ? VIP_TEMPLATES : layoutCategory === 'basic' ? BASIC_TEMPLATES : WITH_TEXT_TEMPLATES).map((tmpl) => (
                   <div key={tmpl.id} className="flex flex-col gap-1">
                     <button
                       type="button"
@@ -1464,7 +1697,7 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
                           : 'border-stone-200 hover:border-stone-300 bg-white'
                       }`}
                     >
-                      <TemplateThumbnail id={tmpl.id} />
+                      <TemplateThumbnail id={tmpl.id} slots={currentPageSlots} />
                       {templateId === tmpl.id && (
                         <div className="absolute top-1 right-1 w-5 h-5 bg-sky-500 rounded-full flex items-center justify-center shadow-sm z-10">
                           <Check className="w-3 h-3 text-white" />
@@ -1726,164 +1959,437 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
           </div>
         )}
 
-        {/* TAB 4: FRAME & BACKGROUND STYLE */}
-        {activeTab === 'style' && (
-          <div className="flex-1 overflow-y-auto p-5 space-y-5 animate-fade-in">
-            {/* Safe Zone & Print Guides (Vùng an toàn & Đường guide in ấn) */}
-            {(() => {
-              const isAnyActive = Boolean(posterSettings.showCutZone || posterSettings.showSafeZone || posterSettings.showGuides);
+        {/* TAB 3: TEXT & ALBUM COVER TYPOGRAPHY */}
+        {activeTab === 'text' && (
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 animate-fade-in text-stone-800">
+            {/* Header info */}
+            <div className="bg-gradient-to-r from-sky-50 to-amber-50/60 p-3.5 rounded-2xl border border-sky-200/80 space-y-1.5 shadow-2xs">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-sky-900 flex items-center gap-1.5">
+                  <Type className="w-4 h-4 text-sky-600" />
+                  Nội Dung Chữ & Bìa Album
+                </span>
+                {templateId.startsWith('cover-') && (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500 text-white shadow-2xs">
+                    Trang Bìa
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-stone-600 leading-relaxed">
+                💡 <span className="font-semibold text-stone-700">Mẹo:</span> Bạn có thể nhấp trực tiếp vào bất kỳ dòng chữ nào trên bìa/trang để chỉnh sửa tức thì.
+              </p>
+            </div>
 
-              return (
-                <div className="bg-stone-50 p-3.5 rounded-2xl border border-stone-200/80 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <div
-                        className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all ${
-                          isAnyActive
-                            ? 'bg-cyan-500 text-white shadow-sm ring-2 ring-cyan-400/30'
-                            : 'bg-stone-200 text-stone-500'
-                        }`}
-                      >
-                        <ShieldCheck className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <span className="text-xs font-bold text-stone-800 uppercase tracking-wider block">
-                          Vùng An Toàn & Guides
-                        </span>
-                        <span className="text-[10px] text-stone-500 block leading-tight">
-                          Bật/tắt riêng biệt hoặc toàn bộ
-                        </span>
-                      </div>
-                    </div>
+            {/* Couple Names & Date Form */}
+            <div className="bg-stone-50 p-3.5 rounded-2xl border border-stone-200/80 space-y-3.5">
+              <div className="flex items-center justify-between pb-1 border-b border-stone-200/60">
+                <span className="text-xs font-bold text-stone-800 uppercase tracking-wider flex items-center gap-1.5">
+                  <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500/20" />
+                  Tên Cô Dâu & Chú Rể
+                </span>
+              </div>
 
-                    {/* Master Toggle Switch */}
+              {/* Groom Name */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold text-stone-600 flex items-center justify-between">
+                  <span>Tên Chú Rể</span>
+                  <span className="text-[10px] text-stone-400 font-normal">Hiển thị trên bìa & gáy</span>
+                </label>
+                <input
+                  type="text"
+                  value={textConfig?.groomName || ''}
+                  onChange={(e) => {
+                    if (onChangeTextConfig && textConfig) {
+                      onChangeTextConfig({
+                        ...textConfig,
+                        groomName: e.target.value,
+                      });
+                    }
+                  }}
+                  placeholder="VD: TUẤN ANH"
+                  className="w-full text-xs font-medium px-3 py-2 bg-white border border-stone-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none transition shadow-2xs uppercase"
+                />
+              </div>
+
+              {/* Connector */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold text-stone-600 flex items-center justify-between">
+                  <span>Từ Nối Giữa Hai Tên</span>
+                </label>
+                <div className="grid grid-cols-5 gap-1">
+                  {['and', '&', '✦', 'và', 'with'].map((conn) => (
                     <button
+                      key={conn}
                       type="button"
                       onClick={() => {
-                        if (isAnyActive) {
-                          onChangePosterSettings({
-                            ...posterSettings,
-                            showCutZone: false,
-                            showSafeZone: false,
-                            showGuides: false,
-                          });
-                        } else {
-                          onChangePosterSettings({
-                            ...posterSettings,
-                            showCutZone: true,
-                            showSafeZone: true,
-                            showGuides: true,
+                        if (onChangeTextConfig && textConfig) {
+                          onChangeTextConfig({
+                            ...textConfig,
+                            connector: conn,
                           });
                         }
                       }}
-                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                        isAnyActive ? 'bg-cyan-600' : 'bg-stone-300'
+                      className={`py-1 text-xs rounded-lg border text-center font-medium transition cursor-pointer ${
+                        (textConfig?.connector || 'and').trim() === conn
+                          ? 'bg-sky-600 text-white border-sky-600 font-bold shadow-2xs'
+                          : 'bg-white text-stone-700 border-stone-200 hover:bg-stone-100'
                       }`}
-                      role="switch"
-                      aria-checked={isAnyActive}
-                      title={isAnyActive ? 'Tắt toàn bộ đường gióng & vùng an toàn' : 'Bật toàn bộ đường gióng & vùng an toàn'}
                     >
-                      <span
-                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
-                          isAnyActive ? 'translate-x-5' : 'translate-x-0'
-                        }`}
-                      />
+                      {conn}
                     </button>
-                  </div>
+                  ))}
+                </div>
+              </div>
 
-                  {/* Independent Sub-layers: Có thể bật/tắt riêng từng mục */}
-                  <div className="pt-2.5 border-t border-stone-200/80 space-y-2 animate-fade-in text-[11px]">
-                    {/* Layer 1: Cut Zone (Độc lập) */}
-                    <div className="flex items-center justify-between p-2 rounded-xl bg-white border border-rose-100 hover:bg-rose-50/30 transition">
-                      <div className="flex items-center gap-2">
-                        <span className={`w-3.5 h-3.5 rounded-[3px] border block shrink-0 ${
-                          posterSettings.showCutZone ? 'bg-rose-200 border-rose-400' : 'bg-stone-100 border-stone-300'
-                        }`} />
-                        <div>
-                          <span className={`font-semibold block text-[11px] ${posterSettings.showCutZone ? 'text-rose-900' : 'text-stone-700'}`}>
-                            Vùng cắt xén (Cut Zone)
-                          </span>
-                          <span className="text-[9.5px] text-stone-400 block">Lề mép ngoài bị xén khi gia công đóng cuốn</span>
-                        </div>
-                      </div>
+              {/* Bride Name */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold text-stone-600 flex items-center justify-between">
+                  <span>Tên Cô Dâu</span>
+                  <span className="text-[10px] text-stone-400 font-normal">Hiển thị trên bìa & gáy</span>
+                </label>
+                <input
+                  type="text"
+                  value={textConfig?.brideName || ''}
+                  onChange={(e) => {
+                    if (onChangeTextConfig && textConfig) {
+                      onChangeTextConfig({
+                        ...textConfig,
+                        brideName: e.target.value,
+                      });
+                    }
+                  }}
+                  placeholder="VD: BẢO NGỌC"
+                  className="w-full text-xs font-medium px-3 py-2 bg-white border border-stone-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none transition shadow-2xs uppercase"
+                />
+              </div>
+
+              {/* Wedding Date */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold text-stone-600 flex items-center justify-between">
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-3.5 h-3.5 text-stone-500" />
+                    Ngày Cưới / Năm
+                  </span>
+                </label>
+                <input
+                  type="text"
+                  value={textConfig?.dateText || ''}
+                  onChange={(e) => {
+                    if (onChangeTextConfig && textConfig) {
+                      onChangeTextConfig({
+                        ...textConfig,
+                        dateText: e.target.value,
+                      });
+                    }
+                  }}
+                  placeholder="VD: 10.06.2026 hoặc OCTOBER 2026"
+                  className="w-full text-xs font-medium px-3 py-2 bg-white border border-stone-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none transition shadow-2xs"
+                />
+              </div>
+
+              {/* Tagline */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold text-stone-600 flex items-center justify-between">
+                  <span>Tiêu Đề Bìa / Khẩu Hiệu (Tagline)</span>
+                </label>
+                <input
+                  type="text"
+                  value={textConfig?.tagline || ''}
+                  onChange={(e) => {
+                    if (onChangeTextConfig && textConfig) {
+                      onChangeTextConfig({
+                        ...textConfig,
+                        tagline: e.target.value,
+                      });
+                    }
+                  }}
+                  placeholder="VD: OUR WEDDING DAY hoặc SAVE THE DATE"
+                  className="w-full text-xs font-medium px-3 py-2 bg-white border border-stone-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none transition shadow-2xs uppercase"
+                />
+              </div>
+
+              {/* Subtext / Quotes */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold text-stone-600 flex items-center justify-between">
+                  <span>Lời Chúc / Lời Thề Ước (Trích dẫn)</span>
+                </label>
+                <textarea
+                  rows={3}
+                  value={textConfig?.subtext || ''}
+                  onChange={(e) => {
+                    if (onChangeTextConfig && textConfig) {
+                      onChangeTextConfig({
+                        ...textConfig,
+                        subtext: e.target.value,
+                      });
+                    }
+                  }}
+                  placeholder="Nhập lời chúc, câu châm ngôn hoặc trích dẫn tình yêu..."
+                  className="w-full text-xs p-2.5 bg-white border border-stone-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none transition shadow-2xs resize-none"
+                />
+
+                {/* Quick Quote Suggestions */}
+                <div className="pt-1">
+                  <span className="text-[10px] text-stone-400 font-semibold block mb-1">Mẫu gợi ý nhanh:</span>
+                  <div className="space-y-1">
+                    {[
+                      '“Every love story is beautiful, but ours is my favorite.”',
+                      '“Together is our favorite place to be.”',
+                      '“Two lives, two hearts, joined together in friendship, united forever in love.”',
+                      '“You are my today and all of my tomorrows.”',
+                    ].map((quote, qIdx) => (
                       <button
+                        key={qIdx}
                         type="button"
-                        onClick={() => updateSettings('showCutZone', !posterSettings.showCutZone)}
-                        className={`px-2.5 py-0.5 rounded-lg text-[10px] font-bold transition cursor-pointer ${
-                          posterSettings.showCutZone
-                            ? 'bg-rose-100 text-rose-700 hover:bg-rose-200'
-                            : 'bg-stone-100 text-stone-400 hover:bg-stone-200'
-                        }`}
+                        onClick={() => {
+                          if (onChangeTextConfig && textConfig) {
+                            onChangeTextConfig({
+                              ...textConfig,
+                              subtext: quote,
+                            });
+                          }
+                        }}
+                        className="w-full text-left text-[10px] p-1.5 bg-white hover:bg-stone-100 text-stone-600 hover:text-stone-900 rounded-lg border border-stone-200/80 truncate transition cursor-pointer"
+                        title={quote}
                       >
-                        {posterSettings.showCutZone ? 'Bật' : 'Tắt'}
+                        {quote}
                       </button>
-                    </div>
-
-                    {/* Layer 2: Safe Zone (Độc lập) */}
-                    <div className="flex items-center justify-between p-2 rounded-xl bg-white border border-cyan-100 hover:bg-cyan-50/30 transition">
-                      <div className="flex items-center gap-2">
-                        <span className={`w-3.5 h-3.5 rounded-[3px] border block shrink-0 ${
-                          posterSettings.showSafeZone ? 'bg-cyan-100 border-cyan-500' : 'bg-stone-100 border-stone-300'
-                        }`} />
-                        <div>
-                          <span className={`font-semibold block text-[11px] ${posterSettings.showSafeZone ? 'text-cyan-900' : 'text-stone-700'}`}>
-                            Khung an toàn (Safe Zone)
-                          </span>
-                          <span className="text-[9.5px] text-stone-400 block">Đặt trọn vẹn chữ & mặt người vào đây</span>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => updateSettings('showSafeZone', !posterSettings.showSafeZone)}
-                        className={`px-2.5 py-0.5 rounded-lg text-[10px] font-bold transition cursor-pointer ${
-                          posterSettings.showSafeZone
-                            ? 'bg-cyan-100 text-cyan-700 hover:bg-cyan-200'
-                            : 'bg-stone-100 text-stone-400 hover:bg-stone-200'
-                        }`}
-                      >
-                        {posterSettings.showSafeZone ? 'Bật' : 'Tắt'}
-                      </button>
-                    </div>
-
-                    {/* Layer 3: Guides (Độc lập) */}
-                    <div className="flex items-center justify-between p-2 rounded-xl bg-white border border-stone-200 hover:bg-stone-50 transition">
-                      <div className="flex items-center gap-2">
-                        <span className="w-3.5 h-3.5 flex items-center justify-center">
-                          <span className={`w-3 h-0.5 rounded-full ${
-                            posterSettings.showGuides ? 'bg-sky-500' : 'bg-stone-300'
-                          }`} />
-                        </span>
-                        <div>
-                          <span className={`font-semibold block text-[11px] ${posterSettings.showGuides ? 'text-sky-900' : 'text-stone-700'}`}>
-                            Đường gióng & Gáy (Guides)
-                          </span>
-                          <span className="text-[9.5px] text-stone-400 block">Đường gáy giữa, rãnh gáy & trục căn đối xứng</span>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => updateSettings('showGuides', !posterSettings.showGuides)}
-                        className={`px-2.5 py-0.5 rounded-lg text-[10px] font-bold transition cursor-pointer ${
-                          posterSettings.showGuides
-                            ? 'bg-sky-100 text-sky-700 hover:bg-sky-200'
-                            : 'bg-stone-100 text-stone-400 hover:bg-stone-200'
-                        }`}
-                      >
-                        {posterSettings.showGuides ? 'Bật' : 'Tắt'}
-                      </button>
-                    </div>
-
-                    {/* Note info box */}
-                    <div className="p-2.5 rounded-xl bg-amber-50/90 border border-amber-200/80 text-[10px] text-amber-900 leading-relaxed flex items-start gap-1.5">
-                      <Info className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
-                      <span>
-                        <b>Lưu ý:</b> Bạn có thể bật riêng bất kỳ mục nào hoặc bật đồng thời. Toàn bộ các đường này <b>tự động ẩn</b> khi xuất file ảnh in hoặc gửi đơn hàng.
-                      </span>
-                    </div>
+                    ))}
                   </div>
                 </div>
-              );
-            })()}
+              </div>
+
+              {/* Font Selection */}
+              <div className="space-y-1.5 pt-1 border-t border-stone-200/60">
+                <label className="text-[11px] font-semibold text-stone-600 block">
+                  Kiểu Phông Chữ Tên (Typography)
+                </label>
+                <select
+                  value={textConfig?.namesFont || 'Bodoni Moda, serif'}
+                  onChange={(e) => {
+                    if (onChangeTextConfig && textConfig) {
+                      onChangeTextConfig({
+                        ...textConfig,
+                        namesFont: e.target.value,
+                      });
+                    }
+                  }}
+                  className="w-full text-xs p-2 bg-white border border-stone-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none cursor-pointer shadow-2xs font-medium"
+                >
+                  <option value="Bodoni Moda, serif">Bodoni Moda (Cổ điển, Sang trọng)</option>
+                  <option value="Cormorant Garamond, serif">Cormorant Garamond (Thơ mộng, Tinh tế)</option>
+                  <option value="Cinzel, serif">Cinzel (Hoàng gia, Đẳng cấp)</option>
+                  <option value="Montserrat, sans-serif">Montserrat (Hiện đại, Tinh gọn)</option>
+                  <option value="Playfair Display, serif">Playfair Display (Lãng mạn, Nữ tính)</option>
+                  <option value="Great Vibes, cursive">Great Vibes (Viết tay nghệ thuật)</option>
+                  <option value="Alex Brush, cursive">Alex Brush (Thư pháp bay bổng)</option>
+                  <option value="Plus Jakarta Sans, sans-serif">Plus Jakarta Sans (Tối giản, Dễ đọc)</option>
+                </select>
+              </div>
+
+              {/* Color Swatches */}
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-semibold text-stone-600 block">
+                  Màu Sắc Chữ
+                </label>
+                <div className="grid grid-cols-6 gap-1.5">
+                  {[
+                    { name: 'Đen than', value: '#1c1917' },
+                    { name: 'Vàng Gold', value: '#b45309' },
+                    { name: 'Nâu ấm', value: '#78350f' },
+                    { name: 'Trắng tuyết', value: '#ffffff' },
+                    { name: 'Hồng pastel', value: '#be185d' },
+                    { name: 'Xanh Navy', value: '#1e3a8a' },
+                  ].map((color) => (
+                    <button
+                      key={color.value}
+                      type="button"
+                      onClick={() => {
+                        if (onChangeTextConfig && textConfig) {
+                          onChangeTextConfig({
+                            ...textConfig,
+                            namesColor: color.value,
+                          });
+                        }
+                      }}
+                      className={`h-7 rounded-lg border flex items-center justify-center transition cursor-pointer ${
+                        (textConfig?.namesColor || '#1c1917') === color.value
+                          ? 'ring-2 ring-sky-500 border-sky-500 scale-105'
+                          : 'border-stone-300 hover:scale-105'
+                      }`}
+                      style={{ backgroundColor: color.value }}
+                      title={color.name}
+                    >
+                      {(textConfig?.namesColor || '#1c1917') === color.value && (
+                        <Check className={`w-3.5 h-3.5 ${color.value === '#ffffff' ? 'text-black' : 'text-white'}`} />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Apply to all album button */}
+              {onApplyTextConfigToAll && textConfig && (
+                <div className="pt-2 border-t border-stone-200/60">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onApplyTextConfigToAll(textConfig);
+                      setTextAppliedNotice(true);
+                      setTimeout(() => setTextAppliedNotice(false), 2200);
+                    }}
+                    className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-xs ${
+                      textAppliedNotice
+                        ? 'bg-emerald-600 text-white shadow-emerald-600/20 ring-2 ring-emerald-500/30'
+                        : 'bg-stone-900 hover:bg-black text-white active:scale-[0.98]'
+                    }`}
+                  >
+                    {textAppliedNotice ? (
+                      <>
+                        <Check className="w-4 h-4 text-emerald-100" />
+                        <span>Đã áp dụng cho tất cả các trang!</span>
+                      </>
+                    ) : (
+                      <>
+                        <CopyCheck className="w-4 h-4 text-stone-300" />
+                        <span>Áp dụng tên & ngày cho toàn bộ Album</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Custom Overlay Text Section */}
+            <div className="bg-stone-50 p-3.5 rounded-2xl border border-stone-200/80 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-stone-800 uppercase tracking-wider flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                  Chữ Nghệ Thuật Tự Do
+                </span>
+                <span className="text-[10px] text-stone-400 font-semibold">
+                  {customTexts?.length || 0} chữ trên trang
+                </span>
+              </div>
+
+              {onOpenAddTextModal && (
+                <button
+                  type="button"
+                  onClick={onOpenAddTextModal}
+                  className="w-full py-2 px-3 bg-white hover:bg-sky-50 border-2 border-dashed border-sky-300 hover:border-sky-500 text-sky-700 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer shadow-2xs"
+                >
+                  <Plus className="w-4 h-4 text-sky-600" />
+                  <span>Thêm Chữ Nghệ Thuật Mới</span>
+                </button>
+              )}
+
+              {/* List of custom texts on this page */}
+              {customTexts && customTexts.length > 0 && (
+                <div className="space-y-2 pt-1">
+                  {customTexts.map((item) => (
+                    <div
+                      key={item.id}
+                      onClick={() => onSelectText?.(item.id)}
+                      className={`p-2.5 bg-white rounded-xl border transition cursor-pointer flex flex-col gap-1.5 ${
+                        selectedTextId === item.id
+                          ? 'border-sky-500 ring-2 ring-sky-500/20 shadow-xs'
+                          : 'border-stone-200 hover:border-stone-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-semibold text-stone-800 truncate max-w-[180px]">
+                          "{item.text}"
+                        </span>
+                        {onDeleteCustomText && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onDeleteCustomText(item.id);
+                            }}
+                            className="p-1 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded transition cursor-pointer"
+                            title="Xóa chữ này"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Controls for selected text */}
+                      <div className="flex items-center justify-between pt-1 border-t border-stone-100 text-[11px] text-stone-500">
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (onUpdateCustomText) {
+                                onUpdateCustomText({ ...item, fontSize: Math.max(12, item.fontSize - 3) });
+                              }
+                            }}
+                            className="w-5 h-5 bg-stone-100 hover:bg-stone-200 rounded flex items-center justify-center font-bold text-stone-700"
+                            title="Giảm cỡ chữ"
+                          >
+                            -
+                          </button>
+                          <span className="text-[10px] font-mono px-1">{item.fontSize}px</span>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (onUpdateCustomText) {
+                                onUpdateCustomText({ ...item, fontSize: Math.min(100, item.fontSize + 3) });
+                              }
+                            }}
+                            className="w-5 h-5 bg-stone-100 hover:bg-stone-200 rounded flex items-center justify-center font-bold text-stone-700"
+                            title="Tăng cỡ chữ"
+                          >
+                            +
+                          </button>
+                        </div>
+
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (onUpdateCustomText) {
+                                const newRot = ((item.rotation || 0) - 15 + 360) % 360;
+                                onUpdateCustomText({ ...item, rotation: newRot });
+                              }
+                            }}
+                            className="p-1 bg-stone-100 hover:bg-stone-200 rounded text-stone-600"
+                            title="Xoay -15°"
+                          >
+                            <RotateCcw className="w-3 h-3" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (onUpdateCustomText) {
+                                const newRot = ((item.rotation || 0) + 15) % 360;
+                                onUpdateCustomText({ ...item, rotation: newRot });
+                              }
+                            }}
+                            className="p-1 bg-stone-100 hover:bg-stone-200 rounded text-stone-600"
+                            title="Xoay +15°"
+                          >
+                            <RotateCw className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 4: FRAME & BACKGROUND STYLE */}
+        {activeTab === 'style' && (
+          <div className="flex-1 overflow-y-auto p-5 space-y-5 animate-fade-in">
+            {/* Safe Zone & Print Guides (Vùng an toàn & Đường guide in ấn) - Ẩn theo yêu cầu người dùng */}
 
             {/* Custom Overlay Section */}
             {(() => {

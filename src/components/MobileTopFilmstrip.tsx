@@ -18,19 +18,29 @@ export const MobileTopFilmstrip: React.FC<MobileTopFilmstripProps> = ({
   onAddPage,
 }) => {
   const activeThumbRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (activeThumbRef.current) {
-      activeThumbRef.current.scrollIntoView({
+    if (activeThumbRef.current && scrollContainerRef.current) {
+      const container = scrollContainerRef.current;
+      const thumb = activeThumbRef.current;
+      const targetScroll = thumb.offsetLeft - container.clientWidth / 2 + thumb.clientWidth / 2;
+      container.scrollTo({
+        left: Math.max(0, targetScroll),
         behavior: 'smooth',
-        block: 'nearest',
-        inline: 'center',
       });
     }
   }, [activePageIndex]);
 
-  const currentPageNumber = `${activePageIndex * 2 + 1}-${activePageIndex * 2 + 2}`;
-  const totalPagesNumber = pages.length * 2;
+  const hasCoverAtStart = Boolean(pages[0]?.templateId?.startsWith('cover-'));
+  const currentIsCover = Boolean(pages[activePageIndex]?.templateId?.startsWith('cover-'));
+  const currentPageNumber = currentIsCover
+    ? 'Bìa Album'
+    : hasCoverAtStart
+    ? `${(activePageIndex - 1) * 2 + 1}-${(activePageIndex - 1) * 2 + 2}`
+    : `${activePageIndex * 2 + 1}-${activePageIndex * 2 + 2}`;
+
+  const totalInnerPagesNumber = hasCoverAtStart ? (pages.length - 1) * 2 : pages.length * 2;
 
   return (
     <div className="w-full shrink-0 flex-none bg-white/95 backdrop-blur-xs border-b border-stone-200 shadow-2xs z-30 select-none py-1 px-2.5">
@@ -38,8 +48,10 @@ export const MobileTopFilmstrip: React.FC<MobileTopFilmstripProps> = ({
       <div className="flex items-center justify-between text-xs text-stone-600 mb-1">
         <div className="flex items-center gap-1.5 font-bold text-stone-800 text-[11px]">
           <Layers className="w-3.5 h-3.5 text-sky-600" />
-          <span>Trang {currentPageNumber}</span>
-          <span className="text-stone-400 font-normal text-[10px]">/ {totalPagesNumber}</span>
+          <span>{currentIsCover ? 'Bìa Album' : `Trang ${currentPageNumber}`}</span>
+          <span className="text-stone-400 font-normal text-[10px]">
+            {currentIsCover ? ' (Bìa Bọc)' : `/ ${totalInnerPagesNumber} trang`}
+          </span>
         </div>
 
         {/* Navigation Arrows & Add Page */}
@@ -84,13 +96,18 @@ export const MobileTopFilmstrip: React.FC<MobileTopFilmstripProps> = ({
 
       {/* Horizontal Carousel of Page Thumbnails */}
       <div
+        ref={scrollContainerRef}
         className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none"
         style={{ WebkitOverflowScrolling: 'touch' }}
       >
         {pages.map((page, index) => {
           const isActive = index === activePageIndex;
           const template = TEMPLATES.find((t) => t.id === page.templateId);
-          const pageDisplay = `${index * 2 + 1}-${index * 2 + 2}`;
+          const pageDisplay = page.templateId?.startsWith('cover-')
+            ? 'Bìa'
+            : hasCoverAtStart
+            ? `${(index - 1) * 2 + 1}-${(index - 1) * 2 + 2}`
+            : `${index * 2 + 1}-${index * 2 + 2}`;
 
           return (
             <div
@@ -113,8 +130,10 @@ export const MobileTopFilmstrip: React.FC<MobileTopFilmstripProps> = ({
                 <TemplateThumbnail id={page.templateId} slots={page.slots} className="w-full h-full" />
 
                 {/* Page Number Overlay Badge */}
-                <div className="absolute top-0.5 left-0.5 bg-stone-900/80 text-white text-[7.5px] font-bold px-1 rounded-xs">
-                  {pageDisplay}
+                <div className={`absolute top-0.5 left-0.5 text-white text-[7.5px] font-bold px-1 rounded-xs ${
+                  page.templateId?.startsWith('cover-') ? 'bg-amber-600' : 'bg-stone-900/80'
+                }`}>
+                  {page.templateId?.startsWith('cover-') ? 'Bìa' : `P.${pageDisplay}`}
                 </div>
 
                 {/* Photo Count */}
@@ -129,7 +148,7 @@ export const MobileTopFilmstrip: React.FC<MobileTopFilmstripProps> = ({
                   isActive ? 'text-sky-700 font-bold' : 'text-stone-500'
                 }`}
               >
-                P.{pageDisplay}
+                {page.templateId?.startsWith('cover-') ? 'Bìa Album' : `P.${pageDisplay}`}
               </span>
             </div>
           );

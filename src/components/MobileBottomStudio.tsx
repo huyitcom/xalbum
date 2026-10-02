@@ -5,11 +5,13 @@ import {
   AspectRatioType,
   AlbumPage,
   FrameSlot,
+  TextConfig,
 } from '../types';
 import {
   BASIC_TEMPLATES,
   WITH_TEXT_TEMPLATES,
   VIP_TEMPLATES,
+  COVER_TEMPLATES,
   BG_PRESETS,
 } from '../data/constants';
 import {
@@ -27,8 +29,10 @@ import {
   ArrowLeft,
   ArrowRight,
   X,
-  ShieldCheck,
   Type,
+  Heart,
+  Calendar,
+  CopyCheck,
 } from 'lucide-react';
 import { imageOptimizer, OptimizedImage } from '../utils/imageOptimizer';
 import { TemplateThumbnail } from './EditorSidebar';
@@ -46,6 +50,9 @@ interface MobileBottomStudioProps {
   onApplyTemplateToAll?: (id: TemplateId) => void;
   posterSettings: PosterSettings;
   onChangePosterSettings: (settings: PosterSettings) => void;
+  textConfig?: TextConfig;
+  onChangeTextConfig?: (updated: TextConfig) => void;
+  onApplyTextConfigToAll?: (updated: TextConfig) => void;
   activeSlotIndex: number | null;
   onSelectSlot: (index: number | null) => void;
   onSlotImageChange: (slotIndex: number, imageUri: string) => void;
@@ -56,6 +63,7 @@ interface MobileBottomStudioProps {
   onSmartRelink?: () => void;
   onOpenAddTextModal?: () => void;
   currentPageSlots: FrameSlot[];
+  onApplyThemeSet?: (themeId: string) => void;
 }
 
 export const MobileBottomStudio: React.FC<MobileBottomStudioProps> = ({
@@ -69,6 +77,9 @@ export const MobileBottomStudio: React.FC<MobileBottomStudioProps> = ({
   templateId,
   onChangeTemplate,
   onApplyTemplateToAll,
+  textConfig,
+  onChangeTextConfig,
+  onApplyTextConfigToAll,
   posterSettings,
   onChangePosterSettings,
   activeSlotIndex,
@@ -79,9 +90,10 @@ export const MobileBottomStudio: React.FC<MobileBottomStudioProps> = ({
   onSmartRelink,
   onOpenAddTextModal,
   currentPageSlots,
+  onApplyThemeSet,
 }) => {
-  // Mobile bottom tab: null = closed sheet; 'layout' | 'style' | 'pages' = open sheet
-  const [activeSheet, setActiveSheet] = useState<'layout' | 'style' | 'pages' | null>(null);
+  // Mobile bottom tab: null = closed sheet; 'layout' | 'text' | 'style' | 'pages' = open sheet
+  const [activeSheet, setActiveSheet] = useState<'layout' | 'text' | 'style' | 'pages' | null>(null);
   
   // Collapsible horizontal photo drawer
   const [isPhotoDrawerOpen, setIsPhotoDrawerOpen] = useState(true);
@@ -89,8 +101,9 @@ export const MobileBottomStudio: React.FC<MobileBottomStudioProps> = ({
   // Library images subscription
   const [libraryImages, setLibraryImages] = useState<OptimizedImage[]>(() => imageOptimizer.getImages());
   const [imageFilter, setImageFilter] = useState<'all' | 'unused' | 'used'>('all');
-  const [layoutCategory, setLayoutCategory] = useState<'basic' | 'with-text' | 'vip'>('basic');
+  const [layoutCategory, setLayoutCategory] = useState<'cover' | 'basic' | 'with-text' | 'vip'>('basic');
   const [appliedAllNotice, setAppliedAllNotice] = useState(false);
+  const [textAppliedNotice, setTextAppliedNotice] = useState(false);
   const [justAssignedNotice, setJustAssignedNotice] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -321,7 +334,7 @@ export const MobileBottomStudio: React.FC<MobileBottomStudioProps> = ({
       </div>
 
       {/* SECTION 2: MOBILE BOTTOM TAB NAVIGATION BAR */}
-      <div className="h-14 bg-white border-t border-stone-200 grid grid-cols-4 px-1 py-1 safe-area-pb">
+      <div className="h-14 bg-white border-t border-stone-200 grid grid-cols-5 px-1 py-1 safe-area-pb">
         {/* Tab 1: Ảnh */}
         <button
           type="button"
@@ -336,7 +349,7 @@ export const MobileBottomStudio: React.FC<MobileBottomStudioProps> = ({
           }`}
         >
           <ImageIcon className="w-4 h-4 mb-0.5" />
-          <span className="text-[11px]">Ảnh ({libraryImages.length})</span>
+          <span className="text-[10.5px]">Ảnh ({libraryImages.length})</span>
         </button>
 
         {/* Tab 2: Layout */}
@@ -350,10 +363,24 @@ export const MobileBottomStudio: React.FC<MobileBottomStudioProps> = ({
           }`}
         >
           <LayoutGrid className="w-4 h-4 mb-0.5" />
-          <span className="text-[11px]">Layout</span>
+          <span className="text-[10.5px]">Layout</span>
         </button>
 
-        {/* Tab 3: Size & Màu */}
+        {/* Tab 3: Chữ & Bìa */}
+        <button
+          type="button"
+          onClick={() => setActiveSheet(activeSheet === 'text' ? null : 'text')}
+          className={`flex flex-col items-center justify-center min-h-[44px] rounded-xl text-xs font-semibold transition cursor-pointer ${
+            activeSheet === 'text'
+              ? 'text-sky-600 bg-sky-50'
+              : 'text-stone-600 hover:text-stone-900 active:bg-stone-100'
+          }`}
+        >
+          <Type className="w-4 h-4 mb-0.5" />
+          <span className="text-[10.5px]">Chữ & Bìa</span>
+        </button>
+
+        {/* Tab 4: Size & Màu */}
         <button
           type="button"
           onClick={() => setActiveSheet(activeSheet === 'style' ? null : 'style')}
@@ -364,10 +391,10 @@ export const MobileBottomStudio: React.FC<MobileBottomStudioProps> = ({
           }`}
         >
           <Palette className="w-4 h-4 mb-0.5" />
-          <span className="text-[11px]">Size & Màu</span>
+          <span className="text-[10.5px]">Size & Màu</span>
         </button>
 
-        {/* Tab 4: Trang */}
+        {/* Tab 5: Trang */}
         <button
           type="button"
           onClick={() => setActiveSheet(activeSheet === 'pages' ? null : 'pages')}
@@ -378,7 +405,7 @@ export const MobileBottomStudio: React.FC<MobileBottomStudioProps> = ({
           }`}
         >
           <Layers className="w-4 h-4 mb-0.5" />
-          <span className="text-[11px]">Trang ({pages.length})</span>
+          <span className="text-[10.5px]">Trang ({pages.length})</span>
         </button>
       </div>
 
@@ -399,6 +426,12 @@ export const MobileBottomStudio: React.FC<MobileBottomStudioProps> = ({
                     <>
                       <LayoutGrid className="w-4 h-4 text-sky-600" />
                       <span>Chọn Layout Trang</span>
+                    </>
+                  )}
+                  {activeSheet === 'text' && (
+                    <>
+                      <Type className="w-4 h-4 text-sky-600" />
+                      <span>Chữ & Bìa Album</span>
                     </>
                   )}
                   {activeSheet === 'style' && (
@@ -428,11 +461,21 @@ export const MobileBottomStudio: React.FC<MobileBottomStudioProps> = ({
             {activeSheet === 'layout' && (
               <div className="flex-1 flex flex-col overflow-hidden min-h-0 p-4 space-y-3">
                 {/* Category Switcher */}
-                <div className="flex bg-stone-100 p-1 rounded-xl shrink-0">
+                <div className="flex bg-stone-100 p-1 rounded-xl shrink-0 gap-1 overflow-x-auto scrollbar-none">
+                  <button
+                    type="button"
+                    onClick={() => setLayoutCategory('cover')}
+                    className={`py-1.5 px-2.5 rounded-lg text-xs font-bold transition text-center whitespace-nowrap cursor-pointer shrink-0 flex items-center gap-1 ${
+                      layoutCategory === 'cover' ? 'bg-amber-600 text-white shadow-xs' : 'text-stone-600'
+                    }`}
+                  >
+                    <span>📖</span>
+                    <span>Bìa ({COVER_TEMPLATES.length})</span>
+                  </button>
                   <button
                     type="button"
                     onClick={() => setLayoutCategory('basic')}
-                    className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold transition text-center cursor-pointer ${
+                    className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold transition text-center whitespace-nowrap cursor-pointer ${
                       layoutCategory === 'basic' ? 'bg-white text-stone-900 shadow-xs' : 'text-stone-500'
                     }`}
                   >
@@ -441,7 +484,7 @@ export const MobileBottomStudio: React.FC<MobileBottomStudioProps> = ({
                   <button
                     type="button"
                     onClick={() => setLayoutCategory('with-text')}
-                    className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold transition text-center cursor-pointer ${
+                    className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold transition text-center whitespace-nowrap cursor-pointer ${
                       layoutCategory === 'with-text' ? 'bg-white text-stone-900 shadow-xs' : 'text-stone-500'
                     }`}
                   >
@@ -450,7 +493,7 @@ export const MobileBottomStudio: React.FC<MobileBottomStudioProps> = ({
                   <button
                     type="button"
                     onClick={() => setLayoutCategory('vip')}
-                    className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold transition text-center cursor-pointer ${
+                    className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold transition text-center whitespace-nowrap cursor-pointer ${
                       layoutCategory === 'vip' ? 'bg-white text-stone-900 shadow-xs' : 'text-stone-500'
                     }`}
                   >
@@ -474,8 +517,68 @@ export const MobileBottomStudio: React.FC<MobileBottomStudioProps> = ({
 
                 {/* Grid of Templates */}
                 <div className="flex-1 overflow-y-auto min-h-0 pr-1">
+                  {/* VIP Theme Set Header Card */}
+                  {layoutCategory === 'vip' && (
+                    <div className="p-3 bg-gradient-to-br from-amber-50 via-rose-50/70 to-emerald-50/80 rounded-2xl border-2 border-amber-300 shadow-xs mb-3 space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white font-bold text-[10px] uppercase tracking-wider flex items-center gap-1 shadow-2xs">
+                          <Sparkles className="w-3 h-3" />
+                          Bộ chủ đề
+                        </span>
+                        <span className="text-[11px] font-bold text-amber-900 bg-amber-100 px-2 py-0.5 rounded-lg">
+                          10 layout đôi • 50x20 cm
+                        </span>
+                      </div>
+
+                      <div
+                        onClick={() => {
+                          onApplyThemeSet?.('theme-hoa-co-mua-xuan');
+                          setActiveSheet(null);
+                        }}
+                        className="flex items-center gap-2.5 p-2 bg-white/95 rounded-xl border border-amber-200 active:scale-[0.99] transition cursor-pointer shadow-2xs"
+                      >
+                        <div className="w-20 aspect-[5/2] bg-stone-100 rounded-lg overflow-hidden border border-amber-200 shrink-0">
+                          <img
+                            src="https://www.photobookvietnam.net/images/layout/lay01/01-02.png"
+                            alt="Hoa cỏ mùa xuân"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-bold text-stone-900 text-xs">Hoa cỏ mùa xuân</h4>
+                          <p className="text-[10px] text-stone-600 line-clamp-1 mt-0.5">
+                            Trọn bộ 10 layout hoa cỏ vintage
+                          </p>
+                          <span className="text-[10px] font-bold text-amber-700 block mt-0.5">
+                            Chạm để áp dụng trọn bộ & size 50x20
+                          </span>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onApplyThemeSet?.('theme-hoa-co-mua-xuan');
+                          setActiveSheet(null);
+                        }}
+                        className="w-full py-2 px-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 active:bg-amber-700 text-white font-bold text-xs rounded-xl shadow-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      >
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>Áp dụng trọn bộ "Hoa cỏ mùa xuân" (50x20)</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {layoutCategory === 'vip' && (
+                    <div className="text-[11px] font-semibold text-stone-600 mb-2 px-0.5">
+                      Các layout trong bộ "Hoa cỏ mùa xuân" (10 mẫu):
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-2 gap-3 pb-6">
-                    {(layoutCategory === 'basic'
+                    {(layoutCategory === 'cover'
+                      ? COVER_TEMPLATES
+                      : layoutCategory === 'basic'
                       ? BASIC_TEMPLATES
                       : layoutCategory === 'with-text'
                       ? WITH_TEXT_TEMPLATES
@@ -510,45 +613,267 @@ export const MobileBottomStudio: React.FC<MobileBottomStudioProps> = ({
               </div>
             )}
 
+            {/* SHEET CONTENT: TAB - TEXT & COVER TYPOGRAPHY */}
+            {activeSheet === 'text' && (
+              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                {/* Notice banner */}
+                <div className="bg-sky-50 p-3 rounded-xl border border-sky-200 text-xs text-stone-700 leading-relaxed">
+                  💡 <span className="font-semibold text-sky-900">Mẹo:</span> Chạm trực tiếp vào bất kỳ đoạn chữ nào trên canvas để chỉnh sửa trực tiếp.
+                </div>
+
+                {/* Form Inputs */}
+                <div className="bg-stone-50 p-3.5 rounded-2xl border border-stone-200/80 space-y-3">
+                  <div className="flex items-center justify-between pb-1 border-b border-stone-200/60">
+                    <span className="text-xs font-bold text-stone-800 uppercase tracking-wider flex items-center gap-1.5">
+                      <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500/20" />
+                      Tên Cô Dâu & Chú Rể
+                    </span>
+                  </div>
+
+                  {/* Groom Name */}
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-stone-600 block">Tên Chú Rể</label>
+                    <input
+                      type="text"
+                      value={textConfig?.groomName || ''}
+                      onChange={(e) => {
+                        if (onChangeTextConfig && textConfig) {
+                          onChangeTextConfig({
+                            ...textConfig,
+                            groomName: e.target.value,
+                          });
+                        }
+                      }}
+                      placeholder="VD: TUẤN ANH"
+                      className="w-full text-xs font-medium px-3 py-2 bg-white border border-stone-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none uppercase"
+                    />
+                  </div>
+
+                  {/* Connector */}
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-stone-600 block">Từ Nối</label>
+                    <div className="grid grid-cols-5 gap-1">
+                      {['and', '&', '✦', 'và', 'with'].map((conn) => (
+                        <button
+                          key={conn}
+                          type="button"
+                          onClick={() => {
+                            if (onChangeTextConfig && textConfig) {
+                              onChangeTextConfig({
+                                ...textConfig,
+                                connector: conn,
+                              });
+                            }
+                          }}
+                          className={`py-1 text-xs rounded-lg border text-center font-medium transition ${
+                            (textConfig?.connector || 'and').trim() === conn
+                              ? 'bg-sky-600 text-white border-sky-600 font-bold'
+                              : 'bg-white text-stone-700 border-stone-200'
+                          }`}
+                        >
+                          {conn}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Bride Name */}
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-stone-600 block">Tên Cô Dâu</label>
+                    <input
+                      type="text"
+                      value={textConfig?.brideName || ''}
+                      onChange={(e) => {
+                        if (onChangeTextConfig && textConfig) {
+                          onChangeTextConfig({
+                            ...textConfig,
+                            brideName: e.target.value,
+                          });
+                        }
+                      }}
+                      placeholder="VD: BẢO NGỌC"
+                      className="w-full text-xs font-medium px-3 py-2 bg-white border border-stone-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none uppercase"
+                    />
+                  </div>
+
+                  {/* Wedding Date */}
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-stone-600 flex items-center gap-1">
+                      <Calendar className="w-3.5 h-3.5 text-stone-500" />
+                      Ngày Cưới / Năm
+                    </label>
+                    <input
+                      type="text"
+                      value={textConfig?.dateText || ''}
+                      onChange={(e) => {
+                        if (onChangeTextConfig && textConfig) {
+                          onChangeTextConfig({
+                            ...textConfig,
+                            dateText: e.target.value,
+                          });
+                        }
+                      }}
+                      placeholder="VD: 10.06.2026 hoặc OCTOBER 2026"
+                      className="w-full text-xs font-medium px-3 py-2 bg-white border border-stone-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                    />
+                  </div>
+
+                  {/* Tagline */}
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-stone-600 block">Tiêu Đề Bìa (Tagline)</label>
+                    <input
+                      type="text"
+                      value={textConfig?.tagline || ''}
+                      onChange={(e) => {
+                        if (onChangeTextConfig && textConfig) {
+                          onChangeTextConfig({
+                            ...textConfig,
+                            tagline: e.target.value,
+                          });
+                        }
+                      }}
+                      placeholder="VD: OUR WEDDING DAY"
+                      className="w-full text-xs font-medium px-3 py-2 bg-white border border-stone-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none uppercase"
+                    />
+                  </div>
+
+                  {/* Subtext / Quotes */}
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-stone-600 block">Lời Chúc / Lời Thề Ước</label>
+                    <textarea
+                      rows={2}
+                      value={textConfig?.subtext || ''}
+                      onChange={(e) => {
+                        if (onChangeTextConfig && textConfig) {
+                          onChangeTextConfig({
+                            ...textConfig,
+                            subtext: e.target.value,
+                          });
+                        }
+                      }}
+                      placeholder="Nhập lời chúc hoặc trích dẫn tình yêu..."
+                      className="w-full text-xs p-2.5 bg-white border border-stone-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none resize-none"
+                    />
+                  </div>
+
+                  {/* Font Selection */}
+                  <div className="space-y-1 pt-1 border-t border-stone-200/60">
+                    <label className="text-[11px] font-semibold text-stone-600 block">Kiểu Phông Chữ Tên</label>
+                    <select
+                      value={textConfig?.namesFont || 'Bodoni Moda, serif'}
+                      onChange={(e) => {
+                        if (onChangeTextConfig && textConfig) {
+                          onChangeTextConfig({
+                            ...textConfig,
+                            namesFont: e.target.value,
+                          });
+                        }
+                      }}
+                      className="w-full text-xs p-2 bg-white border border-stone-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                    >
+                      <option value="Bodoni Moda, serif">Bodoni Moda (Cổ điển, Sang trọng)</option>
+                      <option value="Cormorant Garamond, serif">Cormorant Garamond (Thơ mộng, Tinh tế)</option>
+                      <option value="Cinzel, serif">Cinzel (Hoàng gia, Đẳng cấp)</option>
+                      <option value="Montserrat, sans-serif">Montserrat (Hiện đại, Tinh gọn)</option>
+                      <option value="Playfair Display, serif">Playfair Display (Lãng mạn, Nữ tính)</option>
+                      <option value="Great Vibes, cursive">Great Vibes (Viết tay nghệ thuật)</option>
+                      <option value="Alex Brush, cursive">Alex Brush (Thư pháp bay bổng)</option>
+                      <option value="Plus Jakarta Sans, sans-serif">Plus Jakarta Sans (Tối giản, Dễ đọc)</option>
+                    </select>
+                  </div>
+
+                  {/* Color Swatches */}
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-stone-600 block">Màu Sắc Chữ</label>
+                    <div className="grid grid-cols-6 gap-1.5">
+                      {[
+                        { name: 'Đen', value: '#1c1917' },
+                        { name: 'Vàng Gold', value: '#b45309' },
+                        { name: 'Nâu ấm', value: '#78350f' },
+                        { name: 'Trắng', value: '#ffffff' },
+                        { name: 'Hồng', value: '#be185d' },
+                        { name: 'Navy', value: '#1e3a8a' },
+                      ].map((color) => (
+                        <button
+                          key={color.value}
+                          type="button"
+                          onClick={() => {
+                            if (onChangeTextConfig && textConfig) {
+                              onChangeTextConfig({
+                                ...textConfig,
+                                namesColor: color.value,
+                              });
+                            }
+                          }}
+                          className={`h-7 rounded-lg border flex items-center justify-center transition ${
+                            (textConfig?.namesColor || '#1c1917') === color.value
+                              ? 'ring-2 ring-sky-500 border-sky-500 scale-105'
+                              : 'border-stone-300'
+                          }`}
+                          style={{ backgroundColor: color.value }}
+                          title={color.name}
+                        >
+                          {(textConfig?.namesColor || '#1c1917') === color.value && (
+                            <Check className={`w-3.5 h-3.5 ${color.value === '#ffffff' ? 'text-black' : 'text-white'}`} />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Apply to all album button */}
+                  {onApplyTextConfigToAll && textConfig && (
+                    <div className="pt-2 border-t border-stone-200/60">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onApplyTextConfigToAll(textConfig);
+                          setTextAppliedNotice(true);
+                          setTimeout(() => setTextAppliedNotice(false), 2200);
+                        }}
+                        className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-xs ${
+                          textAppliedNotice
+                            ? 'bg-emerald-600 text-white ring-2 ring-emerald-500/30'
+                            : 'bg-stone-900 text-white active:scale-[0.98]'
+                        }`}
+                      >
+                        {textAppliedNotice ? (
+                          <>
+                            <Check className="w-4 h-4 text-emerald-100" />
+                            <span>Đã áp dụng cho toàn album!</span>
+                          </>
+                        ) : (
+                          <>
+                            <CopyCheck className="w-4 h-4 text-stone-300" />
+                            <span>Áp dụng cho toàn bộ Album</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Add Custom Art Text */}
+                {onOpenAddTextModal && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveSheet(null);
+                      onOpenAddTextModal();
+                    }}
+                    className="w-full py-2.5 px-3 bg-white hover:bg-sky-50 border-2 border-dashed border-sky-300 text-sky-700 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-2xs"
+                  >
+                    <Plus className="w-4 h-4 text-sky-600" />
+                    <span>Thêm Chữ Nghệ Thuật Mới Vào Trang</span>
+                  </button>
+                )}
+              </div>
+            )}
+
             {/* SHEET CONTENT: TAB 2 - STYLE & SIZE */}
             {activeSheet === 'style' && (
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {/* Safe Zone & Guides Master Switch */}
-                <div className="bg-stone-50 p-3.5 rounded-2xl border border-stone-200/80 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-lg bg-sky-100 text-sky-600 flex items-center justify-center">
-                        <ShieldCheck className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <span className="text-xs font-bold text-stone-800 uppercase tracking-wider block">
-                          Vùng an toàn & Đường guide
-                        </span>
-                        <span className="text-[10px] text-stone-500">Hỗ trợ căn chỉnh chuẩn khi in ấn</span>
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const isAny = Boolean(posterSettings.showCutZone || posterSettings.showSafeZone || posterSettings.showGuides);
-                        onChangePosterSettings({
-                          ...posterSettings,
-                          showCutZone: !isAny,
-                          showSafeZone: !isAny,
-                          showGuides: !isAny,
-                        });
-                      }}
-                      className={`px-3 py-1 text-xs font-bold rounded-lg transition cursor-pointer ${
-                        posterSettings.showCutZone || posterSettings.showSafeZone || posterSettings.showGuides
-                          ? 'bg-sky-600 text-white'
-                          : 'bg-stone-200 text-stone-600'
-                      }`}
-                    >
-                      {posterSettings.showCutZone || posterSettings.showSafeZone || posterSettings.showGuides ? 'Bật' : 'Tắt'}
-                    </button>
-                  </div>
-                </div>
+                {/* Safe Zone & Guides Master Switch - Ẩn theo yêu cầu người dùng */}
 
                 {/* Aspect Ratio Selector */}
                 <div className="bg-stone-50 p-3.5 rounded-2xl border border-stone-200/80 space-y-3">

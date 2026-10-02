@@ -26,7 +26,7 @@ export const PhotoCropModal: React.FC<PhotoCropModalProps> = ({
   const posY = Math.max(0, Math.min(100, 50 + (slot.offsetY || 0)));
 
   let displaySrc = slot.imageUri;
-  if (displaySrc.startsWith('img_')) {
+  if (typeof displaySrc === 'string' && displaySrc.startsWith('img_')) {
     const opt = imageOptimizer.getImage(displaySrc);
     if (opt) displaySrc = opt.originalUrl || opt.previewUrl;
   }

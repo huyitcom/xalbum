@@ -1,4 +1,4 @@
-import { AlbumPage, PosterSettings, TemplateDefinition, TemplateId, TextConfig } from '../types';
+import { AlbumPage, PosterSettings, TemplateDefinition, TemplateId, TextConfig, LayoutThemeSet } from '../types';
 
 export const SAMPLE_WEDDING_PHOTOS = [
   'https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=800&q=80',
@@ -423,6 +423,18 @@ export const VIP_TEMPLATES: TemplateDefinition[] = [
   },
 ];
 
+export const VIP_THEME_SETS: LayoutThemeSet[] = [
+  {
+    id: 'theme-hoa-co-mua-xuan',
+    name: 'Hoa cỏ mùa xuân',
+    description: 'Trọn bộ 10 layout đôi (20 trang) họa tiết hoa lá vintage mùa xuân nhẹ nhàng, lãng mạn',
+    aspectRatio: '50:20',
+    previewUri: 'https://www.photobookvietnam.net/images/layout/lay01/01-02.png',
+    templateIds: VIP_TEMPLATES.map((t) => t.id),
+    templates: VIP_TEMPLATES,
+  },
+];
+
 export const WITH_TEXT_TEMPLATES: TemplateDefinition[] = [
   {
     id: 'album-50x35-memories',
@@ -674,7 +686,43 @@ export const WITH_TEXT_TEMPLATES: TemplateDefinition[] = [
   },
 ];
 
+export const COVER_TEMPLATES: TemplateDefinition[] = [
+  {
+    id: 'cover-classic-wrap',
+    name: 'Bìa Bọc Toàn Cảnh Hoàng Gia (Luxury Wrap)',
+    description: 'Bìa bọc photobook cao cấp: Bìa trước ảnh chân dung lớn với tiêu đề chữ dập vàng tinh xảo, gáy in tên đôi uyên ương & năm cưới, bìa sau logo Monogram & trích dẫn tình yêu.',
+    slotCount: 2,
+    aspectRatio: '50:35',
+    category: 'cover',
+  },
+  {
+    id: 'cover-editorial-vogue',
+    name: 'Bìa Tạp Chí Hiện Đại (Editorial Vogue)',
+    description: 'Bìa thời trang cao cấp phong cách tạp chí nghệ thuật: Bìa trước ảnh full-bleed nổi bật với tiêu đề THE WEDDING ALBUM, gáy sách hiện đại, bìa sau 2 ảnh candid & mã vạch in ấn.',
+    slotCount: 3,
+    aspectRatio: '50:35',
+    category: 'cover',
+  },
+  {
+    id: 'cover-minimalist-embossed',
+    name: 'Bìa Khung Cửa Sổ Cổ Điển (Classic Window)',
+    description: 'Bìa dập khung cửa sổ trang nhã: Khung ảnh chân dung viền chỉ vàng sang trọng ở bìa trước, gáy dọc thanh lịch, bìa sau tinh giản với trích dẫn ngợi ca tình yêu vĩnh cửu.',
+    slotCount: 1,
+    aspectRatio: '50:35',
+    category: 'cover',
+  },
+  {
+    id: 'cover-all-we-need-is-love',
+    name: 'Bìa Vát Chéo Nghệ Thuật (All We Need Is Love)',
+    description: 'Bìa album phong cách vát chéo độc đáo: Bìa trước phối 3 khung ảnh đa giác hiện đại kết hợp chữ nghệ thuật All we need is love, gáy thanh lịch, bìa sau khung ảnh kỷ niệm & thông tin in ấn chuyên nghiệp.',
+    slotCount: 4,
+    aspectRatio: '50:35',
+    category: 'cover',
+  },
+];
+
 export const TEMPLATES: TemplateDefinition[] = [
+  ...COVER_TEMPLATES,
   ...VIP_TEMPLATES,
   ...BASIC_TEMPLATES,
   ...WITH_TEXT_TEMPLATES,
@@ -701,7 +749,7 @@ export const DEFAULT_TEXT_CONFIG: TextConfig = {
   namesFontSize: 24,
   namesColor: '#1c1917',
 
-  subtext: 'Rất hân hạnh được đón tiếp quý khách',
+  subtext: '',
   subtextFont: 'Plus Jakarta Sans',
   subtextFontSize: 13,
   subtextColor: '#57534e',
@@ -795,7 +843,18 @@ export const createDefaultPage = (
 
 export const generateAlbumPages = (pageCount: number = 10, defaultAspectRatio?: string): AlbumPage[] => {
   let photoOffset = 0;
-  return Array.from({ length: pageCount }).map((_, i) => {
+
+  // Trang đầu tiên luôn là Bìa Album (Cover Spread: Bìa trước, gáy, bìa sau)
+  const coverTemplate = COVER_TEMPLATES[0];
+  const coverPage = createDefaultPage(0, coverTemplate.id, 0);
+  coverPage.title = 'Bìa Album';
+  if (defaultAspectRatio) {
+    coverPage.posterSettings.aspectRatio = defaultAspectRatio as any;
+  }
+  photoOffset += coverTemplate.slotCount;
+
+  // Các trang ruột bên trong (Trang 1-2, 3-4, ...)
+  const innerPages = Array.from({ length: pageCount }).map((_, i) => {
     const templateDef = WITH_TEXT_TEMPLATES[i % WITH_TEXT_TEMPLATES.length] || WITH_TEXT_TEMPLATES[0];
     const page = createDefaultPage(i + 1, templateDef.id, photoOffset);
     if (defaultAspectRatio) {
@@ -804,6 +863,8 @@ export const generateAlbumPages = (pageCount: number = 10, defaultAspectRatio?: 
     photoOffset += templateDef.slotCount;
     return page;
   });
+
+  return [coverPage, ...innerPages];
 };
 
 export const INITIAL_ALBUM_PAGES: AlbumPage[] = generateAlbumPages(10, '50:20');
