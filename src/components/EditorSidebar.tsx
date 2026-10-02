@@ -180,12 +180,12 @@ export const TemplateThumbnail: React.FC<{ id?: string; slots?: import('../types
 
   if (id === 'cover-all-we-need-is-love') {
     return (
-      <div className={`w-full h-full bg-[#faf9f5] p-0.5 flex select-none overflow-hidden border border-stone-200 ${className}`}>
+      <div className={`w-full h-full bg-[#fdfcfb] p-0.5 flex select-none overflow-hidden border border-stone-200 ${className}`}>
         {/* Back Cover (Left) */}
-        <div className="w-[47%] h-full flex flex-col items-center justify-between p-1 bg-white rounded-[1px] border border-stone-200/60">
-          <div className="text-[3px] font-serif text-stone-500 italic">our story</div>
-          <div className="w-6 h-6 bg-stone-200 relative overflow-hidden rounded-[1px] shadow-2xs border border-stone-300">
-            <ThumbnailSlot slot={slots?.[3]} />
+        <div className="w-[47%] h-full flex flex-col items-center justify-between p-1 bg-white rounded-[1px] border border-amber-800/10">
+          <div className="text-[3px] font-serif text-amber-900 uppercase tracking-widest">WEDDING</div>
+          <div className="w-6 h-8 bg-stone-200 relative overflow-hidden rounded-[1px] shadow-2xs border border-stone-300">
+            <ThumbnailSlot slot={slots?.[1]} />
           </div>
           <div className="text-[2.5px] text-stone-400 text-center leading-[3px]">
             <span className="italic opacity-60">printed by</span><br />
@@ -194,39 +194,72 @@ export const TemplateThumbnail: React.FC<{ id?: string; slots?: import('../types
         </div>
 
         {/* Spine (Center) */}
-        <div className="w-[6%] h-full bg-stone-100 border-x border-stone-300/60 flex items-center justify-center">
+        <div className="w-[6%] h-full bg-[#fbf9f6] border-x border-stone-300/60 flex items-center justify-center">
+          <div className="w-[0.5px] h-full bg-amber-700/30" />
+        </div>
+
+        {/* Front Cover (Right) */}
+        <div className="w-[47%] h-full relative overflow-hidden bg-white p-1 rounded-[1px] border border-amber-800/10 flex flex-col justify-between">
+          <div className="text-[3px] font-mono tracking-widest text-right text-stone-500">OCTOBER | 8TH</div>
+          <div className="relative flex-1 flex items-center justify-end my-0.5">
+            {/* Vertical ribbon */}
+            <div className="absolute left-[5%] top-0 bottom-0 w-[20%] flex items-center justify-center">
+              <div className="w-px h-full bg-amber-700/40" />
+              <div className="absolute text-[3px] text-amber-800 font-serif -rotate-90 whitespace-nowrap bg-white px-0.5">
+                MICHELLE & OMAR
+              </div>
+            </div>
+            {/* Photo */}
+            <div className="w-[65%] h-full bg-stone-300 rounded-[1px] relative overflow-hidden shadow-2xs border border-stone-300">
+              <ThumbnailSlot slot={slots?.[0]} />
+              <div className="absolute bottom-0.5 left-0.5 text-[3.5px] font-serif italic text-white drop-shadow-xs">Save Our Date</div>
+            </div>
+          </div>
+          <div className="text-[2.5px] font-mono text-right text-stone-500">HOTEL PALACE</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (id === 'cover-editorial-triptych') {
+    return (
+      <div className={`w-full h-full bg-[#fdfcf9] p-0.5 flex select-none overflow-hidden border border-stone-200 ${className}`}>
+        {/* Back Cover (Left) */}
+        <div className="w-[47%] h-full flex flex-col items-center justify-between p-1 bg-white rounded-[1px] border border-stone-200/60 relative">
+          <div className="text-[3px] font-serif text-stone-800 uppercase tracking-widest">ALBUM</div>
+          <div className="w-6 h-8 bg-stone-200 relative overflow-hidden rounded-[1px] shadow-2xs border border-stone-300">
+            <ThumbnailSlot slot={slots?.[4]} />
+          </div>
+          <div className="text-[2.5px] text-stone-400 text-center leading-[3px]">
+            <span className="italic opacity-60">printed by</span><br />
+            <span className="font-semibold uppercase tracking-tighter">PHOTOBOOK VIETNAM</span>
+          </div>
+        </div>
+
+        {/* Spine (Center) */}
+        <div className="w-[6%] h-full bg-[#fbf9f5] border-x border-stone-300/60 flex items-center justify-center">
           <div className="w-[0.5px] h-full bg-stone-300" />
         </div>
 
         {/* Front Cover (Right) */}
-        <div className="w-[47%] h-full relative overflow-hidden bg-white p-0.5 rounded-[1px] border border-stone-200/60">
-          <div className="w-full h-full relative overflow-hidden bg-white">
-            {/* Top-Left text */}
-            <div className="absolute top-[2%] left-[2%] z-20 text-[3.5px] font-bold text-stone-800 leading-tight">
-              All we need<br />is love...
-            </div>
-            {/* Top-Right triangle */}
-            <div 
-              className="absolute bg-stone-300"
-              style={{ top: 0, left: '55%', width: '45%', height: '52%', clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%)' }}
-            >
-              <ThumbnailSlot slot={slots?.[1]} />
-            </div>
-            {/* Bottom-Left triangle */}
-            <div 
-              className="absolute bg-stone-300"
-              style={{ top: '60%', left: 0, width: '56%', height: '40%', clipPath: 'polygon(0% 0%, 100% 100%, 0% 100%)' }}
-            >
-              <ThumbnailSlot slot={slots?.[2]} />
-            </div>
-            {/* Center hero */}
-            <div 
-              className="absolute inset-0 bg-stone-400"
-              style={{ clipPath: 'polygon(0% 56%, 55% 17%, 98% 56%, 100% 100%, 60% 100%)' }}
-            >
+        <div className="w-[47%] h-full relative overflow-hidden bg-[#fdfcf9] p-0.5 rounded-[1px] border border-stone-200/60 flex flex-col justify-between">
+          <div className="w-2.5 h-2.5 bg-[#c98e68] absolute -top-0.5 -right-0.5 rounded-bl-full" />
+          <div className="text-[3px] font-serif font-bold tracking-widest text-stone-900 pt-0.5">
+            JOHN & EMMA'S <span className="italic font-normal">Wedding</span>
+          </div>
+          <div className="relative w-full h-[58%] my-auto flex items-center">
+            {/* Main horizontal photo */}
+            <div className="w-full h-full bg-stone-300 relative overflow-hidden">
               <ThumbnailSlot slot={slots?.[0]} />
             </div>
+            {/* Left triptych */}
+            <div className="absolute left-[4%] top-[-10%] bottom-[-10%] w-[28%] bg-white p-0.5 shadow-md flex flex-col justify-between gap-0.5 z-10">
+              <div className="w-full h-[30%] bg-stone-200 overflow-hidden"><ThumbnailSlot slot={slots?.[1]} /></div>
+              <div className="w-full h-[30%] bg-stone-200 overflow-hidden"><ThumbnailSlot slot={slots?.[2]} /></div>
+              <div className="w-full h-[30%] bg-stone-200 overflow-hidden"><ThumbnailSlot slot={slots?.[3]} /></div>
+            </div>
           </div>
+          <div className="text-[2.5px] font-serif text-center font-bold text-stone-800 pb-0.5">21ST OCTOBER 2025</div>
         </div>
       </div>
     );

@@ -1213,44 +1213,39 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
           </div>
         )}
 
-        {/* COVER 4: Vát Chéo Nghệ Thuật (All We Need Is Love) */}
+        {/* COVER 4: Thiệp Báo Hỷ & Hoa Cỏ Tinh Tế (Save Our Date - Editorial Botanical) */}
         {templateId === 'cover-all-we-need-is-love' && (
-          <div className="w-full h-full flex overflow-hidden relative select-none bg-[#faf9f5]">
+          <div className="w-full h-full flex overflow-hidden relative select-none bg-[#fdfcfb]">
             {/* TRANG TRÁI: BÌA SAU (BACK COVER - 47%) */}
             <div className="w-[47%] h-full flex flex-col justify-between items-center p-6 sm:p-8 relative border-r border-stone-300/60 bg-[#ffffff]">
-              {/* Decorative Subtle Inset Border */}
-              <div className="absolute inset-4 sm:inset-5 border border-stone-200 pointer-events-none rounded-[2px]" />
+              {/* Decorative Inset Gold Border Frame */}
+              <div className="absolute inset-4 sm:inset-5 border border-amber-800/15 pointer-events-none rounded-[1px]" />
 
-              {/* Top: Romantic Chapter Header */}
+              {/* Top: Romantic Botanical Header */}
               <div className="flex flex-col items-center pt-3 z-10 text-center">
                 <span
-                  style={{ fontFamily: 'Dancing Script, Caveat, cursive' }}
-                  className="text-2xl sm:text-3xl text-stone-800 font-bold tracking-wide"
+                  style={{ fontFamily: 'Bodoni Moda, serif' }}
+                  className="text-stone-800 font-bold text-sm tracking-[0.25em] uppercase"
                 >
-                  our story begins here...
+                  THE WEDDING COLLECTION
                 </span>
-                <span className="text-[9px] font-mono uppercase tracking-[0.25em] text-stone-400 mt-1">
-                  CHAPTER ONE • THE WEDDING MEMORIES
+                <span
+                  style={{ fontFamily: 'Pinyon Script, Great Vibes, cursive' }}
+                  className="text-2xl sm:text-3xl text-amber-800 mt-1"
+                >
+                  our story begins here
                 </span>
               </div>
 
-              {/* Center: Fine-art Polaroid Memory Frame (Slot 3) */}
+              {/* Center: Fine-art Portrait Frame (Slot 1) */}
               <div className="flex flex-col items-center gap-2 z-10 my-auto">
-                <div className="p-2 sm:p-2.5 bg-white rounded-[2px] shadow-md border border-stone-200/90 rotate-[-1.5deg] hover:rotate-0 transition-transform duration-300">
-                  <div className="w-36 h-36 sm:w-44 sm:h-44 bg-stone-100 overflow-hidden relative border border-stone-100">
-                    {renderSlot(3, 'w-full h-full')}
-                  </div>
-                  <div className="pt-2 pb-1 text-center">
-                    <span
-                      style={{ fontFamily: 'Caveat, cursive' }}
-                      className="text-sm text-stone-600 font-medium"
-                    >
-                      forever & always
-                    </span>
+                <div className="p-2 bg-white rounded-[1px] shadow-md border border-stone-200/90 relative group/backphoto">
+                  <div className="w-36 h-48 sm:w-44 sm:h-56 bg-stone-100 overflow-hidden relative border border-stone-200">
+                    {renderSlot(1, 'w-full h-full')}
                   </div>
                 </div>
 
-                {/* Romantic Subtext / Vow Quote */}
+                {/* Subtext / Location / Ceremony details */}
                 {textConfig.subtext && textConfig.subtext.trim() !== '' && textConfig.subtext !== 'Rất hân hạnh được đón tiếp quý khách' && (
                   renderEditableText('subtext', textConfig.subtext, '', {
                     as: 'p',
@@ -1281,26 +1276,26 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
 
             {/* CHÍNH GIỮA: GÁY SÁCH / GÁY ALBUM (SPINE - 6%) */}
             <div 
-              className="w-[6%] h-full bg-[#fbfbfa] flex flex-col justify-between items-center py-6 relative border-x border-stone-300/80 shadow-[inset_0_0_10px_rgba(0,0,0,0.04)] cursor-pointer group/spine"
+              className="w-[6%] h-full bg-[#fbf9f6] flex flex-col justify-between items-center py-6 relative border-x border-stone-300/80 shadow-[inset_0_0_10px_rgba(0,0,0,0.03)] cursor-pointer group/spine"
               onClick={(e) => {
                 e.stopPropagation();
                 setEditingConfigKey('groomName');
-                setTempConfigValue(textConfig.groomName || 'TUẤN ANH');
+                setTempConfigValue(textConfig.groomName || 'Michelle');
               }}
               title="Nhấp để sửa tên trên gáy sách"
             >
-              <div className="text-[8px] font-mono text-stone-400 uppercase tracking-widest rotate-90">
-                VOL.1
+              <div className="w-2 h-2 rounded-full border border-amber-700/40 flex items-center justify-center text-[6px] text-amber-800">
+                ✦
               </div>
               <span
                 style={{
-                  fontFamily: 'Montserrat, sans-serif',
+                  fontFamily: 'Bodoni Moda, Cormorant Garamond, serif',
                   writingMode: 'vertical-rl',
                   letterSpacing: '0.22em',
                 }}
-                className="text-stone-800 font-bold text-xs uppercase tracking-widest select-none whitespace-nowrap group-hover/spine:text-sky-600 transition"
+                className="text-stone-800 font-bold text-xs uppercase tracking-widest select-none whitespace-nowrap group-hover/spine:text-amber-800 transition"
               >
-                {(textConfig.groomName || 'TUẤN ANH').toUpperCase()} & {(textConfig.brideName || 'BẢO NGỌC').toUpperCase()} • {textConfig.dateText.split('\n')[1] || textConfig.dateText.replace('\n', ' ') || '2026'}
+                {(textConfig.groomName || 'Michelle').toUpperCase()} & {(textConfig.brideName || 'Omar').toUpperCase()} • {textConfig.dateText.split('\n')[1] || textConfig.dateText.split('|')[0]?.trim() || '2026'}
               </span>
               <div className="text-[8px] font-mono text-stone-400 uppercase tracking-widest rotate-90">
                 PBVN
@@ -1313,61 +1308,296 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
             </div>
 
             {/* TRANG PHẢI: BÌA TRƯỚC (FRONT COVER - 47%) */}
-            <div className="w-[47%] h-full relative overflow-hidden bg-white p-3.5 sm:p-5 select-none border-l border-stone-200">
-              {/* Outer Framed Canvas */}
-              <div className="w-full h-full relative overflow-hidden bg-white">
-                {/* 1. Top-Left: Handwritten Script Calligraphy */}
-                <div className="absolute top-[4%] left-[4%] z-30 pointer-events-auto flex flex-col items-start select-none max-w-[210px]">
-                  {renderEditableText('tagline', textConfig.tagline && textConfig.tagline !== 'SAVE THE DATE' ? textConfig.tagline : 'All we need\nis love...', 'All we need\nis love...', {
-                    as: 'div',
-                    style: { fontFamily: 'Dancing Script, Caveat, cursive' },
-                    className: 'text-2xl sm:text-3xl md:text-[34px] font-bold text-stone-900 tracking-wide leading-[1.1] whitespace-pre-line cursor-pointer hover:opacity-85 transition',
-                    multiline: true,
-                    label: 'chữ nghệ thuật bìa trước',
-                  })}
-                  {/* Subtle Couple Sub-caption */}
-                  <div className="mt-1.5 text-[8.5px] sm:text-[9.5px] font-semibold tracking-[0.22em] uppercase text-stone-400 font-sans">
-                    {(textConfig.groomName || 'TUẤN ANH').toUpperCase()} & {(textConfig.brideName || 'BẢO NGỌC').toUpperCase()}
+            <div className="w-[47%] h-full relative overflow-hidden bg-white p-4 sm:p-6 select-none border-l border-stone-200">
+              {/* Outer Framed Inset Line */}
+              <div className="absolute inset-3 sm:inset-4 border border-amber-800/15 pointer-events-none rounded-[1px]" />
+
+              {/* Front Cover Canvas Container */}
+              <div className="w-full h-full relative overflow-hidden flex flex-col justify-between">
+                
+                {/* TOP HEADER: Clean Date & Time */}
+                <div className="w-full flex justify-end items-center pr-2 pt-1 z-20">
+                  <div className="flex items-center gap-1.5 text-stone-600 text-[10px] sm:text-[11px] font-mono tracking-[0.2em] uppercase">
+                    {renderEditableText('dateText', textConfig.dateText && textConfig.dateText !== '10.06\n2024' ? textConfig.dateText : 'OCTOBER | 8th | 5:00PM', 'OCTOBER | 8th | 5:00PM', {
+                      className: 'font-mono text-[10px] sm:text-[11px] tracking-[0.2em] uppercase text-stone-600 hover:text-amber-800 cursor-pointer',
+                      label: 'thời gian & ngày cưới',
+                    })}
                   </div>
                 </div>
 
-                {/* 2. Top-Right Corner Photo (Slot 1) */}
-                <div 
-                  className="absolute z-20 overflow-hidden shadow-2xs"
-                  style={{
-                    top: '0%',
-                    left: '55%',
-                    width: '45%',
-                    height: '52%',
-                    clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%)',
-                  }}
-                >
-                  {renderSlot(1, 'w-full h-full')}
+                {/* MIDDLE ROW: Left Vertical Gold Ribbon + Botanical Foliage & Main Photo */}
+                <div className="relative flex-1 my-2 flex items-center justify-end">
+                  
+                  {/* Left Column: Vertical Gold Line & Couple Calligraphy */}
+                  <div className="absolute left-[3%] top-0 bottom-0 w-[28%] flex items-center justify-center z-20 pointer-events-none">
+                    {/* Vertical Line Top to Bottom */}
+                    <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-px bg-gradient-to-b from-amber-700/20 via-amber-700/50 to-amber-700/20" />
+
+                    {/* Vertical Couple Name Calligraphy */}
+                    <div 
+                      className="bg-white py-4 px-1.5 z-10 pointer-events-auto cursor-pointer flex items-center justify-center shadow-2xs"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingConfigKey('groomName');
+                        setTempConfigValue(textConfig.groomName || 'Michelle');
+                      }}
+                      title="Nhấp để sửa tên cô dâu chú rể"
+                    >
+                      <span
+                        style={{
+                          fontFamily: 'Pinyon Script, Great Vibes, Allura, cursive',
+                          writingMode: 'vertical-rl',
+                          letterSpacing: '0.12em',
+                        }}
+                        className="text-amber-800 text-2xl sm:text-3xl select-none hover:opacity-80 transition whitespace-nowrap rotate-180"
+                      >
+                        • {(textConfig.groomName || 'Michelle')} & {(textConfig.brideName || 'Omar')} •
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Botanical Foliage Vector Silhouette along left edge of photo */}
+                  <div className="absolute left-[20%] sm:left-[22%] top-[8%] bottom-[8%] w-[20%] z-20 pointer-events-none overflow-visible flex items-center">
+                    <svg viewBox="0 0 100 240" fill="none" className="w-full h-full text-[#8c6b3e] opacity-80 drop-shadow-2xs" preserveAspectRatio="xMidYMid meet">
+                      <g fill="currentColor">
+                        {/* Botanical Vines & Branch Stems */}
+                        <path d="M55,0 Q42,60 58,120 T48,240" stroke="currentColor" strokeWidth="1.8" fill="none" opacity="0.75"/>
+                        <path d="M48,45 Q28,65 18,95" stroke="currentColor" strokeWidth="1.2" fill="none" opacity="0.65"/>
+                        <path d="M55,85 Q78,105 88,135" stroke="currentColor" strokeWidth="1.2" fill="none" opacity="0.65"/>
+                        <path d="M50,155 Q22,175 12,205" stroke="currentColor" strokeWidth="1.2" fill="none" opacity="0.65"/>
+                        {/* Leaves */}
+                        <path d="M18,95 Q8,85 13,75 Q28,80 18,95 Z" opacity="0.85"/>
+                        <path d="M28,65 Q21,50 33,45 Q38,60 28,65 Z" opacity="0.8"/>
+                        <path d="M88,135 Q98,120 88,110 Q78,125 88,135 Z" opacity="0.85"/>
+                        <path d="M73,100 Q88,90 83,80 Q71,90 73,100 Z" opacity="0.8"/>
+                        <path d="M12,205 Q2,190 14,180 Q22,195 12,205 Z" opacity="0.85"/>
+                        <path d="M32,175 Q22,160 34,155 Q42,167 32,175 Z" opacity="0.8"/>
+                        {/* Florals & Blooms */}
+                        <circle cx="28" cy="110" r="9" opacity="0.9"/>
+                        <circle cx="20" cy="105" r="7" opacity="0.85"/>
+                        <circle cx="36" cy="105" r="7" opacity="0.85"/>
+                        <circle cx="24" cy="118" r="6" opacity="0.8"/>
+                        <circle cx="32" cy="118" r="6" opacity="0.8"/>
+                        <circle cx="28" cy="110" r="3" fill="#ffffff" opacity="0.95"/>
+                        
+                        <circle cx="68" cy="165" r="8.5" opacity="0.9"/>
+                        <circle cx="62" cy="160" r="6.5" opacity="0.85"/>
+                        <circle cx="74" cy="160" r="6.5" opacity="0.85"/>
+                        <circle cx="65" cy="171" r="5.5" opacity="0.8"/>
+                        <circle cx="71" cy="171" r="5.5" opacity="0.8"/>
+                        <circle cx="68" cy="165" r="2.5" fill="#ffffff" opacity="0.95"/>
+
+                        <circle cx="35" cy="215" r="7" opacity="0.85"/>
+                        <circle cx="45" cy="35" r="6" opacity="0.8"/>
+                      </g>
+                    </svg>
+                  </div>
+
+                  {/* Main Rectangular Photo Slot (Slot 0) */}
+                  <div className="w-[65%] h-full bg-stone-100 rounded-[1px] relative overflow-hidden shadow-md border border-stone-200/80 z-10">
+                    {renderSlot(0, 'w-full h-full')}
+
+                    {/* Elegant Script Overlay in bottom-left inside photo: Save Our Date */}
+                    <div className="absolute bottom-4 left-4 z-30 pointer-events-auto select-none">
+                      {renderEditableText('tagline', textConfig.tagline && textConfig.tagline !== 'SAVE THE DATE' && textConfig.tagline !== 'All we need\nis love...' ? textConfig.tagline : 'Save Our Date', 'Save Our Date', {
+                        as: 'div',
+                        style: { fontFamily: 'Pinyon Script, Great Vibes, Allura, cursive' },
+                        className: 'text-3xl sm:text-4xl text-white font-normal drop-shadow-[0_2px_5px_rgba(0,0,0,0.7)] cursor-pointer hover:opacity-90 transition whitespace-nowrap',
+                        label: 'tiêu đề chữ nghệ thuật trên ảnh',
+                      })}
+                    </div>
+                  </div>
                 </div>
 
-                {/* 3. Bottom-Left Corner Photo (Slot 2) */}
-                <div 
-                  className="absolute z-20 overflow-hidden shadow-2xs"
-                  style={{
-                    top: '60%',
-                    left: '0%',
-                    width: '56%',
-                    height: '40%',
-                    clipPath: 'polygon(0% 0%, 100% 100%, 0% 100%)',
-                  }}
-                >
-                  {renderSlot(2, 'w-full h-full')}
+                {/* BOTTOM FOOTER: Ceremony & Reception Venue & Location */}
+                <div className="w-full flex flex-col items-end pr-2 pb-1 z-20 text-right space-y-0.5">
+                  <div className="text-[8.5px] sm:text-[9.5px] font-mono tracking-[0.18em] uppercase text-stone-700">
+                    {renderEditableText('subtext', textConfig.subtext && textConfig.subtext.trim() !== '' && textConfig.subtext !== 'Rất hân hạnh được đón tiếp quý khách' ? textConfig.subtext : 'CEREMONY STA.MERY CHURCH\nRECEPTION HOTEL PALACE', 'CEREMONY STA.MERY CHURCH\nRECEPTION HOTEL PALACE', {
+                      as: 'div',
+                      className: 'font-mono text-[8.5px] sm:text-[9.5px] tracking-[0.18em] uppercase text-stone-700 leading-tight cursor-pointer hover:text-amber-800',
+                      multiline: true,
+                      label: 'địa điểm lễ cưới & tiệc',
+                    })}
+                  </div>
+                  <div
+                    style={{ fontFamily: 'Pinyon Script, Great Vibes, Allura, cursive' }}
+                    className="text-amber-800 text-lg sm:text-xl leading-none pt-0.5"
+                  >
+                    Caracas, Venezuela
+                  </div>
                 </div>
 
-                {/* 4. Center & Bottom-Right Hero Photo (Slot 0) - Reduced size & pushed back to give text ample room */}
-                <div 
-                  className="absolute inset-0 z-10 overflow-hidden shadow-2xs"
-                  style={{
-                    clipPath: 'polygon(0% 56%, 55% 17%, 98% 56%, 100% 100%, 60% 100%)',
-                  }}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* COVER 5: Hoàng Hôn & Bộ Ba Triptych (Sunset Triptych - Editorial Magazine) */}
+        {templateId === 'cover-editorial-triptych' && (
+          <div className="w-full h-full flex overflow-hidden relative select-none bg-[#fdfcf9]">
+            {/* TRANG TRÁI: BÌA SAU (BACK COVER - 47%) */}
+            <div className="w-[47%] h-full flex flex-col justify-between items-center p-6 sm:p-8 relative border-r border-stone-200 bg-[#fdfcf9]">
+              {/* Bottom-left Warm Terracotta Corner Accent */}
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-[#c98e68] absolute -bottom-2 -left-2 rounded-tr-full pointer-events-none opacity-85" />
+
+              {/* Top: Chapter Header (Clean & Minimalist without couple names) */}
+              <div className="flex flex-col items-center pt-3 z-10 text-center">
+                <span
+                  style={{ fontFamily: 'Bodoni Moda, Playfair Display, serif' }}
+                  className="text-stone-900 font-bold text-xs sm:text-sm tracking-[0.25em] uppercase"
                 >
-                  {renderSlot(0, 'w-full h-full')}
+                  THE WEDDING ALBUM
+                </span>
+                <span
+                  style={{ fontFamily: 'Pinyon Script, Great Vibes, cursive' }}
+                  className="text-2xl sm:text-3xl text-stone-700 italic mt-0.5"
+                >
+                  our story
+                </span>
+              </div>
+
+              {/* Center: Memory Portrait Frame (Slot 4) */}
+              <div className="flex flex-col items-center gap-2 z-10 my-auto">
+                <div className="p-2 sm:p-2.5 bg-white rounded-[1px] shadow-md border border-stone-200/80">
+                  <div className="w-36 h-48 sm:w-44 sm:h-56 bg-stone-100 overflow-hidden relative border border-stone-100">
+                    {renderSlot(4, 'w-full h-full')}
+                  </div>
                 </div>
+
+                {/* Subtext Quote */}
+                {textConfig.subtext && textConfig.subtext.trim() !== '' && textConfig.subtext !== 'Rất hân hạnh được đón tiếp quý khách' && (
+                  renderEditableText('subtext', textConfig.subtext, '', {
+                    as: 'p',
+                    style: { fontFamily: 'Cormorant Garamond, Georgia, serif' },
+                    className: 'text-stone-600 text-xs italic max-w-[220px] text-center leading-relaxed mt-1',
+                    multiline: true,
+                    label: 'trích dẫn / lời chúc',
+                  })
+                )}
+              </div>
+
+              {/* Bottom: Official Imprint (printed by PHOTOBOOK VIETNAM) */}
+              <div className="flex flex-col items-center gap-0.5 z-10 pb-1 text-center select-none">
+                <span
+                  style={{ fontFamily: 'Cormorant Garamond, Georgia, serif' }}
+                  className="text-[9.5px] italic text-stone-400 tracking-wider leading-tight"
+                >
+                  printed by
+                </span>
+                <span
+                  style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                  className="text-[9px] font-semibold tracking-[0.22em] uppercase text-stone-500 leading-tight"
+                >
+                  PHOTOBOOK VIETNAM
+                </span>
+              </div>
+            </div>
+
+            {/* CHÍNH GIỮA: GÁY SÁCH / GÁY ALBUM (SPINE - 6% - Minimalist) */}
+            <div 
+              className="w-[6%] h-full bg-[#fbf9f5] flex flex-col justify-between items-center py-6 relative border-x border-stone-300/70 shadow-[inset_0_0_8px_rgba(0,0,0,0.03)] select-none"
+            >
+              <div className="w-2 h-2 rounded-full bg-[#c98e68]/40" />
+              <span
+                style={{
+                  fontFamily: 'Bodoni Moda, serif',
+                  writingMode: 'vertical-rl',
+                  letterSpacing: '0.22em',
+                }}
+                className="text-stone-700 font-bold text-[10px] uppercase tracking-widest select-none whitespace-nowrap"
+              >
+                WEDDING ALBUM • {textConfig.dateText ? (textConfig.dateText.split('\n')[1] || textConfig.dateText.split(' ')[2] || textConfig.dateText.split('.').pop() || '2025') : '2025'}
+              </span>
+              <div className="text-[8px] font-mono text-stone-400 uppercase tracking-widest rotate-90">
+                PBVN
+              </div>
+            </div>
+
+            {/* TRANG PHẢI: BÌA TRƯỚC (FRONT COVER - 47%) */}
+            <div className="w-[47%] h-full relative overflow-hidden bg-[#fdfcf9] select-none border-l border-stone-200">
+              {/* Top-Right Terracotta Corner Accent */}
+              <div className="w-20 h-20 sm:w-24 sm:h-24 bg-[#c98e68] absolute -top-3 -right-3 rounded-bl-full pointer-events-none opacity-90 z-20" />
+
+              {/* Front Cover Canvas Container */}
+              <div className="w-full h-full relative overflow-hidden flex flex-col justify-between">
+                
+                {/* 1. TOP HEADER TYPOGRAPHY - Clean & fully clickable with z-30 */}
+                <div className="w-full min-h-[70px] pt-5 sm:pt-6 px-6 sm:px-8 z-30 relative pointer-events-auto flex items-baseline justify-between gap-3 flex-wrap">
+                  <div className="flex items-baseline gap-1.5 flex-wrap z-30 pointer-events-auto">
+                    {renderEditableText('groomName', textConfig.groomName, 'JOHN', {
+                      style: { fontFamily: 'Bodoni Moda, Playfair Display, serif' },
+                      className: 'text-stone-900 font-bold text-sm sm:text-base tracking-[0.2em] uppercase hover:text-amber-800 cursor-pointer',
+                      label: 'tên chú rể',
+                    })}
+                    {renderEditableText('connector', textConfig.connector || '&', '&', {
+                      style: { fontFamily: 'Bodoni Moda, Playfair Display, serif' },
+                      className: 'text-stone-900 font-bold text-sm sm:text-base tracking-[0.2em] uppercase hover:text-amber-800 cursor-pointer px-0.5',
+                      label: 'từ nối (&)',
+                    })}
+                    {renderEditableText('brideName', textConfig.brideName, 'EMMA', {
+                      style: { fontFamily: 'Bodoni Moda, Playfair Display, serif' },
+                      className: 'text-stone-900 font-bold text-sm sm:text-base tracking-[0.2em] uppercase hover:text-amber-800 cursor-pointer',
+                      label: 'tên cô dâu',
+                    })}
+                    <span style={{ fontFamily: 'Bodoni Moda, Playfair Display, serif' }} className="text-stone-900 font-bold text-sm sm:text-base tracking-[0.2em]">
+                      'S
+                    </span>
+                  </div>
+
+                  <div className="shrink-0 z-30 pointer-events-auto">
+                    {renderEditableText('tagline', textConfig.tagline && textConfig.tagline !== 'SAVE THE DATE' && textConfig.tagline !== 'All we need\nis love...' && textConfig.tagline !== 'Save Our Date' ? textConfig.tagline : 'Wedding', 'Wedding', {
+                      style: { fontFamily: 'Pinyon Script, Great Vibes, Dancing Script, cursive' },
+                      className: 'text-3xl sm:text-4xl md:text-5xl text-stone-900 font-normal italic leading-none hover:text-amber-800 cursor-pointer whitespace-nowrap',
+                      label: 'tiêu đề nghệ thuật (Wedding)',
+                    })}
+                  </div>
+                </div>
+
+                {/* 2. MIDDLE SECTION: Horizontal Main Photo & Left Triptych (Contained without overflowing header) */}
+                <div className="relative w-full h-[60%] my-auto flex items-center">
+                  
+                  {/* Hero Sunset Photo (Slot 0) spanning across horizontal banner */}
+                  <div className="w-full h-full bg-stone-200 relative overflow-hidden shadow-xs">
+                    {renderSlot(0, 'w-full h-full')}
+                  </div>
+
+                  {/* Left Overlapping Vertical Triptych Card (Slots 1, 2, 3) */}
+                  <div className="absolute left-[5%] sm:left-[6%] top-[-2%] bottom-[-2%] w-[28%] sm:w-[27%] bg-white p-1.5 sm:p-2 rounded-[1px] shadow-2xl border border-stone-100 flex flex-col justify-between gap-1.5 z-20">
+                    {/* Top Triptych Slot (Slot 1) */}
+                    <div className="w-full h-[31.5%] bg-stone-100 relative overflow-hidden rounded-[1px] border border-stone-100">
+                      {renderSlot(1, 'w-full h-full')}
+                    </div>
+                    {/* Middle Triptych Slot (Slot 2) */}
+                    <div className="w-full h-[31.5%] bg-stone-100 relative overflow-hidden rounded-[1px] border border-stone-100">
+                      {renderSlot(2, 'w-full h-full')}
+                    </div>
+                    {/* Bottom Triptych Slot (Slot 3) */}
+                    <div className="w-full h-[31.5%] bg-stone-100 relative overflow-hidden rounded-[1px] border border-stone-100">
+                      {renderSlot(3, 'w-full h-full')}
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* 3. BOTTOM FOOTER TYPOGRAPHY */}
+                <div className="w-full pb-5 sm:pb-7 px-6 z-20 flex flex-col items-center justify-center text-center">
+                  <div
+                    style={{ fontFamily: 'Bodoni Moda, Playfair Display, serif' }}
+                    className="text-stone-900 font-bold text-sm sm:text-base tracking-[0.28em] uppercase"
+                  >
+                    {renderEditableText('dateText', textConfig.dateText && textConfig.dateText !== '10.06\n2024' ? textConfig.dateText : '21ST OCTOBER 2025', '21ST OCTOBER 2025', {
+                      className: 'font-serif text-sm sm:text-base tracking-[0.28em] uppercase text-stone-900 hover:text-amber-800 cursor-pointer',
+                      label: 'ngày cưới',
+                    })}
+                  </div>
+                  <div className="text-[9px] sm:text-[10px] font-mono tracking-[0.35em] text-stone-500 uppercase mt-0.5">
+                    {renderEditableText('subtext', textConfig.subtext && textConfig.subtext !== 'Rất hân hạnh được đón tiếp quý khách' && textConfig.subtext !== 'CEREMONY STA.MERY CHURCH\nRECEPTION HOTEL PALACE' ? textConfig.subtext : '- SATURDAY -', '- SATURDAY -', {
+                      className: 'text-[9px] sm:text-[10px] font-mono tracking-[0.35em] text-stone-500 uppercase hover:text-amber-800 cursor-pointer',
+                      label: 'thứ / ghi chú phụ',
+                    })}
+                  </div>
+                </div>
+
               </div>
             </div>
           </div>
