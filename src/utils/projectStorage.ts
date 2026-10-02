@@ -180,7 +180,7 @@ export async function saveAutoSaveSession(session: AutoSaveSession): Promise<voi
   const autosaveRecord: SavedProject & { activePageIndex: number } = {
     ...session.project,
     id: AUTOSAVE_PROJECT_ID,
-    originalId: session.project.originalId || (session.project.id !== AUTOSAVE_PROJECT_ID ? session.project.id : undefined),
+    originalId: session.project.originalId || undefined,
     updatedAt: session.savedAt,
     activePageIndex: session.activePageIndex,
   };
@@ -203,8 +203,8 @@ export async function saveAutoSaveSession(session: AutoSaveSession): Promise<voi
     }
   }
 
-  // 3. If session belongs to a named user project, also update the actual project in IndexedDB
-  const targetId = session.project.originalId || session.project.id;
+  // 3. Only if the session is explicitly linked to an existing named project (originalId is set)
+  const targetId = session.project.originalId;
   if (targetId && typeof targetId === 'string' && targetId.startsWith('proj_') && targetId !== AUTOSAVE_PROJECT_ID) {
     try {
       const userProject: SavedProject = {

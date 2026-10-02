@@ -21,5 +21,5 @@ export const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfi
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
-// Connect explicitly to '(default)' database where the user's existing 'users' collection is located
-export const db = getFirestore(app, '(default)');
+// Connect to the provisioned Firestore database
+export const db = getFirestore(app, config.firestoreDatabaseId || '(default)');

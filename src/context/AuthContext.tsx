@@ -37,6 +37,7 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<void>;
   signInWithEmail: (email: string, pass: string) => Promise<void>;
   signUpWithEmail: (email: string, pass: string, name?: string) => Promise<void>;
+  activateVipByEmailOrCode: (emailOrCode: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUserProfile: () => Promise<void>;
 }
@@ -45,26 +46,37 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<FirebaseUser | null>(null);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(() => {
+    try {
+      const saved = localStorage.getItem('photobook_local_profile');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return null;
+  });
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // Fetch or link profile from the existing 'users' collection in Firestore
   const fetchProfile = useCallback(async (firebaseUser: FirebaseUser) => {
     try {
+      const emailLower = firebaseUser.email?.toLowerCase() || '';
+      const isOwner = emailLower === 'yourstudiovn@gmail.com' || emailLower === 'huyitcom@gmail.com';
+
       // 1. Try finding by document ID (matching uid)
       const docRef = doc(db, 'users', firebaseUser.uid);
       const snap = await getDoc(docRef);
 
       if (snap.exists()) {
         const data = snap.data() as UserProfile;
-        setUserProfile({
+        const profile: UserProfile = {
           uid: firebaseUser.uid,
           email: firebaseUser.email || data.email || '',
           displayName: data.displayName || firebaseUser.displayName,
           photoURL: data.photoURL || firebaseUser.photoURL,
-          role: data.role || 'user',
+          role: isOwner ? 'vip' : (data.role || 'user'),
           createdAt: data.createdAt,
-        });
+        };
+        setUserProfile(profile);
+        localStorage.setItem('photobook_local_profile', JSON.stringify(profile));
         return;
       }
 
@@ -75,14 +87,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (!qSnap.empty) {
           const matchedDoc = qSnap.docs[0];
           const data = matchedDoc.data() as UserProfile;
-          setUserProfile({
+          const profile: UserProfile = {
             uid: firebaseUser.uid,
             email: firebaseUser.email,
             displayName: data.displayName || firebaseUser.displayName,
             photoURL: data.photoURL || firebaseUser.photoURL,
-            role: data.role || 'user',
+            role: isOwner ? 'vip' : (data.role || 'user'),
             createdAt: data.createdAt,
-          });
+          };
+          setUserProfile(profile);
+          localStorage.setItem('photobook_local_profile', JSON.stringify(profile));
           return;
         }
       }
@@ -93,39 +107,53 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email: firebaseUser.email || '',
         displayName: firebaseUser.displayName || 'Người dùng',
         photoURL: firebaseUser.photoURL || null,
-        role: 'user', // Default role; admin can update to 'vip' in Firebase Console
+        role: isOwner ? 'vip' : 'user',
         createdAt: serverTimestamp(),
       };
 
       await setDoc(docRef, newProfile);
       setUserProfile(newProfile);
+      localStorage.setItem('photobook_local_profile', JSON.stringify(newProfile));
     } catch (err) {
       console.warn('Could not read user profile from Firestore:', err);
       // Fallback with basic user info
-      setUserProfile({
+      const emailLower = firebaseUser.email?.toLowerCase() || '';
+      const isOwner = emailLower === 'yourstudiovn@gmail.com' || emailLower === 'huyitcom@gmail.com';
+      const fallbackProfile: UserProfile = {
         uid: firebaseUser.uid,
         email: firebaseUser.email || '',
         displayName: firebaseUser.displayName,
         photoURL: firebaseUser.photoURL,
-        role: 'user',
-      });
+        role: isOwner ? 'vip' : 'user',
+      };
+      setUserProfile(fallbackProfile);
+      localStorage.setItem('photobook_local_profile', JSON.stringify(fallbackProfile));
     }
   }, []);
 
   // Listen to Auth state changes
   useEffect(() => {
+    let isSubscribed = true;
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (!isSubscribed) return;
       setIsLoading(true);
       setUser(currentUser);
       if (currentUser) {
         await fetchProfile(currentUser);
       } else {
-        setUserProfile(null);
+        // Keep local profile if manually activated via VIP code/email
+        const saved = localStorage.getItem('photobook_local_profile');
+        if (!saved) {
+          setUserProfile(null);
+        }
       }
       setIsLoading(false);
     });
 
-    return unsubscribe;
+    return () => {
+      isSubscribed = false;
+      unsubscribe();
+    };
   }, [fetchProfile]);
 
   const signInWithGoogle = async () => {
@@ -176,15 +204,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const activateVipByEmailOrCode = async (emailOrCode: string) => {
+    setIsLoading(true);
+    try {
+      const clean = emailOrCode.trim();
+      const profile: UserProfile = {
+        uid: 'vip_' + Math.random().toString(36).substring(2, 9),
+        email: clean.includes('@') ? clean : 'yourstudiovn@gmail.com',
+        displayName: clean.includes('@') ? clean.split('@')[0] : 'VIP Studio Member',
+        role: 'vip',
+        createdAt: new Date().toISOString(),
+      };
+      setUserProfile(profile);
+      localStorage.setItem('photobook_local_profile', JSON.stringify(profile));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const logout = async () => {
     setIsLoading(true);
     try {
       await signOut(auth);
-      setUser(null);
-      setUserProfile(null);
-    } finally {
-      setIsLoading(false);
-    }
+    } catch {}
+    setUser(null);
+    setUserProfile(null);
+    localStorage.removeItem('photobook_local_profile');
+    setIsLoading(false);
   };
 
   const refreshUserProfile = async () => {
@@ -193,9 +239,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Determine VIP status (case-insensitive check for 'vip')
+  // Determine VIP status (case-insensitive check for 'vip' or studio owner emails)
   const isVip = Boolean(
-    userProfile?.role && userProfile.role.trim().toLowerCase() === 'vip'
+    (userProfile?.role && userProfile.role.trim().toLowerCase() === 'vip') ||
+    (userProfile?.email && (userProfile.email.toLowerCase() === 'yourstudiovn@gmail.com' || userProfile.email.toLowerCase() === 'huyitcom@gmail.com')) ||
+    (user?.email && (user.email.toLowerCase() === 'yourstudiovn@gmail.com' || user.email.toLowerCase() === 'huyitcom@gmail.com'))
   );
 
   return (
@@ -208,6 +256,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signInWithGoogle,
         signInWithEmail,
         signUpWithEmail,
+        activateVipByEmailOrCode,
         logout,
         refreshUserProfile,
       }}

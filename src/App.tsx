@@ -43,6 +43,7 @@ import {
   getAutoSaveSession,
   clearAutoSaveSession,
   AutoSaveSession,
+  AUTOSAVE_PROJECT_ID,
 } from './utils/projectStorage';
 import { imageOptimizer } from './utils/imageOptimizer';
 import { AlertCircle, Sparkles, X } from 'lucide-react';
@@ -239,7 +240,7 @@ export default function App() {
           currentProjectName,
           pages,
           isSetupComplete,
-          currentProjectId || undefined
+          currentProjectId || AUTOSAVE_PROJECT_ID
         );
         const session = {
           project: {
@@ -274,7 +275,7 @@ export default function App() {
           currentProjectName,
           pages,
           isSetupComplete,
-          currentProjectId || undefined
+          currentProjectId || AUTOSAVE_PROJECT_ID
         );
         const session = {
           project: {
