@@ -429,6 +429,9 @@ export default function App() {
               customOverlayUri: undefined,
             };
 
+        // Giữ nguyên kích thước gốc của layout/trang hiện tại (không ép về 50:35 / 25x35)
+        const preservedAspectRatio = page.posterSettings.aspectRatio || '50:20';
+
         return {
           ...page,
           templateId: newTemplateId,
@@ -439,7 +442,7 @@ export default function App() {
             ...overlaySettings,
             aspectRatio: isSwitchingOverlay
               ? '50:20'
-              : (selectedTemplate?.aspectRatio || page.posterSettings.aspectRatio || '50:20'),
+              : preservedAspectRatio,
           },
         };
       });
@@ -504,6 +507,9 @@ export default function App() {
             }
           : {};
 
+        // Giữ nguyên kích thước gốc của layout/trang hiện tại (không ép về 50:35 / 25x35)
+        const preservedAspectRatio = page.posterSettings.aspectRatio || '50:20';
+
         return {
           ...page,
           templateId: newTemplateId,
@@ -511,7 +517,7 @@ export default function App() {
           posterSettings: {
             ...page.posterSettings,
             ...overlaySettings,
-            aspectRatio: isSwitchingOverlay ? '50:20' : (selectedTemplate?.aspectRatio || page.posterSettings.aspectRatio || '50:20'),
+            aspectRatio: isSwitchingOverlay ? '50:20' : preservedAspectRatio,
           },
         };
       });
@@ -569,6 +575,19 @@ export default function App() {
     });
 
     showAlert(`Đã áp dụng trọn bộ "${theme.name}" (10 layout, kích thước 50x20 cm) cho toàn bộ album!`, 'success');
+  };
+
+  // Apply Background Color to ALL pages in album
+  const handleApplyBgColorToAll = (bgColor: string) => {
+    setPages((prevPages) =>
+      prevPages.map((page) => ({
+        ...page,
+        posterSettings: {
+          ...page.posterSettings,
+          bgColor,
+        },
+      }))
+    );
   };
 
   // Add New Page to Album
@@ -1358,6 +1377,7 @@ export default function App() {
               onApplyTextConfigToAll={handleApplyTextConfigToAll}
               posterSettings={currentPage.posterSettings}
               onChangePosterSettings={handlePosterSettingsChange}
+              onApplyBgColorToAll={handleApplyBgColorToAll}
               activeSlotIndex={activeSlotIndex}
               onSelectSlot={(index) => setActiveSlotIndex(index)}
               onSlotImageChange={handleSlotImageChange}
@@ -1401,6 +1421,7 @@ export default function App() {
             onSelectText={(id) => setSelectedTextId(id)}
             posterSettings={currentPage.posterSettings}
             onChangePosterSettings={handlePosterSettingsChange}
+            onApplyBgColorToAll={handleApplyBgColorToAll}
             onAutoFill={handleApplyBatchPhotos}
             totalEmptySlotsCount={pages.reduce(
               (acc, page) =>
@@ -1503,6 +1524,7 @@ export default function App() {
         isOpen={isTemplatePickerOpen}
         onClose={() => setIsTemplatePickerOpen(false)}
         currentTemplateId={currentPage.templateId}
+        currentAspectRatio={currentPage.posterSettings.aspectRatio}
         onSelectTemplate={(newId) => {
           handleTemplateChange(newId);
           setIsTemplatePickerOpen(false);

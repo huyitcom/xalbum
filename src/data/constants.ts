@@ -49,8 +49,16 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
     category: 'basic',
   },
   {
-    id: 'basic-left-feature-2right',
+    id: 'basic-spread-2-full-bleed',
     name: 'Mẫu số 4',
+    description: '2 ảnh dọc đối xứng tràn full viền 2 trang (không chừa trắng)',
+    slotCount: 2,
+    aspectRatio: '50:35',
+    category: 'basic',
+  },
+  {
+    id: 'basic-left-feature-2right',
+    name: 'Mẫu số 5',
     description: '1 ảnh lớn trang trọng bên trái, 2 ảnh ngang xếp chồng bên phải',
     slotCount: 3,
     aspectRatio: '50:35',
@@ -58,7 +66,7 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-right-feature-2left',
-    name: 'Mẫu số 5',
+    name: 'Mẫu số 6',
     description: '2 ảnh ngang xếp chồng bên trái, 1 ảnh lớn trang trọng bên phải',
     slotCount: 3,
     aspectRatio: '50:35',
@@ -66,7 +74,7 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-four-grid',
-    name: 'Mẫu số 6',
+    name: 'Mẫu số 7',
     description: 'Lưới 4 ảnh đều nhau cân bằng (2 hàng, 2 cột)',
     slotCount: 4,
     aspectRatio: '50:35',
@@ -74,7 +82,7 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-panorama-top',
-    name: 'Mẫu số 7',
+    name: 'Mẫu số 8',
     description: '1 ảnh panorama rộng bên trên, 3 ảnh bên dưới (1 ảnh trái, 2 ảnh ngang phải)',
     slotCount: 4,
     aspectRatio: '50:35',
@@ -82,7 +90,7 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-skewed-grid',
-    name: 'Mẫu số 8',
+    name: 'Mẫu số 9',
     description: 'Lưới 4 ảnh so le (hàng trên trái rộng phải hẹp, hàng dưới trái hẹp phải rộng)',
     slotCount: 4,
     aspectRatio: '50:35',
@@ -90,7 +98,7 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-stack-right-3',
-    name: 'Mẫu số 9',
+    name: 'Mẫu số 10',
     description: '1 ảnh lớn bên trái, 3 ảnh ngang xếp tầng bên phải',
     slotCount: 4,
     aspectRatio: '50:35',
@@ -98,7 +106,7 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-story-5',
-    name: 'Mẫu số 10',
+    name: 'Mẫu số 11',
     description: '1 ảnh ngang panorama phía trên, 4 ảnh đứng xếp hàng ngang phía dưới',
     slotCount: 5,
     aspectRatio: '50:35',
@@ -106,7 +114,7 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-stack-left-3',
-    name: 'Mẫu số 11',
+    name: 'Mẫu số 12',
     description: '3 ảnh ngang xếp tầng bên trái, 1 ảnh lớn bên phải',
     slotCount: 4,
     aspectRatio: '50:35',
@@ -114,7 +122,7 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-left-2split-feature',
-    name: 'Mẫu số 12',
+    name: 'Mẫu số 13',
     description: '2 ảnh ngang bên trái, 1 ảnh lớn tràn viền bên phải',
     slotCount: 3,
     aspectRatio: '50:35',
@@ -122,7 +130,7 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-unequal-split-2',
-    name: 'Mẫu số 13',
+    name: 'Mẫu số 14',
     description: '2 ảnh dọc chia tỷ lệ lệch 40% - 60%',
     slotCount: 2,
     aspectRatio: '50:35',
@@ -130,7 +138,7 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-trio-left',
-    name: 'Mẫu số 14',
+    name: 'Mẫu số 15',
     description: '1 ảnh đứng bên trái, 2 ảnh ngang bên phải (tỷ lệ 50-50)',
     slotCount: 3,
     aspectRatio: '50:35',
@@ -138,7 +146,7 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-main-left-portrait',
-    name: 'Mẫu số 15',
+    name: 'Mẫu số 16',
     description: '1 ảnh lớn chính bên trái (65%), 1 ảnh phụ đứng bên phải (35%)',
     slotCount: 2,
     aspectRatio: '50:35',
@@ -146,7 +154,7 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-center-landscape-pair',
-    name: 'Mẫu số 16',
+    name: 'Mẫu số 17',
     description: '2 ảnh ngang đối xứng giữa hai trang kèm viền trắng tinh tế',
     slotCount: 2,
     aspectRatio: '50:35',
@@ -154,7 +162,7 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-portrait-two-right',
-    name: 'Mẫu số 17',
+    name: 'Mẫu số 18',
     description: '1 ảnh lớn bên trái, 2 ảnh đứng song song bên phải',
     slotCount: 3,
     aspectRatio: '50:35',
@@ -162,7 +170,7 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-four-vertical-columns',
-    name: 'Mẫu số 18',
+    name: 'Mẫu số 19',
     description: '4 ảnh đứng trải đều qua 2 trang (mỗi bên 2 ảnh đứng)',
     slotCount: 4,
     aspectRatio: '50:35',
@@ -170,7 +178,7 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-four-asymmetric',
-    name: 'Mẫu số 19',
+    name: 'Mẫu số 20',
     description: '3 ảnh nghệ thuật bên trái (2 nhỏ trên, 1 ngang dưới), 1 ảnh đứng bên phải cân xứng',
     slotCount: 4,
     aspectRatio: '50:35',
@@ -178,7 +186,7 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-mosaic-story',
-    name: 'Mẫu số 20',
+    name: 'Mẫu số 21',
     description: 'Trang trái 2 ảnh (ngang trên, vuông dưới), trang phải 3 ảnh ngang xếp tầng',
     slotCount: 5,
     aspectRatio: '50:35',
@@ -186,7 +194,7 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-left-feature-right-2vert',
-    name: 'Mẫu số 21',
+    name: 'Mẫu số 22',
     description: '1 ảnh lớn bên trái, 2 ảnh ngang lớn bên phải',
     slotCount: 3,
     aspectRatio: '50:35',
@@ -194,7 +202,7 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-left-primary-right-secondary',
-    name: 'Mẫu số 22',
+    name: 'Mẫu số 23',
     description: '1 ảnh lớn chính bên trái (55%), 1 ảnh phụ nhỏ hơn đặt giữa trang phải (45%)',
     slotCount: 2,
     aspectRatio: '50:35',
@@ -202,7 +210,7 @@ export const BASIC_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: 'basic-left-primary-right-mosaic',
-    name: 'Mẫu số 23',
+    name: 'Mẫu số 24',
     description: '1 ảnh lớn bên trái (50%), 4 ảnh ghép lưới 2x2 bên phải (50%)',
     slotCount: 5,
     aspectRatio: '50:35',
@@ -825,7 +833,8 @@ export const PHOTO_FILTERS = [
 export const createDefaultPage = (
   pageNumber: number,
   templateId: TemplateId = 'album-50x35-memories',
-  photoOffset: number = 0
+  photoOffset: number = 0,
+  defaultAspectRatio?: string
 ): AlbumPage => {
   const template = TEMPLATES.find((t) => t.id === templateId) || TEMPLATES[0];
   const slots = Array.from({ length: template.slotCount }, (_, i) => ({
@@ -845,7 +854,10 @@ export const createDefaultPage = (
     templateId,
     slots,
     textConfig: { ...DEFAULT_TEXT_CONFIG },
-    posterSettings: { ...DEFAULT_POSTER_SETTINGS, aspectRatio: template.aspectRatio },
+    posterSettings: {
+      ...DEFAULT_POSTER_SETTINGS,
+      aspectRatio: defaultAspectRatio || '50:20',
+    },
   };
 };
 

@@ -48,15 +48,44 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
   onOpenCropModal,
   posterRef,
   isExporting = false,
-  onUpdatePosterSettings: _onUpdatePosterSettings,
+  onUpdatePosterSettings,
   pageNumber,
 }) => {
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [panningIndex, setPanningIndex] = useState<number | null>(null);
   const [editingTextId, setEditingTextId] = useState<string | null>(null);
   const [tempEditText, setTempEditText] = useState<string>('');
-  const [editingConfigKey, setEditingConfigKey] = useState<keyof TextConfig | null>(null);
+  const [editingConfigKey, setEditingConfigKey] = useState<keyof TextConfig | 'cover4CoupleNames' | null>(null);
   const [tempConfigValue, setTempConfigValue] = useState<string>('');
+
+  const handleToggleZone = (zone: 'cut' | 'safe' | 'guides') => {
+    if (!onUpdatePosterSettings) return;
+    if (zone === 'cut') {
+      const next = !posterSettings.showCutZone;
+      onUpdatePosterSettings({
+        ...posterSettings,
+        showCutZone: next,
+        showSafeZone: false,
+        showGuides: false,
+      });
+    } else if (zone === 'safe') {
+      const next = !posterSettings.showSafeZone;
+      onUpdatePosterSettings({
+        ...posterSettings,
+        showSafeZone: next,
+        showCutZone: false,
+        showGuides: false,
+      });
+    } else if (zone === 'guides') {
+      const next = !posterSettings.showGuides;
+      onUpdatePosterSettings({
+        ...posterSettings,
+        showGuides: next,
+        showCutZone: false,
+        showSafeZone: false,
+      });
+    }
+  };
 
   const textDragRef = useRef<{
     textId: string;
@@ -110,8 +139,8 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
   const isExtremeLandscape = wRatio / hRatio >= 2;
   const baseWidth = isExtremeLandscape ? 960 : isLandscape ? 820 : 560;
   const baseHeight = (baseWidth * hRatio) / wRatio;
-  // Constant chrome height for top label (24px) + bottom legend (32px)
-  const CHROME_HEIGHT = 56;
+  // Constant chrome height for top label & guides toolbar (38px)
+  const CHROME_HEIGHT = 38;
   const totalCanvasHeight = baseHeight + CHROME_HEIGHT;
 
   useEffect(() => {
@@ -712,14 +741,89 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
           transformOrigin: 'top center',
           transition: 'transform 0.1s ease-out'
         }}
-        className="flex shrink-0 justify-between flex-col items-center"
+        className="flex shrink-0 justify-start flex-col items-center"
       >
-        {/* Top Header Bar: luôn hiển thị số trang (Trang 1-2) cố định */}
+        {/* Top Header Bar: hiển thị số trang (Trang 1-2) cùng thanh công cụ Cut Zone, Safe Zone, Guides */}
         {!isExporting && (
-          <div className="w-full h-6 flex items-center justify-start text-xs text-stone-600 font-medium px-1 select-none shrink-0">
-            <span className="font-semibold text-stone-700 tracking-tight">
+          <div className="w-full h-8 flex items-center justify-between text-xs text-stone-600 font-medium px-1 mb-1 select-none shrink-0">
+            <span className="font-semibold text-stone-700 tracking-tight text-xs">
               Trang {pageNumber ? `${(pageNumber - 1) * 2 + 1}-${pageNumber * 2}` : '1-2'}
             </span>
+
+            {/* Guides / Safety Toolbar */}
+            <div className="flex items-center gap-1 sm:gap-1.5 bg-white/95 backdrop-blur-xs px-2 py-0.5 rounded-xl border border-stone-200/80 shadow-2xs">
+              {/* 1. Cut Zone Button */}
+              <button
+                type="button"
+                onClick={() => handleToggleZone('cut')}
+                className={`px-2 py-0.5 text-xs rounded-lg border flex items-center gap-1.5 transition cursor-pointer ${
+                  posterSettings.showCutZone
+                    ? 'border-rose-500 bg-rose-50 text-rose-700 font-bold shadow-2xs ring-1 ring-rose-400/40'
+                    : 'border-transparent text-stone-600 hover:text-stone-900 hover:bg-stone-100'
+                }`}
+                title="Bật/tắt Vùng cắt xén (Cut Zone: chỉ hiển thị viền đỏ mép ngoài)"
+              >
+                <span className="w-3 h-3 rounded-[2px] border-2 border-rose-500 bg-rose-100/60 shrink-0" />
+                <span>Cut Zone</span>
+              </button>
+
+              {/* 2. Safe Zone Button */}
+              <button
+                type="button"
+                onClick={() => handleToggleZone('safe')}
+                className={`px-2 py-0.5 text-xs rounded-lg border flex items-center gap-1.5 transition cursor-pointer ${
+                  posterSettings.showSafeZone
+                    ? 'border-cyan-500 bg-cyan-50 text-cyan-700 font-bold shadow-2xs ring-1 ring-cyan-400/40'
+                    : 'border-transparent text-stone-600 hover:text-stone-900 hover:bg-stone-100'
+                }`}
+                title="Bật/tắt Khung an toàn (Safe Zone: chỉ hiển thị 2 khung Cyan)"
+              >
+                <span className="w-3 h-3 rounded-[2px] border-2 border-cyan-500 bg-cyan-100/60 shrink-0" />
+                <span>Safe Zone</span>
+              </button>
+
+              {/* 3. Guides Button */}
+              <button
+                type="button"
+                onClick={() => handleToggleZone('guides')}
+                className={`px-2 py-0.5 text-xs rounded-lg border flex items-center gap-1.5 transition cursor-pointer ${
+                  posterSettings.showGuides
+                    ? 'border-sky-500 bg-sky-50 text-sky-700 font-bold shadow-2xs ring-1 ring-sky-400/40'
+                    : 'border-transparent text-stone-600 hover:text-stone-900 hover:bg-stone-100'
+                }`}
+                title="Bật/tắt Đường gióng & Gáy (Guides: chỉ hiển thị đường gióng tâm & rãnh gáy)"
+              >
+                <span className="w-3 h-3 flex items-center justify-center font-bold text-sky-600 text-sm leading-none shrink-0">—</span>
+                <span>Guides</span>
+              </button>
+
+              <div className="w-[1px] h-3.5 bg-stone-200 mx-0.5" />
+
+              {/* Help / Info Button with Tooltip */}
+              <div className="relative group">
+                <button
+                  type="button"
+                  className="w-4.5 h-4.5 rounded-full border border-stone-200 bg-stone-50 hover:bg-stone-100 text-stone-500 hover:text-stone-800 text-[10px] font-bold flex items-center justify-center transition cursor-help"
+                  title="Hướng dẫn vùng in & đường gióng"
+                >
+                  ?
+                </button>
+                <div className="absolute right-0 top-full mt-2 hidden group-hover:block w-64 p-2.5 bg-stone-900 text-white text-[11px] rounded-xl shadow-xl z-50 pointer-events-none space-y-1.5 leading-relaxed">
+                  <div className="flex items-start gap-1.5">
+                    <span className="text-rose-400 font-bold shrink-0">Cut Zone:</span>
+                    <span>Mép xén thành phẩm (xén 2-3mm viền ngoài khi in ấn).</span>
+                  </div>
+                  <div className="flex items-start gap-1.5">
+                    <span className="text-cyan-400 font-bold shrink-0">Safe Zone:</span>
+                    <span>Khung an toàn Cyan (giữ mặt & chữ trong khung để không bị lẹm).</span>
+                  </div>
+                  <div className="flex items-start gap-1.5">
+                    <span className="text-sky-300 font-bold shrink-0">Guides:</span>
+                    <span>Đường gióng tâm 50% & rãnh gấp gáy album.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
@@ -738,7 +842,7 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
             width: baseWidth,
             height: baseHeight,
             backgroundColor: posterSettings.bgColor,
-            padding: (isVipOverlay || templateId.startsWith('cover-') || templateId === 'album-50x35-love-beyond' || templateId === 'album-50x35-blooming-flowers' || templateId === 'album-50x35-sweet-escape' || templateId === 'album-50x35-great-ending' || templateId === 'album-50x35-maison-amour' || templateId === 'album-50x35-seasons-of-love' || templateId === 'album-50x35-quietly-yours' || templateId === 'album-50x35-finest-chapter' || templateId === 'album-50x35-familiar-soul' || templateId === 'album-50x35-ordinary-forever' || templateId === 'album-50x35-mutual-muse') ? 0 : `${posterSettings.outerMargin}px`,
+            padding: (isVipOverlay || templateId.startsWith('cover-') || templateId === 'basic-spread-2-full-bleed' || templateId === 'album-50x35-love-beyond' || templateId === 'album-50x35-blooming-flowers' || templateId === 'album-50x35-sweet-escape' || templateId === 'album-50x35-great-ending' || templateId === 'album-50x35-maison-amour' || templateId === 'album-50x35-seasons-of-love' || templateId === 'album-50x35-quietly-yours' || templateId === 'album-50x35-finest-chapter' || templateId === 'album-50x35-familiar-soul' || templateId === 'album-50x35-ordinary-forever' || templateId === 'album-50x35-mutual-muse') ? 0 : `${posterSettings.outerMargin}px`,
             border: isVipOverlay
               ? 'none'
               : posterSettings.borderStyle === 'thin-line'
@@ -960,10 +1064,9 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
                 <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-stone-400">
                   The Archive • Vol. 01
                 </span>
-                {renderEditableText('dateText', textConfig.dateText.split('\n')[1] || textConfig.dateText, '2026', {
-                  className: 'font-mono text-[9px] uppercase text-stone-400',
-                  label: 'năm / ngày cưới',
-                })}
+                <span className="font-mono text-[9px] uppercase text-stone-400">
+                  {textConfig.dateText ? (textConfig.dateText.match(/\d{4}/)?.[0] || '2024') : '2024'}
+                </span>
               </div>
 
               {/* Center: 2 Offset Candid Photos (Slot 1 & 2) */}
@@ -1051,7 +1154,7 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
                 <div className="flex flex-col items-center text-center pointer-events-auto">
                   <div className="w-full flex items-center justify-between text-[8px] font-mono tracking-[0.25em] text-white/80 uppercase border-b border-white/30 pb-1 mb-2">
                     <span>Exclusive Collector's Edition</span>
-                    {renderEditableText('dateText', textConfig.dateText.replace('\n', ' • '), 'OCTOBER 2026', {
+                    {renderEditableText('dateText', textConfig.dateText.replace('\n', ' • '), '10.06 • 2024', {
                       className: 'font-mono text-[8px] tracking-[0.25em] text-white/80 uppercase',
                       label: 'ngày tháng',
                     })}
@@ -1089,12 +1192,7 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
                       label: 'tên cô dâu',
                     })}
                   </div>
-                  <div className="flex items-center gap-3 mt-2 text-[10px] font-mono text-stone-300">
-                    <span>DATE: {renderEditableText('dateText', textConfig.dateText.replace('\n', ' / '), '10/06/2026', {
-                      className: 'text-[10px] font-mono text-stone-300',
-                      label: 'ngày cưới',
-                    })}</span>
-                    <span>•</span>
+                  <div className="flex items-center gap-3 mt-2 text-[10px] font-mono text-stone-300 tracking-wider">
                     <span>SPECIAL ALBUM EDITION</span>
                   </div>
                 </div>
@@ -1275,15 +1373,7 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
             </div>
 
             {/* CHÍNH GIỮA: GÁY SÁCH / GÁY ALBUM (SPINE - 6%) */}
-            <div 
-              className="w-[6%] h-full bg-[#fbf9f6] flex flex-col justify-between items-center py-6 relative border-x border-stone-300/80 shadow-[inset_0_0_10px_rgba(0,0,0,0.03)] cursor-pointer group/spine"
-              onClick={(e) => {
-                e.stopPropagation();
-                setEditingConfigKey('groomName');
-                setTempConfigValue(textConfig.groomName || 'Michelle');
-              }}
-              title="Nhấp để sửa tên trên gáy sách"
-            >
+            <div className="w-[6%] h-full bg-[#fbf9f6] flex flex-col justify-between items-center py-6 relative border-x border-stone-300/80 shadow-[inset_0_0_10px_rgba(0,0,0,0.03)] select-none">
               <div className="w-2 h-2 rounded-full border border-amber-700/40 flex items-center justify-center text-[6px] text-amber-800">
                 ✦
               </div>
@@ -1291,20 +1381,15 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
                 style={{
                   fontFamily: 'Bodoni Moda, Cormorant Garamond, serif',
                   writingMode: 'vertical-rl',
-                  letterSpacing: '0.22em',
+                  letterSpacing: '0.25em',
                 }}
-                className="text-stone-800 font-bold text-xs uppercase tracking-widest select-none whitespace-nowrap group-hover/spine:text-amber-800 transition"
+                className="text-stone-700 font-bold text-xs uppercase tracking-widest select-none whitespace-nowrap"
               >
-                {(textConfig.groomName || 'Michelle').toUpperCase()} & {(textConfig.brideName || 'Omar').toUpperCase()} • {textConfig.dateText.split('\n')[1] || textConfig.dateText.split('|')[0]?.trim() || '2026'}
+                WEDDING ALBUM
               </span>
               <div className="text-[8px] font-mono text-stone-400 uppercase tracking-widest rotate-90">
                 PBVN
               </div>
-              {!isExporting && (
-                <span className="group-hover/spine:flex hidden absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-stone-900/95 text-white text-[8.5px] px-1.5 py-0.5 rounded shadow z-40 whitespace-nowrap">
-                  ✏️ Sửa gáy
-                </span>
-              )}
             </div>
 
             {/* TRANG PHẢI: BÌA TRƯỚC (FRONT COVER - 47%) */}
@@ -1318,7 +1403,7 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
                 {/* TOP HEADER: Clean Date & Time */}
                 <div className="w-full flex justify-end items-center pr-2 pt-1 z-20">
                   <div className="flex items-center gap-1.5 text-stone-600 text-[10px] sm:text-[11px] font-mono tracking-[0.2em] uppercase">
-                    {renderEditableText('dateText', textConfig.dateText && textConfig.dateText !== '10.06\n2024' ? textConfig.dateText : 'OCTOBER | 8th | 5:00PM', 'OCTOBER | 8th | 5:00PM', {
+                    {renderEditableText('dateText', textConfig.dateText.replace('\n', ' • '), '10.06.2026', {
                       className: 'font-mono text-[10px] sm:text-[11px] tracking-[0.2em] uppercase text-stone-600 hover:text-amber-800 cursor-pointer',
                       label: 'thời gian & ngày cưới',
                     })}
@@ -1335,13 +1420,12 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
 
                     {/* Vertical Couple Name Calligraphy */}
                     <div 
-                      className="bg-white py-4 px-1.5 z-10 pointer-events-auto cursor-pointer flex items-center justify-center shadow-2xs"
+                      className="bg-white py-4 px-1.5 z-10 pointer-events-auto cursor-pointer flex items-center justify-center shadow-2xs hover:ring-2 hover:ring-amber-500/60 rounded-sm transition group/calligraphy relative select-none"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setEditingConfigKey('groomName');
-                        setTempConfigValue(textConfig.groomName || 'Michelle');
+                        setEditingConfigKey('cover4CoupleNames');
                       }}
-                      title="Nhấp để sửa tên cô dâu chú rể"
+                      title="Nhấp để sửa tên cô dâu & chú rể"
                     >
                       <span
                         style={{
@@ -1349,12 +1433,86 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
                           writingMode: 'vertical-rl',
                           letterSpacing: '0.12em',
                         }}
-                        className="text-amber-800 text-2xl sm:text-3xl select-none hover:opacity-80 transition whitespace-nowrap rotate-180"
+                        className="text-amber-800 text-2xl sm:text-3xl select-none hover:opacity-85 transition whitespace-nowrap rotate-180"
                       >
-                        • {(textConfig.groomName || 'Michelle')} & {(textConfig.brideName || 'Omar')} •
+                        • {(textConfig.groomName || 'TUẤN ANH')} & {(textConfig.brideName || 'BẢO NGỌC')} •
                       </span>
+                      {!isExporting && (
+                        <span className="group-hover/calligraphy:flex hidden absolute -top-7 left-1/2 -translate-x-1/2 bg-stone-900/95 text-white text-[9px] font-sans font-medium px-2 py-0.5 rounded-md shadow-lg items-center gap-1 z-50 pointer-events-none whitespace-nowrap">
+                          ✏️ Sửa tên cô dâu & chú rể
+                        </span>
+                      )}
                     </div>
                   </div>
+
+                  {/* Centered Modal for Couple Names (Never clipped or hidden) */}
+                  {editingConfigKey === 'cover4CoupleNames' && (
+                    <div 
+                      className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-2xs p-3 animate-in fade-in duration-150 pointer-events-auto"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingConfigKey(null);
+                      }}
+                    >
+                      <div
+                        className="bg-white p-4 sm:p-5 rounded-2xl shadow-2xl border-2 border-amber-300 w-full max-w-[270px] flex flex-col gap-2.5 animate-in zoom-in-95 duration-150"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="flex items-center justify-between text-xs font-bold text-amber-900 border-b border-amber-100 pb-2">
+                          <span className="flex items-center gap-1.5">
+                            <span>✏️</span>
+                            <span>Sửa tên Cô Dâu & Chú Rể</span>
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setEditingConfigKey(null)}
+                            className="text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-full p-1 cursor-pointer transition text-xs"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <div>
+                            <label className="text-[11px] font-semibold text-stone-700 block mb-1">Tên Chú rể:</label>
+                            <input
+                              type="text"
+                              autoFocus
+                              value={textConfig.groomName || ''}
+                              placeholder="TUẤN ANH"
+                              onChange={(e) => {
+                                if (onChangeTextConfig) {
+                                  onChangeTextConfig({ ...textConfig, groomName: e.target.value });
+                                }
+                              }}
+                              className="w-full px-3 py-1.5 text-xs font-bold text-stone-800 bg-stone-50 border border-amber-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white transition"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[11px] font-semibold text-stone-700 block mb-1">Tên Cô dâu:</label>
+                            <input
+                              type="text"
+                              value={textConfig.brideName || ''}
+                              placeholder="BẢO NGỌC"
+                              onChange={(e) => {
+                                if (onChangeTextConfig) {
+                                  onChangeTextConfig({ ...textConfig, brideName: e.target.value });
+                                }
+                              }}
+                              className="w-full px-3 py-1.5 text-xs font-bold text-stone-800 bg-stone-50 border border-amber-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white transition"
+                            />
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setEditingConfigKey(null)}
+                          className="mt-1 w-full py-2 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 active:scale-[0.98] text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-md transition cursor-pointer"
+                        >
+                          <Check className="w-4 h-4" />
+                          <span>Hoàn tất</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Botanical Foliage Vector Silhouette along left edge of photo */}
                   <div className="absolute left-[20%] sm:left-[22%] top-[8%] bottom-[8%] w-[20%] z-20 pointer-events-none overflow-visible flex items-center">
@@ -1632,6 +1790,17 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
             </div>
             <div className="w-1/2 h-full min-h-0">
               {renderSlot(1, 'w-full h-full')}
+            </div>
+          </div>
+        )}
+
+        {templateId === 'basic-spread-2-full-bleed' && (
+          <div className="w-full h-full flex overflow-hidden gap-0">
+            <div className="w-1/2 h-full min-h-0">
+              {renderSlot(0, 'w-full h-full rounded-none')}
+            </div>
+            <div className="w-1/2 h-full min-h-0">
+              {renderSlot(1, 'w-full h-full rounded-none')}
             </div>
           </div>
         )}
@@ -4545,8 +4714,6 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
           </div>
         )}
       </div>
-
-        {/* Bottom Legend Bar - Ẩn theo yêu cầu người dùng */}
       </div>
     </div>
   );

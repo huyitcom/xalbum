@@ -6,7 +6,7 @@ interface InitialSetupModalProps {
 }
 
 export const InitialSetupModal: React.FC<InitialSetupModalProps> = ({ onComplete }) => {
-  const [aspectRatio, setAspectRatio] = useState<AspectRatioType>('50:20');
+  const [aspectRatio, setAspectRatio] = useState<AspectRatioType>('50:35');
   const [pageCount, setPageCount] = useState<number>(10);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -18,7 +18,7 @@ export const InitialSetupModal: React.FC<InitialSetupModalProps> = ({ onComplete
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md my-auto flex flex-col max-h-[90vh]">
         <div className="p-6 overflow-y-auto flex-1">
-          <h2 className="text-xl font-bold text-stone-800 mb-6 text-center">Tạo Album Mới</h2>
+          <h2 className="text-xl font-bold text-stone-800 mb-6 text-center">Chọn kích thước album</h2>
           <form onSubmit={handleSubmit} className="space-y-6">
             
             <div className="space-y-4">
@@ -104,7 +104,7 @@ export const InitialSetupModal: React.FC<InitialSetupModalProps> = ({ onComplete
 
             <div className="space-y-2 pt-2 border-t border-stone-100">
               <span className="text-xs font-bold text-stone-800 uppercase tracking-wider block">
-                SỐ LƯỢNG TRANG (TRANG ĐÔI)
+                SỐ LƯỢNG LAYOUT (TRANG ĐÔI)
               </span>
               <div className="flex items-center gap-3">
                 <input

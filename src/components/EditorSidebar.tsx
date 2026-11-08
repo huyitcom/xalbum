@@ -48,6 +48,7 @@ interface EditorSidebarProps {
   onSelectText?: (id: string | null) => void;
   posterSettings: PosterSettings;
   onChangePosterSettings: (updated: PosterSettings) => void;
+  onApplyBgColorToAll?: (bgColor: string) => void;
   onAutoFill?: (imageIds: string[]) => void;
   totalEmptySlotsCount?: number;
   usedImageIds?: string[];
@@ -294,6 +295,15 @@ export const TemplateThumbnail: React.FC<{ id?: string; slots?: import('../types
       <div className={`w-full h-full bg-white p-1 flex gap-1 select-none overflow-hidden ${className}`}>
         <div className="w-1/2 h-full bg-stone-300 rounded-[2px] relative overflow-hidden"><ThumbnailSlot slot={slots?.[0]} /></div>
         <div className="w-1/2 h-full bg-stone-300 rounded-[2px] relative overflow-hidden"><ThumbnailSlot slot={slots?.[1]} /></div>
+      </div>
+    );
+  }
+
+  if (id === 'basic-spread-2-full-bleed') {
+    return (
+      <div className={`w-full h-full bg-white p-0 flex gap-0 select-none overflow-hidden ${className}`}>
+        <div className="w-1/2 h-full bg-stone-300 relative overflow-hidden border-r border-white/10"><ThumbnailSlot slot={slots?.[0]} className="rounded-none" /></div>
+        <div className="w-1/2 h-full bg-stone-300 relative overflow-hidden"><ThumbnailSlot slot={slots?.[1]} className="rounded-none" /></div>
       </div>
     );
   }
@@ -1473,6 +1483,7 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
   onSelectText,
   posterSettings,
   onChangePosterSettings,
+  onApplyBgColorToAll,
   onAutoFill,
   totalEmptySlotsCount = 0,
   usedImageIds = [],
@@ -1496,6 +1507,18 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
   const [pendingUploads, setPendingUploads] = useState(0);
   const [appliedAllNotice, setAppliedAllNotice] = useState(false);
   const [textAppliedNotice, setTextAppliedNotice] = useState(false);
+  const [applyBgColorToAll, setApplyBgColorToAll] = useState(false);
+  const [appliedBgAllNotice, setAppliedBgAllNotice] = useState(false);
+
+  const handleToggleApplyBgColorToAll = () => {
+    const next = !applyBgColorToAll;
+    setApplyBgColorToAll(next);
+    if (next && posterSettings.bgColor && onApplyBgColorToAll) {
+      onApplyBgColorToAll(posterSettings.bgColor);
+      setAppliedBgAllNotice(true);
+      setTimeout(() => setAppliedBgAllNotice(false), 2000);
+    }
+  };
 
   const handleConfirmClearAll = async () => {
     setIsClearing(true);
@@ -1560,6 +1583,11 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
 
   const updateSettings = (key: keyof PosterSettings, value: any) => {
     onChangePosterSettings({ ...posterSettings, [key]: value });
+    if (key === 'bgColor' && applyBgColorToAll && onApplyBgColorToAll) {
+      onApplyBgColorToAll(value);
+      setAppliedBgAllNotice(true);
+      setTimeout(() => setAppliedBgAllNotice(false), 2000);
+    }
   };
 
   return (
@@ -1718,35 +1746,42 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
               )}
 
               <div className="grid grid-cols-2 gap-2.5">
-                {(layoutCategory === 'cover' ? COVER_TEMPLATES : layoutCategory === 'vip' ? VIP_TEMPLATES : layoutCategory === 'basic' ? BASIC_TEMPLATES : WITH_TEXT_TEMPLATES).map((tmpl) => (
-                  <div key={tmpl.id} className="flex flex-col gap-1">
-                    <button
-                      type="button"
-                      onClick={() => onChangeTemplate(tmpl.id)}
-                      title={`${tmpl.name} (${tmpl.slotCount} ảnh)`}
-                      className={`w-full ${tmpl.aspectRatio === '50:20' ? 'aspect-[50/20]' : 'aspect-[50/35]'} rounded-xl border-2 transition overflow-hidden relative group cursor-pointer flex items-center justify-center ${
-                        templateId === tmpl.id
-                          ? 'border-sky-500 ring-2 ring-sky-500/20 shadow-xs'
-                          : 'border-stone-200 hover:border-stone-300 bg-white'
-                      }`}
-                    >
-                      <TemplateThumbnail id={tmpl.id} slots={currentPageSlots} />
-                      {templateId === tmpl.id && (
-                        <div className="absolute top-1 right-1 w-5 h-5 bg-sky-500 rounded-full flex items-center justify-center shadow-sm z-10">
-                          <Check className="w-3 h-3 text-white" />
-                        </div>
-                      )}
-                    </button>
-                    <div className="flex items-center justify-between px-0.5 text-[11px] leading-tight">
-                      <span className="font-medium text-stone-700 truncate" title={tmpl.name}>
-                        {tmpl.name.replace('Layout Đôi ', 'Trang ')}
-                      </span>
-                      <span className="text-stone-400 text-[10px] shrink-0 font-normal">
-                        {tmpl.slotCount} ảnh
-                      </span>
+                {(layoutCategory === 'cover' ? COVER_TEMPLATES : layoutCategory === 'vip' ? VIP_TEMPLATES : layoutCategory === 'basic' ? BASIC_TEMPLATES : WITH_TEXT_TEMPLATES).map((tmpl) => {
+                  const previewRatio = tmpl.isOverlay || tmpl.category === 'vip'
+                    ? '50/20'
+                    : (posterSettings?.aspectRatio ? posterSettings.aspectRatio.replace(':', '/') : '50/20');
+
+                  return (
+                    <div key={tmpl.id} className="flex flex-col gap-1">
+                      <button
+                        type="button"
+                        onClick={() => onChangeTemplate(tmpl.id)}
+                        title={`${tmpl.name} (${tmpl.slotCount} ảnh)`}
+                        style={{ aspectRatio: previewRatio }}
+                        className={`w-full rounded-xl border-2 transition overflow-hidden relative group cursor-pointer flex items-center justify-center ${
+                          templateId === tmpl.id
+                            ? 'border-sky-500 ring-2 ring-sky-500/20 shadow-xs'
+                            : 'border-stone-200 hover:border-stone-300 bg-white'
+                        }`}
+                      >
+                        <TemplateThumbnail id={tmpl.id} slots={currentPageSlots} />
+                        {templateId === tmpl.id && (
+                          <div className="absolute top-1 right-1 w-5 h-5 bg-sky-500 rounded-full flex items-center justify-center shadow-sm z-10">
+                            <Check className="w-3 h-3 text-white" />
+                          </div>
+                        )}
+                      </button>
+                      <div className="flex items-center justify-between px-0.5 text-[11px] leading-tight">
+                        <span className="font-medium text-stone-700 truncate" title={tmpl.name}>
+                          {tmpl.name.replace('Layout Đôi ', 'Trang ')}
+                        </span>
+                        <span className="text-stone-400 text-[10px] shrink-0 font-normal">
+                          {tmpl.slotCount} ảnh
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
@@ -2422,12 +2457,93 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
         {/* TAB 4: FRAME & BACKGROUND STYLE */}
         {activeTab === 'style' && (
           <div className="flex-1 overflow-y-auto p-5 space-y-5 animate-fade-in">
-            {/* Safe Zone & Print Guides (Vùng an toàn & Đường guide in ấn) - Ẩn theo yêu cầu người dùng */}
+            {/* Safe Zone, Cut Zone & Print Guides (Vùng an toàn & Đường gióng in ấn) */}
+            <div className="bg-stone-50 p-3.5 rounded-2xl border border-stone-200/80 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-stone-800 uppercase tracking-wider block">
+                  Đường gióng & Vùng in ấn
+                </span>
+                {(posterSettings.showCutZone || posterSettings.showSafeZone || posterSettings.showGuides) && (
+                  <button
+                    type="button"
+                    onClick={() => onChangePosterSettings({
+                      ...posterSettings,
+                      showCutZone: false,
+                      showSafeZone: false,
+                      showGuides: false,
+                    })}
+                    className="text-[10px] text-stone-500 hover:text-rose-600 font-medium cursor-pointer transition"
+                  >
+                    Tắt tất cả
+                  </button>
+                )}
+              </div>
 
-            {/* Custom Overlay Section */}
-            {(() => {
-              return null;
-            })()}
+              <div className="grid grid-cols-3 gap-2">
+                {/* 1. Cut Zone */}
+                <button
+                  type="button"
+                  onClick={() => onChangePosterSettings({
+                    ...posterSettings,
+                    showCutZone: !posterSettings.showCutZone,
+                    showSafeZone: false,
+                    showGuides: false,
+                  })}
+                  className={`p-2.5 rounded-xl border text-center transition flex flex-col items-center gap-1 cursor-pointer ${
+                    posterSettings.showCutZone
+                      ? 'border-rose-500 bg-rose-50 text-rose-800 font-bold shadow-xs ring-1 ring-rose-400/40'
+                      : 'border-stone-200 bg-white hover:bg-stone-100 text-stone-700'
+                  }`}
+                  title="Chỉ hiển thị viền đỏ mép xén"
+                >
+                  <span className="w-4 h-4 rounded-[3px] border-2 border-rose-500 bg-rose-100/60 flex items-center justify-center text-[8px] font-bold text-rose-600" />
+                  <span className="text-xs font-bold">Cut Zone</span>
+                  <span className="text-[9px] text-stone-500 font-normal">Mép xén đỏ</span>
+                </button>
+
+                {/* 2. Safe Zone */}
+                <button
+                  type="button"
+                  onClick={() => onChangePosterSettings({
+                    ...posterSettings,
+                    showSafeZone: !posterSettings.showSafeZone,
+                    showCutZone: false,
+                    showGuides: false,
+                  })}
+                  className={`p-2.5 rounded-xl border text-center transition flex flex-col items-center gap-1 cursor-pointer ${
+                    posterSettings.showSafeZone
+                      ? 'border-cyan-500 bg-cyan-50 text-cyan-800 font-bold shadow-xs ring-1 ring-cyan-400/40'
+                      : 'border-stone-200 bg-white hover:bg-stone-100 text-stone-700'
+                  }`}
+                  title="Chỉ hiển thị 2 khung an toàn Cyan"
+                >
+                  <span className="w-4 h-4 rounded-[3px] border-2 border-cyan-500 bg-cyan-100/60 flex items-center justify-center text-[8px] font-bold text-cyan-600" />
+                  <span className="text-xs font-bold">Safe Zone</span>
+                  <span className="text-[9px] text-stone-500 font-normal">Khung Cyan</span>
+                </button>
+
+                {/* 3. Guides */}
+                <button
+                  type="button"
+                  onClick={() => onChangePosterSettings({
+                    ...posterSettings,
+                    showGuides: !posterSettings.showGuides,
+                    showCutZone: false,
+                    showSafeZone: false,
+                  })}
+                  className={`p-2.5 rounded-xl border text-center transition flex flex-col items-center gap-1 cursor-pointer ${
+                    posterSettings.showGuides
+                      ? 'border-sky-500 bg-sky-50 text-sky-800 font-bold shadow-xs ring-1 ring-sky-400/40'
+                      : 'border-stone-200 bg-white hover:bg-stone-100 text-stone-700'
+                  }`}
+                  title="Chỉ hiển thị đường gióng tâm & rãnh gáy"
+                >
+                  <span className="w-4 h-4 flex items-center justify-center font-bold text-sky-600 text-sm leading-none">—</span>
+                  <span className="text-xs font-bold">Guides</span>
+                  <span className="text-[9px] text-stone-500 font-normal">Đường gióng</span>
+                </button>
+              </div>
+            </div>
 
             {/* Aspect Ratio Selector */}
             <div className="bg-stone-50 p-3.5 rounded-2xl border border-stone-200/80 space-y-4">
@@ -2533,6 +2649,37 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
                     </span>
                   </button>
                 ))}
+              </div>
+
+              {/* Radio button Áp dụng cho tất cả trang */}
+              <div className="pt-2.5 border-t border-stone-200/80 mt-2 flex items-center justify-between">
+                <label
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleToggleApplyBgColorToAll();
+                  }}
+                  className="flex items-center gap-2 cursor-pointer select-none group py-0.5"
+                >
+                  <input
+                    type="radio"
+                    name="apply_bg_to_all_pages_desktop"
+                    checked={applyBgColorToAll}
+                    readOnly
+                    className="w-4 h-4 text-sky-600 border-stone-300 focus:ring-sky-500 accent-sky-600 cursor-pointer"
+                  />
+                  <span className="text-xs text-stone-700 font-medium group-hover:text-stone-900 transition">
+                    Áp dụng cho tất cả trang
+                  </span>
+                </label>
+                {appliedBgAllNotice ? (
+                  <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 animate-in fade-in duration-150">
+                    ✓ Đã áp dụng
+                  </span>
+                ) : applyBgColorToAll ? (
+                  <span className="text-[10px] text-sky-600 font-semibold bg-sky-50 px-2 py-0.5 rounded-full border border-sky-200 animate-in fade-in duration-150">
+                    Đã bật
+                  </span>
+                ) : null}
               </div>
             </div>
 

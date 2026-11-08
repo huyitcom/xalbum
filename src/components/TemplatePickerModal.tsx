@@ -12,6 +12,7 @@ interface TemplatePickerModalProps {
   onApplyTemplateToAll?: (id: TemplateId) => void;
   currentPageSlots?: import('../types').FrameSlot[];
   onApplyThemeSet?: (themeId: string) => void;
+  currentAspectRatio?: string;
 }
 
 export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
@@ -22,6 +23,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
   onApplyTemplateToAll,
   currentPageSlots,
   onApplyThemeSet,
+  currentAspectRatio,
 }) => {
   const [category, setCategory] = useState<'cover' | 'basic' | 'with-text' | 'vip'>('cover');
 
@@ -47,7 +49,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4 border-b border-stone-100 bg-stone-50/80">
+        <div className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4 border-b border-stone-100 bg-stone-50/80 shrink-0">
           <div className="flex items-center gap-2.5 sm:gap-3">
             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-sky-100 text-sky-600 flex items-center justify-center shadow-xs shrink-0">
               <LayoutGrid className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -75,11 +77,11 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
         </div>
 
         {/* Sub-tabs: Bìa Album / Tiêu chuẩn / Chuyên nghiệp / Họa tiết */}
-        <div className="px-4 pt-3 sm:px-6 sm:pt-4 bg-stone-50/50 flex items-center overflow-x-auto scrollbar-none">
+        <div className="px-4 pt-3 pb-2 sm:px-6 sm:pt-4 sm:pb-2 bg-stone-50/50 flex items-center overflow-x-auto scrollbar-none shrink-0">
           <div className="flex bg-stone-200/70 p-1 rounded-xl gap-1 shrink-0">
             <button
               onClick={() => setCategory('cover')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition text-center cursor-pointer flex items-center gap-1.5 ${
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition text-center cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
                 category === 'cover'
                   ? 'bg-amber-600 text-white shadow-xs'
                   : 'text-stone-700 hover:text-stone-900'
@@ -90,7 +92,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
             </button>
             <button
               onClick={() => setCategory('basic')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition text-center cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition text-center cursor-pointer whitespace-nowrap ${
                 category === 'basic'
                   ? 'bg-white text-stone-900 shadow-xs'
                   : 'text-stone-600 hover:text-stone-900'
@@ -100,7 +102,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
             </button>
             <button
               onClick={() => setCategory('with-text')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition text-center cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition text-center cursor-pointer whitespace-nowrap ${
                 category === 'with-text'
                   ? 'bg-white text-stone-900 shadow-xs'
                   : 'text-stone-600 hover:text-stone-900'
@@ -110,7 +112,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
             </button>
             <button
               onClick={() => setCategory('vip')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition text-center cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition text-center cursor-pointer whitespace-nowrap ${
                 category === 'vip'
                   ? 'bg-white text-stone-900 shadow-xs'
                   : 'text-stone-600 hover:text-stone-900'
@@ -122,7 +124,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
         </div>
 
         {/* Templates Grid Content */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-stone-50/50">
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 bg-stone-50/50">
           {/* VIP Theme Set Header Card */}
           {category === 'vip' && (
             <div className="p-4 sm:p-5 bg-gradient-to-br from-amber-50 via-rose-50/60 to-emerald-50/70 rounded-2xl sm:rounded-3xl border-2 border-amber-300 shadow-sm mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -193,15 +195,25 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
                   )}
 
                   {/* Thumbnail Container */}
-                  <div className={`w-full flex items-center justify-center bg-stone-100/80 rounded-xl overflow-hidden p-2.5 transition-colors group-hover:bg-stone-100 ${
-                    tmpl.aspectRatio === '50:20' ? 'aspect-[50/20]' : 'aspect-[50/35]'
-                  }`}>
-                    <div className={`w-full h-full shadow-sm border border-stone-200/90 rounded-md overflow-hidden transition-transform duration-200 group-hover:scale-[1.02] ${
-                      tmpl.aspectRatio === '50:20' ? 'aspect-[50/20]' : 'aspect-[50/35]'
-                    }`}>
-                      <TemplateThumbnail id={tmpl.id} slots={currentPageSlots} />
-                    </div>
-                  </div>
+                  {(() => {
+                    const ratioValue = tmpl.isOverlay || tmpl.category === 'vip'
+                      ? '50/20'
+                      : (currentAspectRatio ? currentAspectRatio.replace(':', '/') : '50/20');
+
+                    return (
+                      <div
+                        className="w-full flex items-center justify-center bg-stone-100/80 rounded-xl overflow-hidden p-2.5 transition-colors group-hover:bg-stone-100"
+                        style={{ aspectRatio: ratioValue }}
+                      >
+                        <div
+                          className="w-full h-full shadow-sm border border-stone-200/90 rounded-md overflow-hidden transition-transform duration-200 group-hover:scale-[1.02]"
+                          style={{ aspectRatio: ratioValue }}
+                        >
+                          <TemplateThumbnail id={tmpl.id} slots={currentPageSlots} />
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {/* Compact Header Info */}
                   <div className="pt-3 px-0.5 flex flex-col items-center">
@@ -209,7 +221,8 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
                       {tmpl.name}
                     </h3>
                     <p className="text-[11px] text-stone-400 text-center mt-0.5">
-                      {tmpl.slotCount} vị trí ảnh • {tmpl.aspectRatio === '50:20' ? '50x20cm (25x20)' : (tmpl.aspectRatio ? `${tmpl.aspectRatio.replace(':', 'x')}cm` : '50x35cm')}
+                      {tmpl.slotCount} vị trí ảnh
+                      {tmpl.isOverlay || tmpl.category === 'vip' ? ' • Khổ 50x20 cm' : ''}
                     </p>
                   </div>
                 </div>
@@ -219,9 +232,9 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-3 sm:px-6 sm:py-3.5 border-t border-stone-100 bg-white flex items-center justify-between gap-3">
+        <div className="px-4 py-3 sm:px-6 sm:py-3.5 border-t border-stone-100 bg-white flex items-center justify-between gap-3 shrink-0">
           <span className="text-xs text-stone-500">
-            Đang xem: <strong className="text-stone-800">{displayedTemplates.length} mẫu</strong> ({category === 'basic' ? 'Tiêu chuẩn' : category === 'with-text' ? 'Chuyên nghiệp' : 'Họa tiết'})
+            Đang xem: <strong className="text-stone-800">{displayedTemplates.length} mẫu</strong> ({category === 'cover' ? 'Bìa Album' : category === 'basic' ? 'Tiêu chuẩn' : category === 'with-text' ? 'Chuyên nghiệp' : 'Họa tiết'})
           </span>
           <div className="flex items-center gap-2">
             {category === 'basic' && onApplyTemplateToAll && (
