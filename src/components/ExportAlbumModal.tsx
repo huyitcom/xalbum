@@ -80,8 +80,12 @@ export const ExportAlbumModal: React.FC<ExportAlbumModalProps> = ({
           );
 
           const base64Data = dataUrl.replace(/^data:image\/jpeg;base64,/, '');
-          const pageNumStr = String(i + 1).padStart(2, '0');
-          folder?.file(`Trang_${pageNumStr}.jpg`, base64Data, { base64: true });
+          const isCover = page.templateId?.startsWith('cover-');
+          const innerIdx = pages.slice(0, i).filter((p) => !p.templateId?.startsWith('cover-')).length;
+          const fileName = isCover
+            ? 'Bia_Album.jpg'
+            : `Trang_${String(innerIdx * 2 + 1).padStart(2, '0')}-${String(innerIdx * 2 + 2).padStart(2, '0')}.jpg`;
+          folder?.file(fileName, base64Data, { base64: true });
         }
       }
 

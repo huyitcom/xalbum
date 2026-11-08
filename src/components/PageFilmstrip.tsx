@@ -167,9 +167,7 @@ export const PageFilmstrip: React.FC<PageFilmstripProps> = ({
                 }`}>
                   {page.templateId?.startsWith('cover-')
                     ? 'Bìa'
-                    : Boolean(pages[0]?.templateId?.startsWith('cover-'))
-                    ? `P.${(index - 1) * 2 + 1}-${(index - 1) * 2 + 2}`
-                    : `P.${index * 2 + 1}-${index * 2 + 2}`}
+                    : `P.${pages.slice(0, index).filter((p) => !p.templateId?.startsWith('cover-')).length * 2 + 1}-${pages.slice(0, index).filter((p) => !p.templateId?.startsWith('cover-')).length * 2 + 2}`}
                 </div>
 
                 {/* Photo Count Tag */}
@@ -187,9 +185,7 @@ export const PageFilmstrip: React.FC<PageFilmstripProps> = ({
                 >
                   {page.templateId?.startsWith('cover-')
                     ? 'Bìa Album'
-                    : Boolean(pages[0]?.templateId?.startsWith('cover-'))
-                    ? `Trang ${(index - 1) * 2 + 1}-${(index - 1) * 2 + 2}`
-                    : `Trang ${index * 2 + 1}-${index * 2 + 2}`}
+                    : `Trang ${pages.slice(0, index).filter((p) => !p.templateId?.startsWith('cover-')).length * 2 + 1}-${pages.slice(0, index).filter((p) => !p.templateId?.startsWith('cover-')).length * 2 + 2}`}
                 </span>
 
                 {/* Mini Reorder controls on hover */}

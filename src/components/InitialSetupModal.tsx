@@ -6,7 +6,10 @@ interface InitialSetupModalProps {
 }
 
 export const InitialSetupModal: React.FC<InitialSetupModalProps> = ({ onComplete }) => {
-  const [aspectRatio, setAspectRatio] = useState<AspectRatioType>('50:35');
+  const [aspectRatio, setAspectRatio] = useState<AspectRatioType>(() => {
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
+    return isMobile ? '30:15' : '50:35';
+  });
   const [pageCount, setPageCount] = useState<number>(10);
 
   const handleSubmit = (e: React.FormEvent) => {

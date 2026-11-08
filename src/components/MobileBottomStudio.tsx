@@ -1182,7 +1182,9 @@ export const MobileBottomStudio: React.FC<MobileBottomStudioProps> = ({
                 <div className="flex-1 overflow-y-auto min-h-0 space-y-2.5 pr-1 pb-4">
                   {pages.map((p, idx) => {
                     const isCurrent = idx === activePageIndex;
-                    const pageDisplayNumber = `${idx * 2 + 1}-${idx * 2 + 2}`;
+                    const isCover = Boolean(p.templateId?.startsWith('cover-'));
+                    const innerIdx = pages.slice(0, idx).filter((item) => !item.templateId?.startsWith('cover-')).length;
+                    const pageDisplayNumber = isCover ? 'Bìa Album' : `Trang ${innerIdx * 2 + 1}-${innerIdx * 2 + 2}`;
                     return (
                       <div
                         key={p.id || idx}
@@ -1205,7 +1207,7 @@ export const MobileBottomStudio: React.FC<MobileBottomStudioProps> = ({
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <span className="font-bold text-stone-900 text-xs">
-                              Trang {pageDisplayNumber}
+                              {pageDisplayNumber}
                             </span>
                             {isCurrent && (
                               <span className="text-[10px] font-bold text-sky-700 bg-sky-100 px-1.5 py-0.5 rounded">

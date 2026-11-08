@@ -747,7 +747,9 @@ export const PosterCanvas: React.FC<PosterCanvasProps> = ({
         {!isExporting && (
           <div className="w-full h-8 flex items-center justify-between text-xs text-stone-600 font-medium px-1 mb-1 select-none shrink-0">
             <span className="font-semibold text-stone-700 tracking-tight text-xs">
-              Trang {pageNumber ? `${(pageNumber - 1) * 2 + 1}-${pageNumber * 2}` : '1-2'}
+              {templateId?.startsWith('cover-')
+                ? 'Bìa Album'
+                : `Trang ${pageNumber ? `${(pageNumber - 1) * 2 + 1}-${pageNumber * 2}` : '1-2'}`}
             </span>
 
             {/* Guides / Safety Toolbar */}

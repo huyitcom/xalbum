@@ -32,15 +32,13 @@ export const MobileTopFilmstrip: React.FC<MobileTopFilmstripProps> = ({
     }
   }, [activePageIndex]);
 
-  const hasCoverAtStart = Boolean(pages[0]?.templateId?.startsWith('cover-'));
-  const currentIsCover = Boolean(pages[activePageIndex]?.templateId?.startsWith('cover-'));
-  const currentPageNumber = currentIsCover
+  const isCurrentCover = Boolean(pages[activePageIndex]?.templateId?.startsWith('cover-'));
+  const currentInnerIndex = pages.slice(0, activePageIndex).filter((p) => !p.templateId?.startsWith('cover-')).length;
+  const currentPageNumber = isCurrentCover
     ? 'Bìa Album'
-    : hasCoverAtStart
-    ? `${(activePageIndex - 1) * 2 + 1}-${(activePageIndex - 1) * 2 + 2}`
-    : `${activePageIndex * 2 + 1}-${activePageIndex * 2 + 2}`;
+    : `${currentInnerIndex * 2 + 1}-${currentInnerIndex * 2 + 2}`;
 
-  const totalInnerPagesNumber = hasCoverAtStart ? (pages.length - 1) * 2 : pages.length * 2;
+  const totalInnerPagesNumber = pages.filter((p) => !p.templateId?.startsWith('cover-')).length * 2;
 
   return (
     <div className="w-full shrink-0 flex-none bg-white/95 backdrop-blur-xs border-b border-stone-200 shadow-2xs z-30 select-none py-1 px-2.5">
@@ -48,9 +46,9 @@ export const MobileTopFilmstrip: React.FC<MobileTopFilmstripProps> = ({
       <div className="flex items-center justify-between text-xs text-stone-600 mb-1">
         <div className="flex items-center gap-1.5 font-bold text-stone-800 text-[11px]">
           <Layers className="w-3.5 h-3.5 text-sky-600" />
-          <span>{currentIsCover ? 'Bìa Album' : `Trang ${currentPageNumber}`}</span>
+          <span>{isCurrentCover ? 'Bìa Album' : `Trang ${currentPageNumber}`}</span>
           <span className="text-stone-400 font-normal text-[10px]">
-            {currentIsCover ? ' (Bìa Bọc)' : `/ ${totalInnerPagesNumber} trang`}
+            {isCurrentCover ? ' (Bìa Bọc)' : `/ ${totalInnerPagesNumber} trang`}
           </span>
         </div>
 
@@ -103,11 +101,11 @@ export const MobileTopFilmstrip: React.FC<MobileTopFilmstripProps> = ({
         {pages.map((page, index) => {
           const isActive = index === activePageIndex;
           const template = TEMPLATES.find((t) => t.id === page.templateId);
-          const pageDisplay = page.templateId?.startsWith('cover-')
+          const isCover = Boolean(page.templateId?.startsWith('cover-'));
+          const innerIdx = pages.slice(0, index).filter((p) => !p.templateId?.startsWith('cover-')).length;
+          const pageDisplay = isCover
             ? 'Bìa'
-            : hasCoverAtStart
-            ? `${(index - 1) * 2 + 1}-${(index - 1) * 2 + 2}`
-            : `${index * 2 + 1}-${index * 2 + 2}`;
+            : `${innerIdx * 2 + 1}-${innerIdx * 2 + 2}`;
 
           return (
             <div

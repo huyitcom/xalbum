@@ -861,31 +861,40 @@ export const createDefaultPage = (
   };
 };
 
-export const generateAlbumPages = (pageCount: number = 10, defaultAspectRatio?: string): AlbumPage[] => {
+export const generateAlbumPages = (
+  pageCount: number = 10,
+  defaultAspectRatio?: string,
+  defaultTemplateId?: TemplateId
+): AlbumPage[] => {
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
+  const effectiveAspectRatio = defaultAspectRatio || (isMobile ? '30:15' : '50:35');
+  const effectiveTemplateId = defaultTemplateId || (isMobile ? 'basic-spread-2-vertical' : undefined);
+
   let photoOffset = 0;
 
-  // Trang đầu tiên luôn là Bìa Album (Cover Spread: Bìa trước, gáy, bìa sau)
-  const coverTemplate = COVER_TEMPLATES[0];
-  const coverPage = createDefaultPage(0, coverTemplate.id, 0);
-  coverPage.title = 'Bìa Album';
-  if (defaultAspectRatio) {
-    coverPage.posterSettings.aspectRatio = defaultAspectRatio as any;
-  }
-  photoOffset += coverTemplate.slotCount;
-
-  // Các trang ruột bên trong (Trang 1-2, 3-4, ...)
+  // Các trang ruột bên trong (Trang 1-2, 3-4, ...) xếp ĐẦU TIÊN
   const innerPages = Array.from({ length: pageCount }).map((_, i) => {
-    const templateDef = WITH_TEXT_TEMPLATES[i % WITH_TEXT_TEMPLATES.length] || WITH_TEXT_TEMPLATES[0];
+    const templateDef = effectiveTemplateId
+      ? TEMPLATES.find((t) => t.id === effectiveTemplateId) || BASIC_TEMPLATES[2]
+      : WITH_TEXT_TEMPLATES[i % WITH_TEXT_TEMPLATES.length] || WITH_TEXT_TEMPLATES[0];
     const page = createDefaultPage(i + 1, templateDef.id, photoOffset);
-    if (defaultAspectRatio) {
-      page.posterSettings.aspectRatio = defaultAspectRatio as any;
+    if (effectiveAspectRatio) {
+      page.posterSettings.aspectRatio = effectiveAspectRatio as any;
     }
     photoOffset += templateDef.slotCount;
     return page;
   });
 
-  return [coverPage, ...innerPages];
+  // Trang Bìa Album (Cover Spread: Bìa trước, gáy, bìa sau) xếp ở CUỐI CÙNG
+  const coverTemplate = COVER_TEMPLATES[0];
+  const coverPage = createDefaultPage(pageCount + 1, coverTemplate.id, photoOffset);
+  coverPage.title = 'Bìa Album';
+  if (effectiveAspectRatio) {
+    coverPage.posterSettings.aspectRatio = effectiveAspectRatio as any;
+  }
+
+  return [...innerPages, coverPage];
 };
 
-export const INITIAL_ALBUM_PAGES: AlbumPage[] = generateAlbumPages(10, '50:20');
+export const INITIAL_ALBUM_PAGES: AlbumPage[] = generateAlbumPages(10);
 

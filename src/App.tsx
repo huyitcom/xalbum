@@ -9,7 +9,6 @@ import {
   SavedProject,
 } from './types';
 import {
-  INITIAL_ALBUM_PAGES,
   SAMPLE_WEDDING_PHOTOS,
   TEMPLATES,
   WITH_TEXT_TEMPLATES,
@@ -56,7 +55,14 @@ export default function App() {
   const { isVip } = useAuth();
 
   // Multi-page Album State
-  const [pages, setPages] = useState<AlbumPage[]>(() => INITIAL_ALBUM_PAGES);
+  const [pages, setPages] = useState<AlbumPage[]>(() => {
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
+    return generateAlbumPages(
+      10,
+      isMobile ? '30:15' : '50:35',
+      isMobile ? 'basic-spread-2-vertical' : undefined
+    );
+  });
   const [isSetupComplete, setIsSetupComplete] = useState<boolean>(false);
   const [activePageIndex, setActivePageIndex] = useState<number>(0);
 
@@ -168,27 +174,27 @@ export default function App() {
     };
   }, []);
 
-  // Helper: Đảm bảo trang Bìa Album luôn ở vị trí đầu tiên (trước trang 1-2)
-  const ensureCoverIsFirst = (pagesList: AlbumPage[]): AlbumPage[] => {
+  // Helper: Đảm bảo trang Bìa Album luôn ở vị trí cuối cùng (sau tất cả các trang ruột)
+  const ensureCoverIsLast = (pagesList: AlbumPage[]): AlbumPage[] => {
     const coverIdx = pagesList.findIndex((p) => p.templateId?.startsWith('cover-'));
-    if (coverIdx > 0) {
+    if (coverIdx >= 0 && coverIdx < pagesList.length - 1) {
       const copy = [...pagesList];
       const [coverPage] = copy.splice(coverIdx, 1);
-      copy.unshift(coverPage);
+      copy.push(coverPage);
       return copy;
     }
     return pagesList;
   };
 
-  // Đảm bảo nếu state hiện tại có bìa ở sau trang 1-2, lập tức đưa lên đầu tiên
+  // Đảm bảo nếu state hiện tại có bìa ở trước hoặc giữa, lập tức đưa về cuối cùng
   useEffect(() => {
-    setPages((prev) => ensureCoverIsFirst(prev));
+    setPages((prev) => ensureCoverIsLast(prev));
   }, []);
 
   const handleConfirmRestore = () => {
     if (!pendingRestoreSession || !pendingRestoreSession.project) return;
     const session = pendingRestoreSession;
-    const restoredPages = ensureCoverIsFirst(session.project.pages);
+    const restoredPages = ensureCoverIsLast(session.project.pages);
     setPages(restoredPages);
     setIsSetupComplete(true);
     if (session.project.originalId || (session.project.id && session.project.id !== 'xalbum_autosave_session')) {
@@ -197,11 +203,10 @@ export default function App() {
     if (session.project.name) {
       setCurrentProjectName(session.project.name);
     }
-    const coverIdxOriginal = session.project.pages.findIndex((p) => p.templateId?.startsWith('cover-'));
-    if (coverIdxOriginal > 0 && session.activePageIndex === coverIdxOriginal) {
-      setActivePageIndex(0);
-    } else if (typeof session.activePageIndex === 'number') {
+    if (typeof session.activePageIndex === 'number') {
       setActivePageIndex(Math.min(session.activePageIndex, restoredPages.length - 1));
+    } else {
+      setActivePageIndex(0);
     }
     setAutoSaveStatus('saved');
     setLastSavedTime(session.savedAt || Date.now());
@@ -447,20 +452,20 @@ export default function App() {
         };
       });
 
-      // Nếu chọn layout Bìa Album và trang không ở vị trí đầu tiên, đưa ngay lên đầu trước Trang 1-2!
-      if (isCoverTemplate && activePageIndex !== 0) {
+      // Nếu chọn layout Bìa Album và trang không ở vị trí cuối cùng, đưa về cuối cùng!
+      if (isCoverTemplate && activePageIndex !== updatedPages.length - 1) {
         const copy = [...updatedPages];
         const [coverPage] = copy.splice(activePageIndex, 1);
-        copy.unshift(coverPage);
+        copy.push(coverPage);
         updatedPages = copy;
       }
 
       return updatedPages;
     });
 
-    if (isCoverTemplate && activePageIndex !== 0) {
-      setActivePageIndex(0);
-      showAlert('Đã đem Bìa Album lên trang đầu tiên trước Trang 1-2!', 'success');
+    if (isCoverTemplate && activePageIndex !== pages.length - 1) {
+      setActivePageIndex(pages.length - 1);
+      showAlert('Đã chuyển Bìa Album về trang cuối cùng!', 'success');
     }
   };
 
@@ -592,13 +597,26 @@ export default function App() {
 
   // Add New Page to Album
   const handleAddPage = (templateId?: TemplateId) => {
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
     const newPageNumber = pages.length + 1;
-    const defaultTemplateId = templateId || WITH_TEXT_TEMPLATES[(newPageNumber - 1) % WITH_TEXT_TEMPLATES.length].id;
-    const currentAspectRatio = currentPage?.posterSettings?.aspectRatio || '50:20';
+    const defaultTemplateId = templateId || (isMobile ? 'basic-spread-2-vertical' : WITH_TEXT_TEMPLATES[(newPageNumber - 1) % WITH_TEXT_TEMPLATES.length].id);
+    const currentAspectRatio = currentPage?.posterSettings?.aspectRatio || (isMobile ? '30:15' : '50:35');
     const newPage = createDefaultPage(newPageNumber, defaultTemplateId, (pages.length * 3) % SAMPLE_WEDDING_PHOTOS.length);
     newPage.posterSettings.aspectRatio = currentAspectRatio;
-    setPages((prev) => [...prev, newPage]);
-    setActivePageIndex(pages.length);
+
+    // Chèn trang mới vào trước trang bìa cuối cùng (để bìa album luôn ở vị trí cuối cùng)
+    const coverIdx = pages.findIndex((p) => p.templateId?.startsWith('cover-'));
+    if (coverIdx >= 0) {
+      setPages((prev) => {
+        const copy = [...prev];
+        copy.splice(coverIdx, 0, newPage);
+        return copy;
+      });
+      setActivePageIndex(coverIdx);
+    } else {
+      setPages((prev) => [...prev, newPage]);
+      setActivePageIndex(pages.length);
+    }
   };
 
   // Duplicate Current Page
@@ -1138,7 +1156,7 @@ export default function App() {
   };
 
   const handleLoadProject = (project: SavedProject) => {
-    const pagesToLoad = ensureCoverIsFirst(project.pages);
+    const pagesToLoad = ensureCoverIsLast(project.pages);
     setPages(pagesToLoad);
     setIsSetupComplete(project.isSetupComplete);
     setCurrentProjectId(project.id);
@@ -1167,7 +1185,12 @@ export default function App() {
       message: 'Tạo một dự án album mới? Hãy chắc chắn bạn đã lưu album hiện tại trước khi tạo mới.',
       onConfirm: async () => {
         await clearAutoSaveSession();
-        const defaultPages = generateAlbumPages(10, '50:20');
+        const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
+        const defaultPages = generateAlbumPages(
+          10,
+          isMobile ? '30:15' : '50:35',
+          isMobile ? 'basic-spread-2-vertical' : undefined
+        );
         setPages(defaultPages);
         setActivePageIndex(0);
         setCurrentProjectId(null);
@@ -1189,8 +1212,13 @@ export default function App() {
       message: 'Khôi phục lại toàn bộ album về các trang mẫu mặc định ban đầu?',
       onConfirm: async () => {
         await clearAutoSaveSession();
-        const currentAspectRatio = currentPage?.posterSettings?.aspectRatio || '50:20';
-        setPages(generateAlbumPages(10, currentAspectRatio));
+        const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
+        const currentAspectRatio = currentPage?.posterSettings?.aspectRatio || (isMobile ? '30:15' : '50:35');
+        setPages(generateAlbumPages(
+          10,
+          currentAspectRatio,
+          isMobile ? 'basic-spread-2-vertical' : undefined
+        ));
         setActivePageIndex(0);
         setAutoSaveStatus('idle');
         setLastSavedTime(null);
@@ -1200,8 +1228,13 @@ export default function App() {
   };
 
   const handleSetupComplete = (aspectRatio: import('./types').AspectRatioType, pageCount: number) => {
-    // Generate pages cycling through rich WITH_TEXT_TEMPLATES
-    const newPages = generateAlbumPages(pageCount, aspectRatio);
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
+    // On mobile default template for all pages is Mẫu số 3 ('basic-spread-2-vertical')
+    const newPages = generateAlbumPages(
+      pageCount,
+      aspectRatio,
+      isMobile ? 'basic-spread-2-vertical' : undefined
+    );
     setPages(newPages);
     setActivePageIndex(0);
     setIsSetupComplete(true);
