@@ -18,6 +18,7 @@ class ImageOptimizerService {
   private subscribers = new Set<Subscriber>();
   public isAdding = false;
   private dbLoaded = false;
+  private clearGeneration = 0;
 
   public get isLoaded(): boolean {
     return this.dbLoaded;
@@ -28,12 +29,14 @@ class ImageOptimizerService {
   }
 
   private async loadFromDB() {
+    const gen = this.clearGeneration;
     try {
       const db = await openDB();
       const tx = db.transaction(STORE_IMAGES, 'readonly');
       const store = tx.objectStore(STORE_IMAGES);
       const req = store.getAll();
       req.onsuccess = () => {
+        if (gen !== this.clearGeneration) return;
         const stored = req.result as OptimizedImage[];
         if (stored && Array.isArray(stored)) {
           stored.forEach((img) => {
@@ -108,6 +111,7 @@ class ImageOptimizerService {
   }
 
   async clearAllImages(): Promise<void> {
+    this.clearGeneration++;
     this.registry.forEach((img) => {
       if (img.originalUrl?.startsWith('blob:')) URL.revokeObjectURL(img.originalUrl);
       if (img.previewUrl?.startsWith('blob:') && img.previewUrl !== img.originalUrl) URL.revokeObjectURL(img.previewUrl);
@@ -117,11 +121,16 @@ class ImageOptimizerService {
     this.queue = [];
     this.isProcessing = false;
     this.isAdding = false;
+    this.notify();
     try {
       const db = await openDB();
-      const tx = db.transaction(STORE_IMAGES, 'readwrite');
-      const store = tx.objectStore(STORE_IMAGES);
-      store.clear();
+      await new Promise<void>((resolve, reject) => {
+        const tx = db.transaction(STORE_IMAGES, 'readwrite');
+        const store = tx.objectStore(STORE_IMAGES);
+        const req = store.clear();
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+      });
     } catch (err) {
       console.warn('Could not clear IndexedDB image store:', err);
     }

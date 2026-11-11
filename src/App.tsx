@@ -156,7 +156,8 @@ export default function App() {
           setPendingRestoreSession(session);
           setShowRestorePrompt(true);
         } else {
-          // No previous session, ready for setup
+          // No previous session, clear any leftover images in library and ready for setup
+          await imageOptimizer.clearAllImages();
           if (isMounted) {
             setHasRestoredSession(true);
           }
@@ -219,7 +220,20 @@ export default function App() {
   const handleStartNewProjectFromPrompt = async () => {
     setShowRestorePrompt(false);
     setPendingRestoreSession(null);
-    await clearAutoSaveSession();
+    await Promise.all([
+      clearAutoSaveSession(),
+      imageOptimizer.clearAllImages(),
+    ]);
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
+    const defaultPages = generateAlbumPages(
+      10,
+      isMobile ? '30:15' : '50:35',
+      isMobile ? 'basic-spread-2-vertical' : undefined
+    );
+    setPages(defaultPages);
+    setActivePageIndex(0);
+    setSelectedTextId(null);
+    setActiveSlotIndex(null);
     setCurrentProjectId(null);
     setCurrentProjectName('Album Cưới Mới');
     setHasRestoredSession(true);
@@ -1184,7 +1198,10 @@ export default function App() {
     setConfirmDialog({
       message: 'Tạo một dự án album mới? Hãy chắc chắn bạn đã lưu album hiện tại trước khi tạo mới.',
       onConfirm: async () => {
-        await clearAutoSaveSession();
+        await Promise.all([
+          clearAutoSaveSession(),
+          imageOptimizer.clearAllImages(),
+        ]);
         const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
         const defaultPages = generateAlbumPages(
           10,
