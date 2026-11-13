@@ -1840,53 +1840,7 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
 
             
             
-            {/* Upload Button and Drop Area */}
-            <div className="flex-none w-full mb-3">
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleFileUpload}
-                className="hidden"
-                ref={fileInputRef}
-              />
-              <div className="flex items-stretch gap-2">
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex-1 py-2.5 px-3 border-2 border-dashed border-sky-300 hover:border-sky-500 bg-sky-50 hover:bg-sky-100 text-sky-700 rounded-xl flex items-center justify-center gap-2 transition cursor-pointer group shadow-2xs"
-                >
-                  <UploadCloud className="w-4 h-4 group-hover:scale-110 transition-transform text-sky-600" />
-                  <span className="text-xs font-bold uppercase tracking-wider">Tải ảnh lên</span>
-                </button>
-
-                {libraryImages.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmClearModal(true)}
-                    className="py-2.5 px-3 border border-rose-200 hover:border-rose-300 bg-rose-50/80 hover:bg-rose-100 text-rose-700 active:bg-rose-200 rounded-xl flex items-center justify-center gap-1.5 transition cursor-pointer shadow-2xs group shrink-0"
-                    title="Xóa toàn bộ ảnh trong thư viện để nạp ảnh mới"
-                  >
-                    <Trash2 className="w-4 h-4 text-rose-500 group-hover:scale-110 transition-transform" />
-                    <span className="text-xs font-bold whitespace-nowrap">Xóa hết ({libraryImages.length})</span>
-                  </button>
-                )}
-              </div>
-
-              {missingImagesCount > 0 && onSmartRelink && (
-                <button
-                  type="button"
-                  onClick={onSmartRelink}
-                  className="w-full mt-2 py-2 px-3 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white rounded-xl text-xs font-bold shadow-xs flex items-center justify-center gap-1.5 transition cursor-pointer animate-in fade-in"
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Nối lại {missingImagesCount} ảnh vào khung</span>
-                </button>
-              )}
-            </div>
-
-            
-            {/* Column Selector & Usage Filter Pills */}
+            {/* Usage Filter Pills (Top) */}
             {libraryImages.length > 0 && (() => {
               const usedCount = libraryImages.filter(img => usedImageIds.includes(img.id)).length;
               const unusedCount = libraryImages.length - usedCount;
@@ -1929,34 +1883,12 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
                       Đã dùng ({usedCount})
                     </button>
                   </div>
-
-                  <div className="flex items-center justify-between px-0.5">
-                    <span className="text-[10px] text-stone-400 font-semibold">
-                      {imageFilter === 'unused' ? 'Hình chưa đưa vào layout' : imageFilter === 'used' ? 'Hình đã đưa vào layout' : 'Toàn bộ thư viện ảnh'}
-                    </span>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] text-stone-400 font-semibold">Cột:</span>
-                      <div className="flex bg-stone-100 rounded-lg p-0.5">
-                        {[2, 3, 4].map((col) => (
-                          <button
-                            key={col}
-                            onClick={() => setImageColumns(col)}
-                            className={`px-2 py-0.5 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
-                              imageColumns === col ? 'bg-white shadow-xs text-sky-600 font-bold' : 'text-stone-500 hover:text-stone-700'
-                            }`}
-                          >
-                            {col}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
                 </div>
               );
             })()}
 
             {/* Images Grid */}
-            <div className="flex-1 overflow-y-auto pr-1 -mr-1 min-h-0 pb-10">
+            <div className="flex-1 overflow-y-auto pr-1 -mr-1 min-h-0 pb-4">
               {libraryImages.length === 0 ? (
                 <div className="py-8 flex flex-col items-center justify-center text-stone-400 text-center bg-stone-50 rounded-xl border border-stone-100">
                   <ImageIcon className="w-8 h-8 mb-2 opacity-20" />
@@ -2022,6 +1954,75 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
                     </div>
                   );
                 })()
+              )}
+            </div>
+
+            {/* Bottom Controls: Toàn bộ thư viện ảnh / Cột 2 3 4 & Tải ảnh lên / Xóa hết */}
+            <div className="flex-none w-full pt-3 mt-1 border-t border-stone-100 space-y-2.5 bg-white">
+              {libraryImages.length > 0 && (
+                <div className="flex items-center justify-between px-0.5">
+                  <span className="text-[10px] text-stone-400 font-semibold">
+                    {imageFilter === 'unused' ? 'Hình chưa đưa vào layout' : imageFilter === 'used' ? 'Hình đã đưa vào layout' : 'Toàn bộ thư viện ảnh'}
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] text-stone-400 font-semibold">Cột:</span>
+                    <div className="flex bg-stone-100 rounded-lg p-0.5">
+                      {[2, 3, 4].map((col) => (
+                        <button
+                          key={col}
+                          onClick={() => setImageColumns(col)}
+                          className={`px-2 py-0.5 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
+                            imageColumns === col ? 'bg-white shadow-xs text-sky-600 font-bold' : 'text-stone-500 hover:text-stone-700'
+                          }`}
+                        >
+                          {col}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleFileUpload}
+                className="hidden"
+                ref={fileInputRef}
+              />
+              <div className="flex items-stretch gap-2">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex-1 py-2.5 px-3 border-2 border-dashed border-sky-300 hover:border-sky-500 bg-sky-50 hover:bg-sky-100 text-sky-700 rounded-xl flex items-center justify-center gap-2 transition cursor-pointer group shadow-2xs"
+                >
+                  <UploadCloud className="w-4 h-4 group-hover:scale-110 transition-transform text-sky-600" />
+                  <span className="text-xs font-bold uppercase tracking-wider">Tải ảnh lên</span>
+                </button>
+
+                {libraryImages.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmClearModal(true)}
+                    className="py-2.5 px-3 border border-rose-200 hover:border-rose-300 bg-rose-50/80 hover:bg-rose-100 text-rose-700 active:bg-rose-200 rounded-xl flex items-center justify-center gap-1.5 transition cursor-pointer shadow-2xs group shrink-0"
+                    title="Xóa toàn bộ ảnh trong thư viện để nạp ảnh mới"
+                  >
+                    <Trash2 className="w-4 h-4 text-rose-500 group-hover:scale-110 transition-transform" />
+                    <span className="text-xs font-bold whitespace-nowrap">Xóa hết ({libraryImages.length})</span>
+                  </button>
+                )}
+              </div>
+
+              {missingImagesCount > 0 && onSmartRelink && (
+                <button
+                  type="button"
+                  onClick={onSmartRelink}
+                  className="w-full py-2 px-3 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white rounded-xl text-xs font-bold shadow-xs flex items-center justify-center gap-1.5 transition cursor-pointer animate-in fade-in"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Nối lại {missingImagesCount} ảnh vào khung</span>
+                </button>
               )}
             </div>
           </div>

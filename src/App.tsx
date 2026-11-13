@@ -20,6 +20,7 @@ import { TextStylePreset } from './data/textStyles';
 import { Navbar } from './components/Navbar';
 import { PosterCanvas } from './components/PosterCanvas';
 import { EditorSidebar } from './components/EditorSidebar';
+import { LeftLayoutPanel } from './components/LeftLayoutPanel';
 import { MobileBottomStudio } from './components/MobileBottomStudio';
 import { MobileTopFilmstrip } from './components/MobileTopFilmstrip';
 import { PageFilmstrip } from './components/PageFilmstrip';
@@ -1290,8 +1291,18 @@ export default function App() {
         }}
       />
 
-      {/* Main App Layout: Left Workspace (Canvas + Filmstrip) + Right Control Panel */}
+      {/* Main App Layout: Left Layout Panel (PC) + Center Workspace (Canvas + Filmstrip) + Right Control Panel */}
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+        {/* Desktop Only: Collapsible Left Layout Selector Panel */}
+        <LeftLayoutPanel
+          templateId={currentPage.templateId}
+          onChangeTemplate={handleTemplateChange}
+          onApplyTemplateToAll={handleApplyTemplateToAll}
+          onApplyThemeSet={handleApplyThemeSet}
+          posterSettings={currentPage.posterSettings}
+          currentPageSlots={currentPage.slots}
+        />
+
         {/* Workspace Center Display (Canvas Area + Fixed Bottom Filmstrip Navigator) */}
         <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-stone-200/60 relative">
           {/* Mobile Only: Top Filmstrip Bar for fast page selection right above canvas */}
